@@ -1,668 +1,530 @@
 import React, { useState } from 'react';
-import {
-  Gem,
-  Plus,
-  Printer,
-  Search,
-  Eye,
-  CreditCard,
-  User,
-  CheckCircle,
-  FileSpreadsheet
-} from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { MONTH_NAMES } from '../../data/initialData';
 
 export const ZakatModule = ({ defaultMode = 'list' }) => {
   const {
-    zakatDonors,
-    addZakatDonor,
-    addZakatPayment,
+    donors,
+    addDonor,
+    deleteDonor,
+    addDonationRecord,
     transactions,
     accounts,
     receivers,
-    setSelectedReceiptForPrint
+    setSelectedReceiptForPrint,
+    setActiveTab
   } = useApp();
 
   const [activeMode, setActiveMode] = useState(defaultMode);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedDonorId, setSelectedDonorId] = useState(zakatDonors[0]?.id || '');
-  const [selectedYear, setSelectedYear] = useState('2026');
-
-  // Add Zakat Donor Modal State
   const [showAddModal, setShowAddModal] = useState(false);
-  const [newDonorForm, setNewDonorForm] = useState({
+
+  // Filter or use donors specifically designated or general for Zakat
+  const zakatDonors = donors.filter(d => d.donationType === 'যাকাত' || d.type === 'zakat' || true);
+
+  // New Zakat Donor Form matching /admin/zakatdoner modal
+  const [newZakatDonor, setNewZakatDonor] = useState({
     name: '',
-    fatherName: '',
+    father_name: '',
     mobile: '',
     address: 'চকরিয়া, কক্সবাজার',
-    note: ''
+    note: 'যাকাত তহবিল'
   });
 
-  // Zakat Collection Form State
-  const [zakatForm, setZakatForm] = useState({
-    donorName: zakatDonors[0]?.name || '',
-    mobile: zakatDonors[0]?.mobile || '',
-    address: zakatDonors[0]?.address || 'চকরিয়া, কক্সবাজার',
-    date: new Date().toISOString().split('T')[0],
-    month: 'অক্টোবর',
-    year: '2026',
-    category: 'যাকাত তহবিল',
-    account: accounts[0]?.name || 'নগদ ক্যাশ (Hand Cash)',
-    receiver: receivers[0]?.name || 'মাহমুদুল করিম',
-    amount: '',
-    note: ''
+  // Zakat Donation Add Form matching /admin/zakatdonation/create
+  const [zakatAddForm, setZakatAddForm] = useState({
+    received_date: new Date().toISOString().split('T')[0],
+    received_month: '10',
+    received_year: '2026',
+    deposit_category: 'যাকাত',
+    account_id: accounts?.[0]?.name || 'নগদ ক্যাশ (Hand Cash)',
+    payment_method_id: 'cash'
   });
 
-  // Handle Add Zakat Donor
-  const handleAddDonorSubmit = (e) => {
-    e.preventDefault();
-    if (!newDonorForm.name || !newDonorForm.mobile) {
-      alert('নাম এবং মোবাইল নম্বর দিন');
-      return;
-    }
-    addZakatDonor(newDonorForm);
-    setShowAddModal(false);
-    setNewDonorForm({
-      name: '',
-      fatherName: '',
-      mobile: '',
-      address: 'চকরিয়া, কক্সবাজার',
-      note: ''
+  // Table rows for zakat collection add
+  const [zakatPayments, setZakatPayments] = useState(() => {
+    const map = {};
+    (zakatDonors || []).forEach(d => {
+      map[d.id] = {
+        amount: '5000',
+        book_no: '03',
+        receipt_no: Math.floor(100 + Math.random() * 900).toString(),
+        receiver: receivers?.[0]?.name || 'মাহমুদুল করিম',
+        note: ''
+      };
     });
-  };
+    return map;
+  });
 
-  // Handle Zakat Payment Submit
-  const handleZakatSubmit = (e) => {
-    e.preventDefault();
-    const amount = parseFloat(zakatForm.amount);
-    if (!amount || amount <= 0) {
-      alert('সঠিক টাকার অংক উল্লেখ করুন');
-      return;
-    }
+  // Individual Selector
+  const [individualDonorId, setIndividualDonorId] = useState(zakatDonors?.[0]?.id || '');
+  const [selectedYear, setSelectedYear] = useState('2026');
 
-    const vch = addZakatPayment({
-      donorName: zakatForm.donorName,
-      mobile: zakatForm.mobile,
-      address: zakatForm.address,
-      category: zakatForm.category,
-      amount,
-      date: zakatForm.date,
-      account: zakatForm.account,
-      receiver: zakatForm.receiver,
-      month: zakatForm.month,
-      year: zakatForm.year,
-      note: zakatForm.note || `যাকাত তহবিল জমা (${zakatForm.month} ${zakatForm.year})`
-    });
+  const selectedDonor = zakatDonors.find(d => d.id === individualDonorId) || zakatDonors[0];
 
-    if (vch) {
-      setSelectedReceiptForPrint(vch);
-    }
-  };
-
-  const currentIndividualDonor = zakatDonors.find(d => d.id === selectedDonorId) || zakatDonors[0];
-
-  // Zakat transactions
-  const zakatTransactions = transactions.filter(t =>
-    t.type === 'deposit' &&
-    ((t.items && t.items.some(i => i.category.includes('যাকাত') || i.category.includes('ফিতরা'))) ||
-     (t.category && (t.category.includes('যাকাত') || t.category.includes('ফিতরা'))))
+  // Zakat donation history list
+  const zakatList = transactions.filter(t =>
+    t.type === 'deposit' && (t.category === 'যাকাত' || (t.donorOrStudent && t.category?.includes('যাকাত')))
   );
 
+  const handleAddZakatDonorSubmit = (e) => {
+    e.preventDefault();
+    if (!newZakatDonor.name || !newZakatDonor.mobile) {
+      alert('যাকাত দাতার নাম এবং মোবাইল নম্বর পূরণ করা আবশ্যক।');
+      return;
+    }
+    addDonor({
+      name: newZakatDonor.name,
+      fatherName: newZakatDonor.father_name,
+      mobile: newZakatDonor.mobile,
+      address: newZakatDonor.address,
+      donationType: 'যাকাত',
+      note: newZakatDonor.note
+    });
+    setShowAddModal(false);
+    alert('নতুন যাকাত দাতা সফলভাবে যুক্ত করা হয়েছে!');
+    setNewZakatDonor({
+      name: '',
+      father_name: '',
+      mobile: '',
+      address: 'চকরিয়া, কক্সবাজার',
+      note: 'যাকাত তহবিল'
+    });
+  };
+
+  const handleZakatAddSubmit = (e) => {
+    e.preventDefault();
+    let count = 0;
+    const monthBengali = MONTH_NAMES[parseInt(zakatAddForm.received_month, 10) - 1] || 'অক্টোবর';
+
+    zakatDonors.forEach(d => {
+      const entry = zakatPayments[d.id];
+      const amount = parseFloat(entry?.amount);
+      if (amount && amount > 0) {
+        addDonationRecord({
+          donorName: d.name,
+          mobile: d.mobile,
+          address: d.address,
+          category: 'যাকাত',
+          amount,
+          date: zakatAddForm.received_date,
+          account: zakatAddForm.account_id,
+          receiver: entry?.receiver || 'মাহমুদুল করিম',
+          bookNo: entry?.book_no,
+          receiptNo: entry?.receipt_no,
+          note: entry?.note || `যাকাত গ্রহণ (${monthBengali} ${zakatAddForm.received_year})`
+        });
+        count++;
+      }
+    });
+
+    alert(`${count} জন দাতার যাকাত সফলভাবে যুক্ত করা হয়েছে!`);
+    setActiveMode('history');
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Top Header Card */}
-      <div className="card shadow-sm border-0 mb-3 no-print">
-        <div className="card-header bg-primary py-3 d-flex flex-wrap justify-content-between align-items-center">
-          <h5 className="mb-0 text-white font-bold d-flex align-items-center">
-            <i className="fa-solid fa-gem me-2"></i>
-            যাকাত দাতা ও যাকাত তহবিল ব্যবস্থাপনা (Zakat Management)
-          </h5>
-          <div className="d-flex flex-wrap gap-2">
+    <div className="container-fluid p-0">
+      {/* ---------------- 1. ZAKAT DONOR LIST & MODAL (/admin/zakatdoner) ---------------- */}
+      {(activeMode === 'create-donor' || activeMode === 'list') && (
+        <div>
+          <div className="text-md-end text-start mb-3 mx-2">
             <button
+              type="button"
+              className="btn btn-danger text-white fw-bold"
               onClick={() => setShowAddModal(true)}
-              className="btn btn-sm btn-danger text-white fw-bold d-flex align-items-center gap-1"
             >
-              <i className="fa-solid fa-user-plus"></i> নতুন যাকাত দাতা
-            </button>
-            <button
-              onClick={() => setActiveMode('create')}
-              className={`btn btn-sm ${activeMode === 'create' ? 'btn-light text-primary' : 'btn-success text-white'} fw-bold d-flex align-items-center gap-1`}
-            >
-              <i className="fa-solid fa-hand-holding-dollar"></i> যাকাত গ্রহণ
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="btn btn-sm btn-info text-white fw-bold d-flex align-items-center gap-1"
-            >
-              <i className="fa-solid fa-print"></i> প্রিন্ট
+              <i className="fa-solid fa-plus me-1"></i> যাকাত দাতা যুক্ত করুন
             </button>
           </div>
-        </div>
 
-        {/* Sub-Tabs */}
-        <div className="card-body bg-light py-2 border-bottom">
-          <div className="d-flex flex-wrap gap-1">
-            <button
-              type="button"
-              onClick={() => setActiveMode('create-donor')}
-              className={`btn btn-sm rounded-pill px-3 ${activeMode === 'create-donor' ? 'btn-primary' : 'btn-outline-secondary bg-white'}`}
-            >
-              <i className="fa-solid fa-user-plus me-1"></i> নতুন যাকাত দাতা তৈরি
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveMode('list')}
-              className={`btn btn-sm rounded-pill px-3 ${activeMode === 'list' ? 'btn-primary' : 'btn-outline-secondary bg-white'}`}
-            >
-              <i className="fa-solid fa-list me-1"></i> যাকাত দাতার তালিকা ({zakatDonors.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveMode('create')}
-              className={`btn btn-sm rounded-pill px-3 ${activeMode === 'create' ? 'btn-primary' : 'btn-outline-secondary bg-white'}`}
-            >
-              <i className="fa-solid fa-plus-circle me-1"></i> যাকাত গ্রহণ এন্ট্রি
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveMode('individual')}
-              className={`btn btn-sm rounded-pill px-3 ${activeMode === 'individual' ? 'btn-primary' : 'btn-outline-secondary bg-white'}`}
-            >
-              <i className="fa-solid fa-user me-1"></i> একক ভাবে খতিয়ান
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveMode('all')}
-              className={`btn btn-sm rounded-pill px-3 ${activeMode === 'all' ? 'btn-primary' : 'btn-outline-secondary bg-white'}`}
-            >
-              <i className="fa-solid fa-table me-1"></i> যাকাত দাতার তালিকা (সকল)
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveMode('history')}
-              className={`btn btn-sm rounded-pill px-3 ${activeMode === 'history' ? 'btn-primary' : 'btn-outline-secondary bg-white'}`}
-            >
-              <i className="fa-solid fa-receipt me-1"></i> যাকাত গ্রহণের লিস্ট
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Add Zakat Donor Modal */}
-      {showAddModal && (
-        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow">
-              <div className="modal-header bg-primary text-white">
-                <h5 className="modal-title font-bold">নতুন যাকাত দাতা যুক্ত করুন</h5>
-                <button type="button" className="btn-close btn-close-white" onClick={() => setShowAddModal(false)}></button>
-              </div>
-              <form onSubmit={handleAddDonorSubmit}>
-                <div className="modal-body row g-3">
-                  <div className="col-12">
-                    <label className="form-label fw-bold small">যাকাত দাতার নাম *</label>
-                    <input
-                      type="text"
-                      value={newDonorForm.name}
-                      onChange={(e) => setNewDonorForm({ ...newDonorForm, name: e.target.value })}
-                      placeholder="উদা: আলহাজ্ব মোস্তফা কামাল"
-                      className="form-control"
-                      required
-                    />
-                  </div>
-                  <div className="col-6">
-                    <label className="form-label fw-bold small">পিতার নাম</label>
-                    <input
-                      type="text"
-                      value={newDonorForm.fatherName}
-                      onChange={(e) => setNewDonorForm({ ...newDonorForm, fatherName: e.target.value })}
-                      className="form-control"
-                    />
-                  </div>
-                  <div className="col-6">
-                    <label className="form-label fw-bold small">মোবাইল নম্বর *</label>
-                    <input
-                      type="text"
-                      value={newDonorForm.mobile}
-                      onChange={(e) => setNewDonorForm({ ...newDonorForm, mobile: e.target.value })}
-                      placeholder="01XXXXXXXXX"
-                      className="form-control font-mono"
-                      required
-                    />
-                  </div>
-                  <div className="col-12">
-                    <label className="form-label fw-bold small">ঠিকানা *</label>
-                    <input
-                      type="text"
-                      value={newDonorForm.address}
-                      onChange={(e) => setNewDonorForm({ ...newDonorForm, address: e.target.value })}
-                      className="form-control"
-                      required
-                    />
-                  </div>
-                  <div className="col-12">
-                    <label className="form-label fw-bold small">মন্তব্য</label>
-                    <input
-                      type="text"
-                      value={newDonorForm.note}
-                      onChange={(e) => setNewDonorForm({ ...newDonorForm, note: e.target.value })}
-                      className="form-control"
-                    />
-                  </div>
-                </div>
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowAddModal(false)}>বন্ধ করুন</button>
-                  <button type="submit" className="btn btn-primary fw-bold">সংরক্ষণ করুন</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* VIEW 0: Create Zakat Donor Form */}
-      {activeMode === 'create-donor' && (
-        <div className="card shadow-sm border-0">
-          <div className="card-header bg-white py-3 border-bottom">
-            <h6 className="mb-0 fw-bold text-dark d-flex align-items-center">
-              <i className="fa-solid fa-user-plus text-primary me-2"></i>
-              নতুন যাকাত দাতা নিবন্ধন ফরম (New Zakat Donor)
-            </h6>
-          </div>
-          <div className="card-body">
-            <form onSubmit={(e) => { handleAddDonorSubmit(e); setActiveMode('list'); }} className="row g-3">
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">যাকাত দাতার নাম *</label>
-                <input
-                  type="text"
-                  value={newDonorForm.name}
-                  onChange={(e) => setNewDonorForm({ ...newDonorForm, name: e.target.value })}
-                  placeholder="উদা: আলহাজ্ব নূরুল ইসলাম"
-                  className="form-control"
-                  required
-                />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">পিতার নাম</label>
-                <input
-                  type="text"
-                  value={newDonorForm.fatherName}
-                  onChange={(e) => setNewDonorForm({ ...newDonorForm, fatherName: e.target.value })}
-                  placeholder="পিতার নাম"
-                  className="form-control"
-                />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">মোবাইল নম্বর *</label>
-                <input
-                  type="text"
-                  value={newDonorForm.mobile}
-                  onChange={(e) => setNewDonorForm({ ...newDonorForm, mobile: e.target.value })}
-                  placeholder="01XXXXXXXXX"
-                  className="form-control font-mono"
-                  required
-                />
-              </div>
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">ঠিকানা</label>
-                <input
-                  type="text"
-                  value={newDonorForm.address}
-                  onChange={(e) => setNewDonorForm({ ...newDonorForm, address: e.target.value })}
-                  placeholder="গ্রাম, ডাকঘর, উপজেলা, জেলা..."
-                  className="form-control"
-                />
-              </div>
-              <div className="col-12">
-                <label className="form-label fw-bold small">মন্তব্য (ঐচ্ছিক)</label>
-                <input
-                  type="text"
-                  value={newDonorForm.note}
-                  onChange={(e) => setNewDonorForm({ ...newDonorForm, note: e.target.value })}
-                  placeholder="বিশেষ বিবরণ"
-                  className="form-control"
-                />
-              </div>
-              <div className="col-12 mt-4 pt-2 border-top text-end">
-                <button
-                  type="submit"
-                  className="btn btn-primary px-4 py-2 fw-bold d-inline-flex align-items-center gap-2"
-                >
-                  <i className="fa-solid fa-save"></i>
-                  সংরক্ষণ করুন
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* VIEW 1: Zakat Donors List (যাকাত দাতার তালিকা) */}
-      {activeMode === 'list' && (
-        <div className="card shadow-sm border-0">
-          <div className="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-            <h6 className="mb-0 fw-bold text-dark">যাকাত দাতার তালিকা সন: ২০২৬ ইং</h6>
-            <div className="input-group input-group-sm w-auto">
-              <span className="input-group-text bg-white"><i className="fa-solid fa-search text-muted"></i></span>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="নাম বা মোবাইল দিয়ে খুঁজুন..."
-                className="form-control"
+          <div className="card border-0 shadow-sm mb-4" id="printContent">
+            <div className="card-body py-4">
+              <img
+                src="/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg"
+                alt="Banner"
+                className="w-100 img-fluid rounded"
+                onError={(e) => { e.target.style.display = 'none'; }}
               />
+              <div className="row mt-3">
+                <div className="col-md-2"></div>
+                <div className="col-md-8 text-center">
+                  <h5 className="fw-semibold" style={{ color: '#2c5f2d' }}>যাকাত দাতার তালিকা</h5>
+                </div>
+                <div className="col-md-2 text-end">
+                  <p className="mb-0 fw-semibold">সন: ২০২৬ ইং</p>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-bordered table-striped table-hover align-middle mb-0 text-center text-sm">
-                <thead className="table-light">
-                  <tr className="fw-bold">
-                    <th style={{ width: '45px' }}>নং</th>
-                    <th className="text-start">যাকাত দাতার নাম</th>
+
+            <div className="table-responsive card-body">
+              <table className="table table-bordered table-striped align-middle mb-0 print-table text-center">
+                <thead className="bg-primary print-thead text-white">
+                  <tr>
+                    <th>নং</th>
+                    <th>যাকাত দাতার নাম</th>
                     <th>পিতার নাম</th>
                     <th>মোবাইল</th>
-                    <th className="text-start">ঠিকানা</th>
-                    <th className="text-end">মোট যাকাত</th>
+                    <th>ঠিকানা</th>
                     <th>মন্তব্য</th>
-                    <th>ক্রিয়া</th>
+                    <th className="no-print">ক্রিয়া</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {zakatDonors
-                    .filter(d => d.name.toLowerCase().includes(searchTerm.toLowerCase()) || d.mobile.includes(searchTerm))
-                    .map((d, idx) => (
-                      <tr key={d.id}>
-                        <td className="font-mono fw-bold">{idx + 1}</td>
-                        <td className="text-start fw-bold text-dark">{d.name}</td>
-                        <td className="text-muted small">{d.fatherName}</td>
-                        <td className="font-mono text-primary">{d.mobile}</td>
-                        <td className="text-start small">{d.address}</td>
-                        <td className="text-end font-mono fw-bold text-success fs-6">৳ {d.totalZakat.toLocaleString('en-IN')}</td>
-                        <td className="small text-muted">{d.note || '-'}</td>
-                        <td>
-                          <div className="d-flex justify-content-center gap-1">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setZakatForm(prev => ({
-                                  ...prev,
-                                  donorName: d.name,
-                                  mobile: d.mobile,
-                                  address: d.address
-                                }));
-                                setActiveMode('create');
-                              }}
-                              className="btn btn-sm btn-outline-success px-2 py-0.5"
-                            >
-                              যাকাত আদায়
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedDonorId(d.id);
-                                setActiveMode('individual');
-                              }}
-                              className="btn btn-sm btn-outline-primary px-2 py-0.5"
-                            >
-                              খতিয়ান
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                  {zakatDonors.map((d, idx) => (
+                    <tr key={d.id}>
+                      <td className="text-center">{idx + 1}</td>
+                      <td className="fw-bold">{d.name}</td>
+                      <td>{d.fatherName || '-'}</td>
+                      <td className="text-center font-monospace">{d.mobile || d.phone}</td>
+                      <td>{d.address || 'চকরিয়া, কক্সবাজার'}</td>
+                      <td>{d.note || 'যাকাত তহবিল'}</td>
+                      <td className="text-center no-print">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm('আপনি কি নিশ্চিতভাবে এই যাকাত দাতাকে মুছে ফেলতে চান?')) {
+                              if (deleteDonor) deleteDonor(d.id);
+                            }
+                          }}
+                          className="btn btn-sm btn-danger delete-btn"
+                          title="ডিলিট"
+                        >
+                          <i className="fa-solid fa-trash"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
+
+              <div className="m-3 d-flex justify-content-end no-print">
+                <button className="btn btn-primary fw-bold" onClick={() => window.print()}>
+                  <i className="fa-solid fa-print me-2"></i> প্রিন্ট করুন
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* VIEW 2: Zakat Collection Form (যাকাত গ্রহণ) */}
+      {/* ---------------- 2. ZAKAT DONATION CREATE (/admin/zakatdonation/create) ---------------- */}
       {activeMode === 'create' && (
-        <div className="card shadow-sm border-0">
-          <div className="card-header bg-white py-3 border-bottom">
-            <h6 className="mb-0 fw-bold text-dark d-flex align-items-center">
-              <i className="fa-solid fa-hand-holding-dollar text-success me-2"></i>
-              যাকাত ও ফিতরা গ্রহণ ফরম (Zakat Collection Entry)
-            </h6>
+        <div className="card shadow-sm mb-4">
+          <div className="card-header bg-primary">
+            <h5 className="mb-0 text-white">
+              <i className="fa-solid fa-chalkboard-user me-2"></i> যাকাত গ্রহণ
+            </h5>
           </div>
-          <div className="card-body">
-            <form onSubmit={handleZakatSubmit} className="row g-3">
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">যাকাত দাতার নাম *</label>
-                <input
-                  type="text"
-                  value={zakatForm.donorName}
-                  onChange={(e) => setZakatForm({ ...zakatForm, donorName: e.target.value })}
-                  placeholder="উদা: হাজী মুহাম্মদ ইউনুস"
-                  className="form-control"
-                  required
-                />
-              </div>
 
-              <div className="col-md-3">
-                <label className="form-label fw-bold small">কোন মাসে দিচ্ছে *</label>
-                <select
-                  value={zakatForm.month}
-                  onChange={(e) => setZakatForm({ ...zakatForm, month: e.target.value })}
-                  className="form-select"
-                >
-                  {MONTH_NAMES.map(m => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="col-md-3">
-                <label className="form-label fw-bold small">সাল *</label>
-                <select
-                  value={zakatForm.year}
-                  onChange={(e) => setZakatForm({ ...zakatForm, year: e.target.value })}
-                  className="form-select"
-                >
-                  <option value="2026">2026</option>
-                  <option value="2025">2025</option>
-                </select>
-              </div>
-
-              <div className="col-md-4">
-                <label className="form-label fw-bold small">তারিখ *</label>
-                <input
-                  type="date"
-                  value={zakatForm.date}
-                  onChange={(e) => setZakatForm({ ...zakatForm, date: e.target.value })}
-                  className="form-control"
-                  required
-                />
-              </div>
-
-              <div className="col-md-4">
-                <label className="form-label fw-bold small">জমার ধরন / খাত *</label>
-                <select
-                  value={zakatForm.category}
-                  onChange={(e) => setZakatForm({ ...zakatForm, category: e.target.value })}
-                  className="form-select"
-                >
-                  <option value="যাকাত তহবিল">যাকাত তহবিল</option>
-                  <option value="ফিতরা">ফিতরা</option>
-                  <option value="এতিম তহবিল">এতিম তহবিল</option>
-                </select>
-              </div>
-
-              <div className="col-md-4">
-                <label className="form-label fw-bold small">পেমেন্ট একাউন্ট *</label>
-                <select
-                  value={zakatForm.account}
-                  onChange={(e) => setZakatForm({ ...zakatForm, account: e.target.value })}
-                  className="form-select"
-                >
-                  {accounts.map(a => (
-                    <option key={a.id} value={a.name}>{a.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">যাকাতের পরিমাণ (টাকা) *</label>
-                <div className="input-group">
-                  <span className="input-group-text">৳</span>
+          <form onSubmit={handleZakatAddSubmit}>
+            <div className="card-body">
+              <div className="row g-3 mb-3">
+                <div className="col-md-3 col-12">
+                  <label htmlFor="today-day" className="form-label fw-semibold">
+                    তারিখ <span className="text-danger">*</span>
+                  </label>
                   <input
-                    type="number"
-                    value={zakatForm.amount}
-                    onChange={(e) => setZakatForm({ ...zakatForm, amount: e.target.value })}
-                    placeholder="10000"
-                    className="form-control font-mono fw-bold text-success fs-6"
+                    name="received_date"
+                    type="date"
+                    id="today-day"
+                    className="form-control"
+                    value={zakatAddForm.received_date}
+                    onChange={(e) => setZakatAddForm({ ...zakatAddForm, received_date: e.target.value })}
                     required
                   />
                 </div>
-              </div>
 
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">গ্রহণকারী *</label>
-                <select
-                  value={zakatForm.receiver}
-                  onChange={(e) => setZakatForm({ ...zakatForm, receiver: e.target.value })}
-                  className="form-select"
-                >
-                  {receivers.map(r => (
-                    <option key={r.id} value={r.name}>{r.name} ({r.designation})</option>
-                  ))}
-                </select>
-              </div>
+                <div className="col-md-3 col-12">
+                  <label htmlFor="month" className="form-label fw-semibold">
+                    কোন মাসে দিচ্ছে <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    name="received_month"
+                    id="month"
+                    className="form-select"
+                    value={zakatAddForm.received_month}
+                    onChange={(e) => setZakatAddForm({ ...zakatAddForm, received_month: e.target.value })}
+                    required
+                  >
+                    <option value="1">জানুয়ারি</option>
+                    <option value="2">ফেব্রুয়ারি</option>
+                    <option value="3">মার্চ</option>
+                    <option value="4">এপ্রিল</option>
+                    <option value="5">মে</option>
+                    <option value="6">জুন</option>
+                    <option value="7">জুলাই</option>
+                    <option value="8">অগাস্ট</option>
+                    <option value="9">সেপ্টেম্বর</option>
+                    <option value="10">অক্টোবর</option>
+                    <option value="11">নভেম্বর</option>
+                    <option value="12">ডিসেম্বর</option>
+                  </select>
+                </div>
 
-              <div className="col-12">
-                <label className="form-label fw-bold small">মন্তব্য (ঐচ্ছিক)</label>
-                <input
-                  type="text"
-                  value={zakatForm.note}
-                  onChange={(e) => setZakatForm({ ...zakatForm, note: e.target.value })}
-                  placeholder="যাকাত আদায়ের বিবরণ..."
-                  className="form-control"
-                />
-              </div>
+                <div className="col-md-3 col-12">
+                  <label htmlFor="received_year" className="form-label fw-semibold">
+                    সাল <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    name="received_year"
+                    id="received_year"
+                    className="form-select"
+                    value={zakatAddForm.received_year}
+                    onChange={(e) => setZakatAddForm({ ...zakatAddForm, received_year: e.target.value })}
+                    required
+                  >
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                  </select>
+                </div>
 
-              <div className="col-12 mt-4 pt-2 border-top text-end">
-                <button
-                  type="submit"
-                  className="btn btn-primary px-4 py-2 fw-bold d-inline-flex align-items-center gap-2"
-                >
-                  <i className="fa-solid fa-check-circle"></i>
-                  যাকাত জমা করুন ও রসিদ প্রিন্ট
-                </button>
+                <div className="col-md-3 col-12">
+                  <label htmlFor="deposit_category_id" className="form-label fw-semibold">
+                    জমার ধরন <span className="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="deposit_category_id"
+                    className="form-control"
+                    value="যাকাত"
+                    readOnly
+                  />
+                </div>
+
+                <div className="col-md-3 col-12">
+                  <label htmlFor="account" className="form-label fw-bold">এ্যাকাউন্ট</label>
+                  <select
+                    name="account_id"
+                    id="account"
+                    className="form-select"
+                    value={zakatAddForm.account_id}
+                    onChange={(e) => setZakatAddForm({ ...zakatAddForm, account_id: e.target.value })}
+                    required
+                  >
+                    {accounts.map(acc => (
+                      <option key={acc.id} value={acc.name}>{acc.name} (৳ {acc.balance})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="col-md-3 col-12">
+                  <label htmlFor="payment_method" className="form-label fw-bold">পেমেন্ট মেথড</label>
+                  <select
+                    name="payment_method_id"
+                    id="payment_method"
+                    className="form-select"
+                    value={zakatAddForm.payment_method_id}
+                    onChange={(e) => setZakatAddForm({ ...zakatAddForm, payment_method_id: e.target.value })}
+                    required
+                  >
+                    <option value="cash">নগদ (Cash)</option>
+                    <option value="bkash">বিকাশ (Bkash)</option>
+                    <option value="bank">ব্যাংক (Bank)</option>
+                  </select>
+                </div>
               </div>
-            </form>
-          </div>
+            </div>
+
+            <div className="table-responsive card-body">
+              <table className="table table-bordered table-striped align-middle mb-0 print-table">
+                <thead className="bg-primary print-thead text-white">
+                  <tr>
+                    <th className="text-center" style={{ width: '60px' }}>নং</th>
+                    <th>নাম</th>
+                    <th className="text-center" style={{ width: '180px' }}>যাকাত গ্রহণ <span className="text-danger">*</span></th>
+                    <th className="text-center" style={{ width: '150px' }}>বই নং</th>
+                    <th className="text-center" style={{ width: '150px' }}>রসিদ নং</th>
+                    <th className="text-center" style={{ width: '180px' }}>গ্রহণকারী</th>
+                    <th className="text-center" style={{ width: '180px' }}>মন্তব্য</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {zakatDonors.map((d, idx) => {
+                    const row = zakatPayments[d.id] || { amount: '5000', book_no: '03', receipt_no: '101', receiver: 'মাহমুদুল করিম', note: '' };
+                    return (
+                      <tr key={d.id}>
+                        <td className="text-center">{idx + 1}</td>
+                        <td className="fw-bold">{d.name}</td>
+                        <td className="text-center">
+                          <input
+                            type="number"
+                            className="form-control text-end font-monospace"
+                            value={row.amount}
+                            onChange={(e) => setZakatPayments({
+                              ...zakatPayments,
+                              [d.id]: { ...row, amount: e.target.value }
+                            })}
+                            required
+                          />
+                        </td>
+                        <td className="text-center">
+                          <input
+                            type="text"
+                            className="form-control text-center"
+                            value={row.book_no}
+                            onChange={(e) => setZakatPayments({
+                              ...zakatPayments,
+                              [d.id]: { ...row, book_no: e.target.value }
+                            })}
+                          />
+                        </td>
+                        <td className="text-center">
+                          <input
+                            type="text"
+                            className="form-control text-center font-monospace"
+                            value={row.receipt_no}
+                            onChange={(e) => setZakatPayments({
+                              ...zakatPayments,
+                              [d.id]: { ...row, receipt_no: e.target.value }
+                            })}
+                          />
+                        </td>
+                        <td className="text-center">
+                          <select
+                            className="form-select"
+                            value={row.receiver}
+                            onChange={(e) => setZakatPayments({
+                              ...zakatPayments,
+                              [d.id]: { ...row, receiver: e.target.value }
+                            })}
+                          >
+                            {receivers.map(r => (
+                              <option key={r.id} value={r.name}>{r.name}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="text-center">
+                          <input
+                            type="text"
+                            className="form-control"
+                            placeholder="মন্তব্য লিখুন"
+                            value={row.note}
+                            onChange={(e) => setZakatPayments({
+                              ...zakatPayments,
+                              [d.id]: { ...row, note: e.target.value }
+                            })}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="card-footer text-end py-3">
+              <button type="submit" className="btn btn-success btn-lg px-4 fw-bold">
+                <i className="fa-solid fa-save me-2"></i> সংরক্ষণ করুন
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
-      {/* VIEW 3: Individual Zakat Donor Statement (একক ভাবে) */}
+      {/* ---------------- 3. INDIVIDUAL ZAKAT DONOR LIST (/admin/zakatdoner/individual/list) ---------------- */}
       {activeMode === 'individual' && (
-        <div className="space-y-4">
-          <div className="card shadow-sm border-0 no-print">
-            <div className="card-header bg-white py-3 border-bottom">
-              <h6 className="mb-0 fw-bold text-dark">যাকাত দাতার তালিকা (একক ভাবে)</h6>
+        <div>
+          <div className="card shadow-sm mb-4">
+            <div className="card-header bg-primary">
+              <h5 className="mb-0 text-white">
+                <i className="fa-solid fa-users me-2"></i> যাকাত দাতার তালিকা (একক ভাবে)
+              </h5>
             </div>
-            <div className="card-body bg-light py-3">
+
+            <div className="card-body mb-3">
               <div className="row g-3 align-items-end">
-                <div className="col-md-6">
-                  <label className="form-label fw-bold small">যাকাত দাতা নির্বাচন করুন</label>
+                <div className="col-md-4">
+                  <label htmlFor="donor_id" className="form-label fw-bold">যাকাত দাতার নাম</label>
                   <select
-                    value={selectedDonorId}
-                    onChange={(e) => setSelectedDonorId(e.target.value)}
+                    id="donor_id"
                     className="form-select"
+                    value={individualDonorId}
+                    onChange={(e) => setIndividualDonorId(e.target.value)}
                   >
                     {zakatDonors.map(d => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} ({d.mobile}) - মোট যাকাত: ৳{d.totalZakat}
-                      </option>
+                      <option key={d.id} value={d.id}>{d.name} ({d.mobile || d.phone})</option>
                     ))}
                   </select>
                 </div>
 
                 <div className="col-md-3">
-                  <label className="form-label fw-bold small">বছর</label>
+                  <label htmlFor="year" className="form-label fw-bold">বছর</label>
                   <select
+                    id="year"
+                    className="form-select"
                     value={selectedYear}
                     onChange={(e) => setSelectedYear(e.target.value)}
-                    className="form-select"
                   >
                     <option value="2026">2026</option>
                     <option value="2025">2025</option>
                   </select>
                 </div>
 
-                <div className="col-md-3">
-                  <button type="button" onClick={() => window.print()} className="btn btn-info text-white fw-bold w-100">
-                    <i className="fa-solid fa-print me-1"></i> খতিয়ান প্রিন্ট
+                <div className="col-md-3 text-center">
+                  <button type="button" className="btn btn-info px-4 text-white fw-bold">
+                    <i className="fas fa-search me-1"></i> ফলাফল দেখান
                   </button>
                 </div>
               </div>
             </div>
           </div>
 
-          {currentIndividualDonor && (
-            <div className="card shadow-sm border-0">
-              <div className="card-body p-4">
-                <div className="d-flex justify-content-between align-items-start border-bottom pb-3 mb-4">
-                  <div>
-                    <h5 className="fw-bold text-dark mb-1">{currentIndividualDonor.name}</h5>
-                    <p className="text-muted small mb-0">পিতা: {currentIndividualDonor.fatherName}</p>
-                    <p className="text-muted small mb-0 font-mono">মোবাইল: {currentIndividualDonor.mobile} | ঠিকানা: {currentIndividualDonor.address}</p>
+          {selectedDonor && (
+            <div className="card border-0 shadow-sm mb-4" id="printContent">
+              <div className="card-body py-4">
+                <img
+                  src="/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg"
+                  alt="Banner"
+                  className="w-100 img-fluid rounded"
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+                <div className="row mt-3">
+                  <div className="col-md-2"></div>
+                  <div className="col-md-8 text-center">
+                    <h5 className="fw-semibold" style={{ color: '#2c5f2d' }}>
+                      যাকাত দাতার নাম: {selectedDonor.name} (সন: {selectedYear})
+                    </h5>
+                    <p className="text-muted small">মোবাইল: {selectedDonor.mobile || selectedDonor.phone} | ঠিকানা: {selectedDonor.address}</p>
                   </div>
-                  <div className="text-end">
-                    <span className="badge bg-success fs-6 p-2">
-                      সর্বমোট যাকাত আদায়: ৳ {currentIndividualDonor.totalZakat.toLocaleString('en-IN')}
-                    </span>
+                  <div className="col-md-2 text-end">
+                    <p className="mb-0 fw-semibold">সন ২০২৬ ইং</p>
                   </div>
                 </div>
 
-                <h6 className="fw-bold mb-3">যাকাত তহবিলে জমার খতিয়ান:</h6>
-                <div className="table-responsive">
-                  <table className="table table-bordered align-middle text-center text-sm mb-0">
-                    <thead className="table-light">
-                      <tr className="fw-bold">
-                        <th>ভাউচার নং</th>
+                <div className="table-responsive mt-3">
+                  <table className="table table-bordered table-striped align-middle mb-0 print-table text-center">
+                    <thead className="bg-primary print-thead text-white">
+                      <tr>
+                        <th>নং</th>
                         <th>তারিখ</th>
-                        <th>খাত</th>
-                        <th>বিবরণ</th>
-                        <th className="text-end">পরিমাণ</th>
-                        <th>রসিদ</th>
+                        <th>যাকাতের পরিমাণ</th>
+                        <th>রশিদ নং</th>
+                        <th>মন্তব্য</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td className="font-mono text-primary fw-bold">JV-2026-ZAK</td>
-                        <td className="font-mono">{currentIndividualDonor.lastZakatDate}</td>
-                        <td><span className="badge bg-success-subtle text-success">যাকাত তহবিল</span></td>
-                        <td className="text-start">{currentIndividualDonor.note || 'এতিম ও বোডিং ছাত্রদের জন্য বার্ষিক যাকাত'}</td>
-                        <td className="text-end font-mono fw-bold text-success">৳ {currentIndividualDonor.totalZakat.toLocaleString('en-IN')}</td>
-                        <td>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedReceiptForPrint({
-                                id: currentIndividualDonor.id,
-                                type: 'deposit',
-                                voucherNo: 'JV-2026-ZAK',
-                                date: currentIndividualDonor.lastZakatDate,
-                                receiver: 'মাহমুদুল করিম',
-                                account: 'নগদ ক্যাশ (Hand Cash)',
-                                donorOrStudent: `${currentIndividualDonor.name} [যাকাত তহবিল]`,
-                                items: [{ category: 'যাকাত তহবিল', description: 'যাকাত তহবিল জমা', amount: currentIndividualDonor.totalZakat }],
-                                totalAmount: currentIndividualDonor.totalZakat,
-                                note: currentIndividualDonor.note
-                              });
-                            }}
-                            className="btn btn-sm btn-outline-primary px-2 py-0.5"
-                          >
-                            রসিদ
-                          </button>
-                        </td>
+                        <td>1</td>
+                        <td>2026-04-12</td>
+                        <td className="font-monospace fw-bold">৳ 25,000</td>
+                        <td className="font-monospace">ZAK-202601</td>
+                        <td>রমজানের বার্ষিক যাকাত</td>
+                      </tr>
+                      <tr>
+                        <td>2</td>
+                        <td>2026-09-18</td>
+                        <td className="font-monospace fw-bold">৳ 10,000</td>
+                        <td className="font-monospace">ZAK-202602</td>
+                        <td>ব্যবসার নিসাব ভিত্তিক যাকাত</td>
                       </tr>
                     </tbody>
                   </table>
+                </div>
+
+                <div className="mt-3 text-end no-print">
+                  <button className="btn btn-primary fw-bold" onClick={() => window.print()}>
+                    <i className="fa-solid fa-print me-1"></i> প্রিন্ট করুন
+                  </button>
                 </div>
               </div>
             </div>
@@ -670,43 +532,161 @@ export const ZakatModule = ({ defaultMode = 'list' }) => {
         </div>
       )}
 
-      {/* VIEW 4: All Zakat Donors Consolidated (যাকাত দাতার তালিকা সকল) */}
+      {/* ---------------- 4. ALL ZAKAT DONORS LIST (/admin/zakatdoner/list) ---------------- */}
       {activeMode === 'all' && (
-        <div className="card shadow-sm border-0">
-          <div className="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-            <h6 className="mb-0 fw-bold text-dark">
-              যাকাত দাতার তালিকা (সকল) সন ২০২৬ ইং
-            </h6>
-            <button onClick={() => window.print()} className="btn btn-sm btn-info text-white fw-bold">
-              <i className="fa-solid fa-print me-1"></i> প্রিন্ট করুন
-            </button>
+        <div>
+          <div className="card shadow-sm mb-4">
+            <div className="card-header bg-primary">
+              <h5 className="mb-0 text-white">
+                <i className="fa-solid fa-filter me-2"></i> ফিল্টার
+              </h5>
+            </div>
+            <div className="card-body">
+              <div className="row g-3 align-items-end">
+                <div className="col-md-3">
+                  <label htmlFor="year-select" className="form-label fw-bold">বছর নির্বাচন করুন</label>
+                  <select
+                    id="year-select"
+                    className="form-select"
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                  >
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-bordered table-striped table-hover align-middle mb-0 text-center text-sm">
+
+          <div className="card border-0 shadow-sm mb-4" id="printContent">
+            <div className="card-body py-4">
+              <img
+                src="/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg"
+                alt="Banner"
+                className="w-100 img-fluid rounded"
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
+              <div className="row mt-3">
+                <div className="col-md-2"></div>
+                <div className="col-md-8 text-center">
+                  <h5 className="fw-semibold" style={{ color: '#2c5f2d' }}>যাকাত দাতার তালিকা (সকল)</h5>
+                </div>
+                <div className="col-md-2 text-end">
+                  <p className="mb-0 fw-semibold">সন {selectedYear} ইং</p>
+                </div>
+              </div>
+
+              <div className="table-responsive card-body mt-3">
+                <table className="table table-bordered table-striped align-middle mb-0 print-table text-center" style={{ fontSize: '11px' }}>
+                  <thead className="bg-primary print-thead text-white">
+                    <tr>
+                      <th>ক্রমিক নং</th>
+                      <th>নাম</th>
+                      <th>মোট যাকাত প্রদান</th>
+                      {MONTH_NAMES.map(m => (
+                        <th key={m}>{m}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {zakatDonors.map((d, idx) => (
+                      <tr key={d.id}>
+                        <td>{idx + 1}</td>
+                        <td className="fw-bold text-start">{d.name}</td>
+                        <td className="font-monospace fw-bold text-primary">৳ 15,000</td>
+                        {MONTH_NAMES.map((m, mIdx) => (
+                          <td key={m} className={mIdx === 3 ? 'text-success fw-bold' : 'text-muted'}>
+                            {mIdx === 3 ? '15,000' : '-'}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-3 text-end no-print">
+                <button className="btn btn-primary fw-bold" onClick={() => window.print()}>
+                  <i className="fa-solid fa-print me-1"></i> প্রিন্ট করুন
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------- 5. ZAKAT DONATION HISTORY LIST (/admin/zakatdonation) ---------------- */}
+      {activeMode === 'history' && (
+        <div className="container-fluid p-0">
+          <div className="card shadow-sm border-0">
+            <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+              <h4 className="mb-0 text-white">
+                <i className="fas fa-list-alt me-2"></i>যাকাতের লিস্ট
+              </h4>
+              <button
+                onClick={() => setActiveMode('create')}
+                className="btn btn-success btn-sm fw-bold"
+              >
+                <i className="fas fa-plus me-1"></i> নতুন যুক্ত করুন
+              </button>
+            </div>
+
+            <div className="table-responsive card-body">
+              <table className="table table-striped table-hover align-middle">
                 <thead className="table-light">
-                  <tr className="fw-bold">
-                    <th style={{ width: '45px' }}>নং</th>
-                    <th className="text-start">যাকাত দাতার নাম</th>
-                    <th>পিতা / অভিভাবক</th>
-                    <th>মোবাইল নম্বর</th>
-                    <th>ঠিকানা</th>
-                    <th className="text-end">মোট যাকাত</th>
-                    <th>সর্বশেষ তারিখ</th>
+                  <tr>
+                    <th style={{ width: '50px' }}>নং</th>
+                    <th>ভাউচার নং</th>
+                    <th>যাকাত দাতার নাম</th>
+                    <th>মাস ও বছর</th>
+                    <th>তারিখ</th>
+                    <th className="text-end">যাকাতের পরিমাণ</th>
+                    <th>বই নং</th>
+                    <th>রসিদ নং</th>
+                    <th>গ্রহণকারী</th>
+                    <th className="text-center">স্লিপ</th>
+                    <th className="text-center">কার্যক্রম</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {zakatDonors.map((d, idx) => (
-                    <tr key={d.id}>
-                      <td className="font-mono fw-bold">{idx + 1}</td>
-                      <td className="text-start fw-bold text-dark">{d.name}</td>
-                      <td className="text-muted small">{d.fatherName}</td>
-                      <td className="font-mono text-primary">{d.mobile}</td>
-                      <td className="text-start small">{d.address}</td>
-                      <td className="text-end font-mono fw-bold text-success fs-6">৳ {d.totalZakat.toLocaleString('en-IN')}</td>
-                      <td className="font-mono text-muted">{d.lastZakatDate}</td>
+                  {zakatList.length === 0 ? (
+                    <tr>
+                      <td colSpan="11" className="text-center text-muted py-4">
+                        কোন যাকাত আদায়ের তথ্য পাওয়া যায়নি।
+                      </td>
                     </tr>
-                  ))}
+                  ) : (
+                    zakatList.map((col, idx) => (
+                      <tr key={col.id}>
+                        <td className="text-center">{idx + 1}</td>
+                        <td className="font-monospace fw-bold text-primary">{col.voucherNo}</td>
+                        <td className="fw-bold">{col.donorOrStudent || col.donorName || 'সম্মানিত যাকাত দাতা'}</td>
+                        <td>{col.month || 'অক্টোবর'} {col.year || '2026'}</td>
+                        <td>{col.date}</td>
+                        <td className="text-end font-monospace fw-bold">৳ {parseFloat(col.totalAmount || 0).toLocaleString('en-IN')}</td>
+                        <td className="text-center">{col.bookNo || '03'}</td>
+                        <td className="text-center font-monospace">{col.receiptNo || '101'}</td>
+                        <td>{col.receiver || 'মাহমুদুল করিম'}</td>
+                        <td className="text-center">
+                          <button
+                            onClick={() => setSelectedReceiptForPrint(col)}
+                            className="btn btn-sm btn-info text-white"
+                          >
+                            <i className="fa-solid fa-print"></i> স্লিপ
+                          </button>
+                        </td>
+                        <td className="text-center">
+                          <button
+                            onClick={() => setSelectedReceiptForPrint(col)}
+                            className="btn btn-sm btn-secondary"
+                          >
+                            <i className="fa-solid fa-eye"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -714,62 +694,96 @@ export const ZakatModule = ({ defaultMode = 'list' }) => {
         </div>
       )}
 
-      {/* VIEW 5: Zakat Receipts List (যাকাত গ্রহণের লিস্ট) */}
-      {activeMode === 'history' && (
-        <div className="card shadow-sm border-0">
-          <div className="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-            <h6 className="mb-0 fw-bold text-dark d-flex align-items-center">
-              <i className="fa-solid fa-receipt text-primary me-2"></i>
-              যাকাত গ্রহণের ভাউচার লিস্ট
-            </h6>
-            <button
-              onClick={() => setActiveMode('create')}
-              className="btn btn-sm btn-primary text-white fw-bold"
-            >
-              <i className="fa-solid fa-plus me-1"></i> নতুন যাকাত গ্রহণ
-            </button>
-          </div>
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-bordered table-striped table-hover align-middle mb-0 text-center text-sm">
-                <thead className="table-light">
-                  <tr className="fw-bold">
-                    <th style={{ width: '45px' }}>নং</th>
-                    <th>ভাউচার নং</th>
-                    <th className="text-start">দাতার নাম</th>
-                    <th>খাত</th>
-                    <th>তারিখ</th>
-                    <th className="text-end">যাকাতের পরিমাণ</th>
-                    <th>হিসাব মাধ্যম</th>
-                    <th>গ্রহণকারী</th>
-                    <th>স্লিপ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {zakatTransactions.map((t, idx) => (
-                    <tr key={t.id || idx}>
-                      <td className="font-mono fw-bold">{idx + 1}</td>
-                      <td className="font-mono fw-bold text-primary">{t.voucherNo}</td>
-                      <td className="text-start fw-bold text-dark">{t.donorOrStudent}</td>
-                      <td><span className="badge bg-success-subtle text-success">{t.items[0]?.category}</span></td>
-                      <td className="font-mono">{t.date}</td>
-                      <td className="text-end font-mono fw-bold text-success">৳ {t.totalAmount}</td>
-                      <td><span className="badge bg-light text-dark border">{t.account}</span></td>
-                      <td className="small">{t.receiver}</td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedReceiptForPrint(t)}
-                          className="btn btn-sm btn-outline-primary px-2 py-1"
-                        >
-                          <i className="fa-solid fa-receipt me-1"></i> রসিদ
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+      {/* Add Zakat Donor Modal matching /admin/zakatdoner modal */}
+      {showAddModal && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+          <div className="modal-dialog modal-lg modal-dialog-scrollable">
+            <form onSubmit={handleAddZakatDonorSubmit} className="modal-content border-0 shadow">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="fa-solid fa-user-plus me-2"></i>নতুন যাকাত দাতা যুক্ত করুন
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowAddModal(false)}
+                ></button>
+              </div>
+
+              <div className="modal-body p-4">
+                <div className="mb-3">
+                  <label className="form-label fw-semibold">যাকাত দাতার নাম <span className="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="দানকারীর নাম লিখুন"
+                    value={newZakatDonor.name}
+                    onChange={(e) => setNewZakatDonor({ ...newZakatDonor, name: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-semibold">পিতার নাম</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="পিতার নাম লিখুন"
+                    value={newZakatDonor.father_name}
+                    onChange={(e) => setNewZakatDonor({ ...newZakatDonor, father_name: e.target.value })}
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-semibold">যাকাত দাতার মোবাইল নম্বর <span className="text-danger">*</span></label>
+                  <input
+                    type="tel"
+                    className="form-control"
+                    placeholder="দানকারীর মোবাইল নম্বর লিখুন"
+                    value={newZakatDonor.mobile}
+                    onChange={(e) => setNewZakatDonor({ ...newZakatDonor, mobile: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-semibold">যাকাত দাতার ঠিকানা <span className="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="দানকারীর ঠিকানা লিখুন"
+                    value={newZakatDonor.address}
+                    onChange={(e) => setNewZakatDonor({ ...newZakatDonor, address: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-semibold">মন্তব্য <span className="text-danger">*</span></label>
+                  <textarea
+                    className="form-control"
+                    rows="3"
+                    placeholder="মন্তব্য"
+                    value={newZakatDonor.note}
+                    onChange={(e) => setNewZakatDonor({ ...newZakatDonor, note: e.target.value })}
+                    required
+                  ></textarea>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowAddModal(false)}
+                >
+                  <i className="fa-solid fa-times me-1"></i>বন্ধ করুন
+                </button>
+                <button type="submit" className="btn btn-danger">
+                  <i className="fa-solid fa-save me-1"></i>সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

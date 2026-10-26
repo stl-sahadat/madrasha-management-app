@@ -1,214 +1,254 @@
 import React, { useState } from 'react';
-import {
-  Droplet,
-  Search,
-  Printer,
-  Phone,
-  MessageSquare,
-  Users,
-  GraduationCap
-} from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const StudentBloodGroup = () => {
-  const { students, setActiveTab } = useApp();
-  const [selectedBlood, setSelectedBlood] = useState('সকল গ্রুপ');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [viewMode, setViewMode] = useState('cards'); // 'cards' or 'table'
+  const { students, deleteStudent, setActiveTab } = useApp();
+  const [selectedBlood, setSelectedBlood] = useState('');
+  const [viewStudent, setViewStudent] = useState(null);
 
-  const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
+  const filteredStudents = selectedBlood
+    ? students.filter(s => s.bloodGroup === selectedBlood)
+    : students;
 
-  const filteredStudents = students.filter(s => {
-    const matchBlood = selectedBlood === 'সকল গ্রুপ' || s.bloodGroup === selectedBlood;
-    const matchSearch =
-      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.roll.includes(searchTerm) ||
-      s.guardianPhone.includes(searchTerm) ||
-      s.jamat.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchBlood && matchSearch;
-  });
+  const handleDelete = (id) => {
+    if (window.confirm('আপনি কি নিশ্চিতভাবে এই ছাত্র/ছাত্রীকে মুছে ফেলতে চান?')) {
+      deleteStudent(id);
+    }
+  };
 
   return (
-    <div className="space-y-4">
-      {/* Page Header */}
-      <div className="card shadow-sm border-0 mb-3 no-print">
-        <div className="card-header bg-primary py-3 d-flex flex-wrap justify-content-between align-items-center">
-          <h5 className="mb-0 text-white font-bold d-flex align-items-center">
-            <i className="fa-solid fa-droplet text-danger me-2"></i>
-            রক্তের গ্রুপ অনুসারে ছাত্র/ছাত্রী
+    <div className="container-fluid p-0">
+      <style>{`
+        .student-card-wrapper {
+          flex: 0 0 100%;
+          max-width: 100%;
+        }
+        @media (min-width: 576px) {
+          .student-card-wrapper {
+            flex: 0 0 50%;
+            max-width: 50%;
+          }
+        }
+        @media (min-width: 768px) {
+          .student-card-wrapper {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+          }
+        }
+        @media (min-width: 992px) {
+          .student-card-wrapper {
+            flex: 0 0 25%;
+            max-width: 25%;
+          }
+        }
+        @media (min-width: 1400px) {
+          .student-card-wrapper {
+            flex: 0 0 20%;
+            max-width: 20%;
+          }
+        }
+      `}</style>
+
+      {/* Top Filter Card */}
+      <div className="card shadow-sm mb-4">
+        <div className="card-header bg-primary">
+          <h5 className="mb-0 text-white">
+            <i className="fa-solid fa-users me-2"></i> রক্তের গ্রুপ অনুসারে ছাত্র/ছাত্রী
           </h5>
-          <div className="d-flex gap-2">
-            <div className="btn-group btn-group-sm">
-              <button
-                type="button"
-                onClick={() => setViewMode('cards')}
-                className={`btn ${viewMode === 'cards' ? 'btn-light text-primary fw-bold' : 'btn-outline-light'}`}
-              >
-                <i className="fa-solid fa-grid me-1"></i> কার্ড ভিউ
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('table')}
-                className={`btn ${viewMode === 'table' ? 'btn-light text-primary fw-bold' : 'btn-outline-light'}`}
-              >
-                <i className="fa-solid fa-list me-1"></i> টেবিল ভিউ
-              </button>
-            </div>
-            <button
-              onClick={() => window.print()}
-              className="btn btn-sm btn-info text-white fw-bold d-flex align-items-center gap-1"
-            >
-              <i className="fa-solid fa-print"></i> প্রিন্ট করুন
-            </button>
-          </div>
         </div>
 
-        <div className="card-body bg-light py-3">
-          {/* Blood Group Pills */}
-          <div className="mb-3">
-            <label className="form-label fw-bold small text-muted mb-2">গ্রুপ নির্বাচন করুন:</label>
-            <div className="d-flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setSelectedBlood('সকল গ্রুপ')}
-                className={`btn btn-sm rounded-pill px-3 ${
-                  selectedBlood === 'সকল গ্রুপ' ? 'btn-danger' : 'btn-outline-danger bg-white'
-                }`}
+        <div className="card-body mb-3">
+          <div className="row align-items-end">
+            {/* Left: Select */}
+            <div className="col-md-6">
+              <label htmlFor="blood_group_select" className="form-label fw-bold">
+                রক্তের গ্রুপ
+              </label>
+              <select
+                name="blood_group_id"
+                id="blood_group_select"
+                className="form-select"
+                value={selectedBlood}
+                onChange={(e) => setSelectedBlood(e.target.value)}
               >
-                সকল গ্রুপ ({students.length})
-              </button>
-              {bloodGroups.map(bg => {
-                const count = students.filter(s => s.bloodGroup === bg).length;
-                return (
-                  <button
-                    key={bg}
-                    type="button"
-                    onClick={() => setSelectedBlood(bg)}
-                    className={`btn btn-sm rounded-pill px-3 ${
-                      selectedBlood === bg ? 'btn-danger' : 'btn-outline-danger bg-white'
-                    }`}
-                  >
-                    {bg} ({count})
-                  </button>
-                );
-              })}
+                <option value="">সকল রক্তের গ্রুপ</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+              </select>
             </div>
-          </div>
 
-          {/* Search Box */}
-          <div className="row g-2 align-items-center justify-content-between">
-            <div className="col-md-5">
-              <div className="input-group input-group-sm">
-                <span className="input-group-text bg-white"><i className="fa-solid fa-search text-muted"></i></span>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="নাম, রোল বা মোবাইল দিয়ে খুঁজুন..."
-                  className="form-control"
-                />
-              </div>
-            </div>
-            <div className="col-auto">
-              <span className="badge bg-danger fs-6 px-3 py-2">
-                রক্তদাতা শিক্ষার্থী: <strong>{filteredStudents.length} জন</strong>
-              </span>
+            {/* Right: Add Student button */}
+            <div className="col-md-6 text-md-end text-start mt-3 mt-md-0">
+              <button
+                onClick={() => setActiveTab('student-create')}
+                className="btn btn-danger text-white fw-bold"
+              >
+                <i className="fa-solid fa-plus me-1"></i> নতুন ছাত্র/ছাত্রী যুক্ত করুন
+              </button>
+              <p id="totalStudents" style={{ fontSize: '17px' }} className="mt-3 fw-bold px-3">
+                ছাত্র/ছাত্রী: {filteredStudents.length} জন
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Cards View */}
-      {viewMode === 'cards' ? (
-        <div className="row g-3">
-          {filteredStudents.map((student) => (
-            <div key={student.id} className="col-sm-6 col-md-4 col-lg-3">
-              <div className="card h-100 shadow-sm border border-light-subtle rounded-3 hover-shadow transition">
-                <div className="card-body p-3 text-center position-relative">
-                  {/* Blood Group Badge Top Right */}
-                  <span className="position-absolute top-0 end-0 m-2 badge bg-danger fs-6 fw-bold shadow-xs">
-                    {student.bloodGroup || 'A+'}
-                  </span>
+      {/* Students Container */}
+      <div className="row g-4" id="studentsContainer">
+        {filteredStudents.length === 0 ? (
+          <div className="col-12 text-center py-5">
+            <p className="text-muted">এই রক্তের গ্রুপের কোন ছাত্র/ছাত্রী পাওয়া যায়নি</p>
+          </div>
+        ) : (
+          filteredStudents.map((student) => {
+            const phone1 = student.parentsPhone || student.guardianPhone || 'N/A';
+            const phone2 = student.parentsPhone2 || 'N/A';
 
-                  {/* Student Avatar */}
-                  <div className="mx-auto mb-2" style={{ width: '65px', height: '65px' }}>
-                    <img
-                      src={student.photo || '/students/FB_IMG_1791220812856.webp'}
-                      alt={student.name}
-                      className="rounded-circle img-fluid border border-2 border-primary object-cover w-100 h-100"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(student.name) + '&background=0f626a&color=fff';
-                      }}
-                    />
+            return (
+              <div key={student.id} className="student-card-wrapper">
+                <div className="card b-t-4-primary h-100 shadow-sm">
+                  <div className="card-body text-center p-3 pb-0">
+                    <div className="mb-2">
+                      <img
+                        src={student.photo || '/students/FB_IMG_1791220812856.webp'}
+                        alt={student.name}
+                        className="rounded-circle border border-2 border-primary"
+                        width="80"
+                        height="80"
+                        style={{ objectFit: 'cover' }}
+                      />
+                    </div>
+
+                    <h6 className="card-title mb-2 text-truncate" title={student.name}>
+                      {student.name}
+                    </h6>
+
+                    <div className="text-start small">
+                      <p className="mb-1">
+                        <strong>জামাত:</strong> <span>{student.jamat}</span>
+                      </p>
+                      <p className="mb-1 text-danger">
+                        <strong>রক্তের গ্রুপ:</strong> <span>{student.bloodGroup || 'A+'}</span>
+                      </p>
+                      <p className="mb-0" style={{ fontSize: '13px' }}>
+                        <strong>Phone 1:</strong> {phone1}{' '}
+                        <span className="text-success">(বাবা)</span>
+                      </p>
+                      <p className="mb-0" style={{ fontSize: '13px' }}>
+                        <strong>Phone 2:</strong> {phone2}
+                      </p>
+                    </div>
                   </div>
 
-                  {/* Details */}
-                  <h6 className="card-title fw-bold text-dark mb-1 text-truncate" title={student.name}>
-                    {student.name}
-                  </h6>
-                  <p className="card-text text-muted small mb-1">
-                    রোল: <span className="font-mono fw-bold text-primary">{student.roll}</span> | {student.jamat}
-                  </p>
-                  <p className="card-text text-muted small mb-3">
-                    পিতা: {student.fatherName}
-                  </p>
-
-                  {/* Action Buttons */}
-                  <div className="d-flex justify-content-center gap-2">
-                    <a
-                      href={`tel:${student.guardianPhone}`}
-                      className="btn btn-sm btn-outline-success d-flex align-items-center gap-1"
-                      title="অভিভাবককে কল করুন"
-                    >
-                      <i className="fa-solid fa-phone"></i>
-                      <span className="small">{student.guardianPhone}</span>
-                    </a>
+                  <div className="card-footer bg-white border-0 p-3">
+                    <div className="d-flex gap-2">
+                      <button
+                        className="btn btn-sm btn-primary flex-fill"
+                        onClick={() => setViewStudent(student)}
+                      >
+                        View
+                      </button>
+                      <button
+                        className="btn btn-sm btn-danger flex-fill"
+                        onClick={() => handleDelete(student.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        /* Table View */
-        <div className="card shadow-sm border-0">
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-bordered table-hover align-middle mb-0 text-center text-xs">
-                <thead className="table-light">
-                  <tr className="fw-bold">
-                    <th style={{ width: '45px' }}>নং</th>
-                    <th className="text-start">শিক্ষার্থীর নাম</th>
-                    <th>রোল</th>
-                    <th>জামাত</th>
-                    <th>রক্তের গ্রুপ</th>
-                    <th>পিতার নাম</th>
-                    <th>অভিভাবক মোবাইল</th>
-                    <th>যোগাযোগ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredStudents.map((s, idx) => (
-                    <tr key={s.id}>
-                      <td className="font-mono fw-bold">{idx + 1}</td>
-                      <td className="text-start fw-bold text-dark">{s.name}</td>
-                      <td className="font-mono text-primary fw-bold">{s.roll}</td>
-                      <td><span className="badge bg-light text-dark border">{s.jamat}</span></td>
-                      <td>
-                        <span className="badge bg-danger fs-6">{s.bloodGroup || 'A+'}</span>
-                      </td>
-                      <td className="text-start">{s.fatherName}</td>
-                      <td className="font-mono">{s.guardianPhone}</td>
-                      <td>
-                        <a href={`tel:${s.guardianPhone}`} className="btn btn-sm btn-success px-2 py-1">
-                          <i className="fa-solid fa-phone me-1"></i> কল
-                        </a>
-                      </td>
+            );
+          })
+        )}
+      </div>
+
+      {/* View Student Modal */}
+      {viewStudent && (
+        <div
+          className="modal fade show d-block"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}
+          role="dialog"
+        >
+          <div className="modal-dialog modal-lg modal-dialog-scrollable">
+            <div className="modal-content">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title">
+                  <i className="fa-solid fa-user-graduate me-2"></i>ছাত্র/ছাত্রীর সম্পূর্ণ তথ্য
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setViewStudent(null)}
+                ></button>
+              </div>
+              <div className="modal-body p-4">
+                <div className="text-center mb-4">
+                  <img
+                    src={viewStudent.photo || '/students/FB_IMG_1791220812856.webp'}
+                    alt={viewStudent.name}
+                    className="rounded-circle mb-2"
+                    style={{ width: '120px', height: '120px', objectFit: 'cover', border: '3px solid #007bff' }}
+                  />
+                  <h4 className="fw-bold mb-0">{viewStudent.name}</h4>
+                </div>
+
+                <table className="table table-bordered table-sm text-start">
+                  <tbody>
+                    <tr>
+                      <td className="fw-bold" style={{ width: '35%' }}>জন্ম তারিখ</td>
+                      <td>{viewStudent.birthDay || viewStudent.dob || 'N/A'}</td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                    <tr>
+                      <td className="fw-bold">রক্তের গ্রুপ</td>
+                      <td><span className="badge bg-danger">{viewStudent.bloodGroup || 'N/A'}</span></td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">Email</td>
+                      <td>{viewStudent.email || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">পিতার নাম</td>
+                      <td>{viewStudent.fatherName || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">অভিভাবকের নাম</td>
+                      <td>{viewStudent.parentsName || viewStudent.fatherName || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">১ম ফোন নম্বর</td>
+                      <td>{viewStudent.parentsPhone || viewStudent.guardianPhone || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">২য় ফোন নম্বর</td>
+                      <td>{viewStudent.parentsPhone2 || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">জামাত</td>
+                      <td>{viewStudent.jamat}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">ভর্তি নম্বর</td>
+                      <td>{viewStudent.admissionNumber || viewStudent.roll || 'N/A'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setViewStudent(null)}
+                >
+                  <i className="fa-solid fa-times me-1"></i>বন্ধ করুন
+                </button>
+              </div>
             </div>
           </div>
         </div>

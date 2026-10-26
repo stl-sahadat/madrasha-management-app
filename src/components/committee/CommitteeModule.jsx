@@ -1,76 +1,219 @@
-import React from 'react';
-import { ShieldCheck, Phone, MapPin, Calendar, Award, UserCheck } from 'lucide-react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 
 export const CommitteeModule = () => {
   const { committee } = useApp();
+  const [showModal, setShowModal] = useState(false);
+
+  // Committee list state
+  const [memberList, setMemberList] = useState(() => {
+    return (committee && committee.length > 0) ? committee : [
+      { id: '1', name: 'হাজী মৌলভী মোঃ ইব্রাহীম', mobile: '01819000111', role: 'সভাপতি', designation: 'সভাপতি', address: 'চকরিয়া, কক্সবাজার' },
+      { id: '2', name: 'মাওলানা আব্দুল হাকিম', mobile: '01819000222', role: 'সহ-সভাপতি', designation: 'সহ-সভাপতি', address: 'বদরখালী, কক্সবাজার' },
+      { id: '3', name: 'মাওলানা মাহমুদুল করিম', mobile: '01820050095', role: 'সাধারণ সম্পাদক / মুহতামিম', designation: 'সাধারণ সম্পাদক / মুহতামিম', address: 'মাদ্রাসা ক্যাম্পাস' },
+      { id: '4', name: 'হাজী মোঃ নুরুল ইসলাম', mobile: '01819000333', role: 'কোষাধ্যক্ষ', designation: 'কোষাধ্যক্ষ', address: 'চকরিয়া, কক্সবাজার' },
+      { id: '5', name: 'মাওলানা সামসুল আলম', mobile: '01819000444', role: 'সদস্য', designation: 'সদস্য', address: 'পেকুয়া, কক্সবাজার' }
+    ];
+  });
+
+  const [formData, setFormData] = useState({
+    name: '',
+    mobile: '',
+    address: 'বদরখালী, কক্সবাজার',
+    designation: 'সদস্য'
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.mobile) {
+      alert('সদস্যের নাম এবং মোবাইল নম্বর পূরণ করা আবশ্যক।');
+      return;
+    }
+    const newMember = {
+      id: (memberList.length + 1).toString(),
+      name: formData.name,
+      mobile: formData.mobile,
+      designation: formData.designation,
+      role: formData.designation,
+      address: formData.address
+    };
+    setMemberList([...memberList, newMember]);
+    setShowModal(false);
+    alert('কমিটির সদস্য সফলভাবে যুক্ত করা হয়েছে!');
+    setFormData({
+      name: '',
+      mobile: '',
+      address: 'বদরখালী, কক্সবাজার',
+      designation: 'সদস্য'
+    });
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm('আপনি কি নিশ্চিতভাবে এই কমিটির সদস্যকে মুছে ফেলতে চান?')) {
+      setMemberList(memberList.filter(m => m.id !== id));
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-2xl p-5 border border-[#e2e8f0] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-[#082f32] flex items-center space-x-2">
-            <ShieldCheck className="w-6 h-6 text-[#0f626a]" />
-            <span>মাদ্রাসা পরিচালনা কমিটি (Governing Body)</span>
-          </h2>
-          <p className="text-xs text-gray-500 mt-0.5">
-            জব্বর নগর স্বতন্ত্র ইবতেদায়ী মাদ্রাসার সম্মানিত কার্যনির্বাহী পরিচালনা পর্ষদ
-          </p>
-        </div>
-
+    <div className="container-fluid p-0">
+      {/* Right: Add Committee member button */}
+      <div className="text-md-end text-start mb-3 mx-2">
         <button
-          onClick={() => window.print()}
-          className="px-4 py-2 bg-[#0f626a] text-white text-xs font-bold rounded-xl shadow hover:bg-[#0c5259] transition"
+          type="button"
+          className="btn btn-danger text-white fw-bold"
+          onClick={() => setShowModal(true)}
         >
-          কমিটি তালিকা প্রিন্ট
+          <i className="fa-solid fa-plus me-1"></i> কমিটির সদস্য যুক্ত করুন
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {committee.map((member) => (
-          <div
-            key={member.id}
-            className="bg-white rounded-2xl p-5 border border-[#e2e8f0] shadow-sm hover:shadow-card transition flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center space-x-3 pb-3 border-b border-gray-100">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-[#0f626a] to-[#13747d] text-white flex items-center justify-center font-bold text-sm shadow">
-                  সদস্য
-                </div>
-                <div>
-                  <h3 className="font-bold text-sm text-gray-900">{member.name}</h3>
-                  <span className="inline-block mt-0.5 px-2 py-0.5 text-[11px] font-bold bg-[#eaf4f5] text-[#0f626a] rounded-full">
-                    {member.role}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-3 space-y-2 text-xs">
-                <div className="flex items-center space-x-2 text-gray-600">
-                  <Phone className="w-3.5 h-3.5 text-[#0f626a]" />
-                  <span className="font-mono font-bold text-gray-800">{member.phone}</span>
-                </div>
-                <div className="flex items-center space-x-2 text-gray-600">
-                  <MapPin className="w-3.5 h-3.5 text-[#0f626a]" />
-                  <span>{member.address}</span>
-                </div>
-                <div className="flex items-center space-x-2 text-gray-600">
-                  <Calendar className="w-3.5 h-3.5 text-[#0f626a]" />
-                  <span>মেয়াদকাল: <strong>{member.tenure}</strong></span>
-                </div>
-              </div>
+      {/* Main Print Content Card */}
+      <div className="card border-0 shadow-sm mb-4" id="printContent">
+        <div className="card-body py-4">
+          <img
+            src="/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg"
+            alt="Banner"
+            className="w-100 img-fluid rounded"
+            onError={(e) => { e.target.style.display = 'none'; }}
+          />
+          <div className="row mt-3">
+            <div className="col-md-2"></div>
+            <div className="col-md-8 text-center">
+              <h5 className="fw-semibold" style={{ color: '#2c5f2d' }}>কমিটির সদস্যদের তালিকা</h5>
             </div>
-
-            <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px]">
-              <span className="text-emerald-700 font-semibold flex items-center space-x-1">
-                <UserCheck className="w-3.5 h-3.5" />
-                <span>অনুমোদিত সদস্য</span>
-              </span>
-              <span className="text-gray-400 font-mono">{member.id}</span>
+            <div className="col-md-2 text-end">
+              <p className="mb-0 fw-semibold">সন ২০২৬ ইং</p>
             </div>
           </div>
-        ))}
+        </div>
+
+        <div className="table-responsive card-body">
+          <table className="table table-bordered table-striped align-middle mb-0 print-table text-center">
+            <thead className="bg-primary print-thead text-white">
+              <tr>
+                <th style={{ width: '60px' }}>নং</th>
+                <th className="text-start">নাম</th>
+                <th>মোবাইল</th>
+                <th>পদবি</th>
+                <th className="text-start">ঠিকানা</th>
+                <th className="no-print" style={{ width: '100px' }}>ক্রিয়া</th>
+              </tr>
+            </thead>
+            <tbody>
+              {memberList.map((m, idx) => (
+                <tr key={m.id}>
+                  <td className="text-center">{idx + 1}</td>
+                  <td className="text-start fw-bold">{m.name}</td>
+                  <td className="font-monospace fw-bold">{m.mobile || m.phone}</td>
+                  <td>
+                    <span className="badge bg-success">{m.designation || m.role}</span>
+                  </td>
+                  <td className="text-start">{m.address}</td>
+                  <td className="text-center no-print">
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(m.id)}
+                      className="btn btn-sm btn-danger delete-btn"
+                      title="ডিলিট"
+                    >
+                      <i className="fa-solid fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="m-3 d-flex justify-content-end no-print">
+            <button className="btn btn-primary fw-bold" onClick={() => window.print()}>
+              <i className="fa-solid fa-print me-2"></i> প্রিন্ট করুন
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* Add Committee Member Modal */}
+      {showModal && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+          <div className="modal-dialog modal-lg modal-dialog-scrollable">
+            <form onSubmit={handleSubmit} className="modal-content border-0 shadow">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="fa-solid fa-user-plus me-2"></i>কমিটির সদস্য যুক্ত করুন
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowModal(false)}
+                ></button>
+              </div>
+
+              <div className="modal-body p-4">
+                <div className="mb-3">
+                  <label className="form-label fw-semibold">কমিটির সদস্যের নাম <span className="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="কমিটির সদস্যের নাম লিখুন"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-semibold">কমিটির সদস্যের মোবাইল নম্বর <span className="text-danger">*</span></label>
+                  <input
+                    type="tel"
+                    className="form-control"
+                    placeholder="কমিটির সদস্যের মোবাইল নম্বর লিখুন"
+                    value={formData.mobile}
+                    onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-semibold">কমিটির সদস্যের ঠিকানা <span className="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="কমিটির সদস্যের ঠিকানা লিখুন"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label fw-semibold">সদস্য পদবি <span className="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="সদস্য পদবি লিখুন (যেমন: সভাপতি, কোষাধ্যক্ষ, সদস্য)"
+                    value={formData.designation}
+                    onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowModal(false)}
+                >
+                  <i className="fa-solid fa-times me-1"></i>বন্ধ করুন
+                </button>
+                <button type="submit" className="btn btn-danger">
+                  <i className="fa-solid fa-save me-1"></i>সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,381 +1,468 @@
 import React, { useState } from 'react';
-import {
-  Search,
-  Plus,
-  Filter,
-  IdCard,
-  CreditCard,
-  Trash2,
-  Printer,
-  Eye,
-  GraduationCap,
-  Phone,
-  Droplet,
-  CheckCircle2,
-  AlertCircle
-} from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const StudentList = () => {
-  const {
-    students,
-    jamats,
-    deleteStudent,
-    setActiveTab,
-    setSelectedStudentForIdCard
-  } = useApp();
+  const { students, jamats, deleteStudent, setActiveTab } = useApp();
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedJamat, setSelectedJamat] = useState('all');
-  const [selectedBlood, setSelectedBlood] = useState('all');
-  const [selectedStudentForView, setSelectedStudentForView] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 25;
+  const [searchAdmission, setSearchAdmission] = useState('');
+  const [searchPhone, setSearchPhone] = useState('');
+  const [searchJamat, setSearchJamat] = useState('');
+  const [selectedModalStudent, setSelectedModalStudent] = useState(null);
+  const [smsModalStudent, setSmsModalStudent] = useState(null);
+  const [smsText, setSmsText] = useState('');
 
   // Filter students
   const filteredStudents = students.filter(s => {
-    const matchSearch =
-      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.roll.includes(searchTerm) ||
-      s.guardianPhone.includes(searchTerm) ||
-      s.fatherName.toLowerCase().includes(searchTerm.toLowerCase());
+    const admissionNo = (s.admissionNumber || s.admission_number || s.roll || '').toString();
+    const phone = (s.parentsPhone || s.parents_phone || s.guardianPhone || '').toString();
+    const jamat = s.jamat || '';
 
-    const matchJamat = selectedJamat === 'all' || s.jamat === selectedJamat;
-    const matchBlood = selectedBlood === 'all' || s.bloodGroup === selectedBlood;
+    const matchAdmission = !searchAdmission || admissionNo.includes(searchAdmission);
+    const matchPhone = !searchPhone || phone.includes(searchPhone);
+    const matchJamat = !searchJamat || jamat === searchJamat;
 
-    return matchSearch && matchJamat && matchBlood;
+    return matchAdmission && matchPhone && matchJamat;
   });
 
-  const totalPages = Math.ceil(filteredStudents.length / pageSize) || 1;
-  const paginatedStudents = filteredStudents.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const handleDelete = (id) => {
+    if (window.confirm('আপনি কি নিশ্চিতভাবে এই ছাত্র/ছাত্রীকে মুছে ফেলতে চান?')) {
+      deleteStudent(id);
+    }
+  };
+
+  const handleSendSms = (student) => {
+    setSmsModalStudent(student);
+    setSmsText(`সম্মানিত অভিভাবক, আপনার সন্তান ${student.name}-এর মাদ্রাসা সংক্রান্ত তথ্য...`);
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Top Header & Actions */}
-      <div className="bg-white rounded-2xl p-5 border border-[#e2e8f0] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-[#082f32] flex items-center space-x-2">
-            <GraduationCap className="w-6 h-6 text-[#0f626a]" />
-            <span>শিক্ষার্থী তালিকা (Student Directory)</span>
-          </h2>
-          <p className="text-xs text-gray-500 mt-1">
-            মাদ্রাসার সকল জামাত ও বিভাগের শিক্ষার্থীদের বিস্তারিত রেজিস্টার ও প্রোফাইল
-          </p>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => window.print()}
-            className="px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition flex items-center space-x-1.5"
-          >
-            <Printer className="w-4 h-4" />
-            <span>প্রিন্ট রেজিস্টার</span>
-          </button>
+    <div className="container-fluid p-0">
+      <div className="card shadow-sm border-0 rounded-3">
+        <div className="card-header bg-white d-flex justify-content-between align-items-center py-3">
+          <h5 className="mb-0">
+            <i className="fas fa-clipboard-list me-2 text-primary"></i>
+            ছাত্র/ছাত্রী লিস্ট
+          </h5>
           <button
             onClick={() => setActiveTab('student-create')}
-            className="px-4 py-2 text-xs font-semibold text-white bg-[#0f626a] hover:bg-[#0c5259] rounded-xl transition shadow-md flex items-center space-x-1.5"
+            className="btn btn-danger text-white fw-bold"
           >
-            <Plus className="w-4 h-4" />
-            <span>নতুন শিক্ষার্থী ভর্তি</span>
+            <i className="fa-solid fa-plus me-1"></i> নতুন ছাত্র/ছাত্রী যুক্ত করুন
           </button>
         </div>
-      </div>
 
-      {/* Filter and Search Bar */}
-      <div className="bg-white rounded-2xl p-4 border border-[#e2e8f0] shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="নাম, রোল, মোবাইল বা পিতার নাম দিয়ে খুঁজুন..."
-            className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-          />
-        </div>
-
-        <div>
-          <select
-            value={selectedJamat}
-            onChange={(e) => setSelectedJamat(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-          >
-            <option value="all">সকল জামাত / শ্রেণী (All Jamats)</option>
-            {jamats.map(j => (
-              <option key={j.id} value={j.name}>{j.name}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <select
-            value={selectedBlood}
-            onChange={(e) => setSelectedBlood(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-          >
-            <option value="all">সকল রক্তের গ্রুপ (Blood Group)</option>
-            <option value="A+">A+</option>
-            <option value="A-">A-</option>
-            <option value="B+">B+</option>
-            <option value="B-">B-</option>
-            <option value="O+">O+</option>
-            <option value="O-">O-</option>
-            <option value="AB+">AB+</option>
-            <option value="AB-">AB-</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Students Table */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-          <span className="text-xs font-bold text-gray-700">
-            মোট প্রদর্শিত শিক্ষার্থী: <span className="text-[#0f626a] font-mono">{filteredStudents.length}</span> জন
-          </span>
-          <span className="text-xs text-gray-400">সেশন: ২০২৬ শিক্ষাবর্ষ</span>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#f0f9fa] text-[#082f32] font-semibold border-b border-gray-200">
-              <tr>
-                <th className="py-3 px-4">ছবি</th>
-                <th className="py-3 px-4">রোল ও নাম</th>
-                <th className="py-3 px-4">জামাত / শ্রেণী</th>
-                <th className="py-3 px-4">অভিভাবক ও যোগাযোগ</th>
-                <th className="py-3 px-4 text-center">রক্তের গ্রুপ</th>
-                <th className="py-3 px-4 text-right">মাসিক বেতন</th>
-                <th className="py-3 px-4 text-right">খোরাকী ফি</th>
-                <th className="py-3 px-4 text-center">অ্যাকশন</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filteredStudents.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="py-8 text-center text-gray-500">
-                    কোন শিক্ষার্থী খুঁজে পাওয়া যায়নি
-                  </td>
-                </tr>
-              ) : (
-                paginatedStudents.map((student) => (
-                  <tr key={student.id} className="hover:bg-gray-50 transition">
-                    <td className="py-3 px-4">
-                      <img
-                        src={student.photo}
-                        alt={student.name}
-                        className="w-10 h-10 rounded-full object-cover border-2 border-[#0f626a]/30 shadow-xs"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "https://images.unsplash.com/photo-1544717305-2782549b5136?w=100&h=100&fit=crop";
-                        }}
-                      />
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="font-bold text-gray-900 text-sm">{student.name}</div>
-                      <div className="text-[11px] text-gray-500 font-mono">
-                        রোল: <span className="font-bold text-[#0f626a]">{student.roll}</span> | {student.nameEn}
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="inline-block px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#eaf4f5] text-[#0f626a] border border-[#0f626a]/20">
-                        {student.jamat}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="text-gray-800 font-medium">পিতা: {student.fatherName}</div>
-                      <div className="text-gray-500 flex items-center space-x-1 font-mono text-[11px] mt-0.5">
-                        <Phone className="w-3 h-3 text-[#0f626a]" />
-                        <span>{student.guardianPhone}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                        <Droplet className="w-2.5 h-2.5 mr-1 text-rose-500" />
-                        {student.bloodGroup}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right font-mono font-bold text-gray-800">
-                      ৳ {student.monthlyFee}
-                    </td>
-                    <td className="py-3 px-4 text-right font-mono font-bold text-gray-800">
-                      ৳ {student.khurakiFee}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <div className="flex items-center justify-center space-x-1.5">
-                        <button
-                          onClick={() => setSelectedStudentForView(student)}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                          title="প্রোফাইল দেখুন"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedStudentForIdCard(student);
-                            setActiveTab('idcard-student');
-                          }}
-                          className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition"
-                          title="আইডি কার্ড প্রিন্ট"
-                        >
-                          <IdCard className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setActiveTab('student-fees')}
-                          className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition"
-                          title="বেতন ও ফি আদায়"
-                        >
-                          <CreditCard className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            if (window.confirm(`${student.name}-কে তালিকা থেকে মুছে ফেলতে চান?`)) {
-                              deleteStudent(student.id);
-                            }
-                          }}
-                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                          title="মুছে ফেলুন"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="p-4 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3 no-print">
-            <span className="text-xs text-gray-500">
-              পৃষ্ঠা <strong>{currentPage}</strong> এর <strong>{totalPages}</strong> (মোট {filteredStudents.length} জন)
-            </span>
-            <div className="flex items-center space-x-1.5">
-              <button
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-1 bg-white border border-gray-300 rounded-lg text-xs font-semibold hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+        <div className="card-body">
+          {/* Custom Search Boxes */}
+          <div className="row mb-3 g-3">
+            <div className="col-md-4">
+              <label htmlFor="search_admission" className="form-label fw-semibold">
+                ভর্তি নম্বর দিয়ে খুঁজুন
+              </label>
+              <input
+                type="text"
+                id="search_admission"
+                className="form-control"
+                placeholder="ভর্তি নম্বর লিখুন"
+                value={searchAdmission}
+                onChange={(e) => setSearchAdmission(e.target.value)}
+              />
+            </div>
+            <div className="col-md-4">
+              <label htmlFor="search_phone" className="form-label fw-semibold">
+                অভিভাবকের মোবাইল ১ দিয়ে খুঁজুন
+              </label>
+              <input
+                type="text"
+                id="search_phone"
+                className="form-control"
+                placeholder="অভিভাবকের মোবাইল ১ নম্বর লিখুন"
+                value={searchPhone}
+                onChange={(e) => setSearchPhone(e.target.value)}
+              />
+            </div>
+            <div className="col-md-4">
+              <label htmlFor="search_jamat" className="form-label fw-semibold">
+                জামাত দিয়ে ফিল্টার করুন
+              </label>
+              <select
+                id="search_jamat"
+                className="form-select"
+                value={searchJamat}
+                onChange={(e) => setSearchJamat(e.target.value)}
               >
-                পূর্ববর্তী
-              </button>
-              {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-                let pageNum = i + 1;
-                if (totalPages > 7 && currentPage > 4) {
-                  pageNum = currentPage - 3 + i;
-                  if (pageNum > totalPages) pageNum = totalPages - (6 - i);
-                }
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setCurrentPage(pageNum)}
-                    className={`w-7 h-7 text-xs font-bold rounded-lg transition ${
-                      currentPage === pageNum
-                        ? 'bg-[#0f626a] text-white shadow-xs'
-                        : 'bg-white border border-gray-300 hover:bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-              <button
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-                className="px-3 py-1 bg-white border border-gray-300 rounded-lg text-xs font-semibold hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                পরবর্তী
-              </button>
+                <option value="">সকল জামাত</option>
+                {jamats.map((j) => (
+                  <option key={j.id || j.name} value={j.name}>
+                    {j.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
-        )}
+
+          <div className="table-responsive">
+            <table className="table table-striped table-hover align-middle table-bordered" id="students-datatable">
+              <thead className="table-light">
+                <tr>
+                  <th title="ছবি" className="text-center" style={{ width: '120px' }}>ছবি</th>
+                  <th title="বিবরণ">বিবরণ</th>
+                  <th title="জামাত" style={{ width: '140px' }}>জামাত</th>
+                  <th title="এ্যাকাউন্ট সংক্ষিপ্তসার" style={{ width: '180px' }}>এ্যাকাউন্ট সংক্ষিপ্তসার</th>
+                  <th title="বিস্তারিত" className="text-center" style={{ width: '130px' }}>বিস্তারিত</th>
+                  <th title="মুছুন" className="text-center" style={{ width: '100px' }}>মুছুন</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredStudents.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-4 text-muted">
+                      কোন ছাত্র/ছাত্রীর তথ্য পাওয়া যায়নি
+                    </td>
+                  </tr>
+                ) : (
+                  filteredStudents.map((student) => {
+                    const admissionNo = student.admissionNumber || student.admission_number || student.roll || 'N/A';
+                    const birthDay = student.birthDay || student.dob || 'N/A';
+                    const blood = student.bloodGroup || 'N/A';
+                    const admissionDate = student.admissionDate || 'N/A';
+                    const parentsName = student.parentsName || student.fatherName || 'N/A';
+                    const phone1 = student.parentsPhone || student.guardianPhone || 'N/A';
+                    const phone2 = student.parentsPhone2 || 'N/A';
+                    const courseFee = student.coursefee || student.monthlyFee || 0;
+                    const foodBill = student.food_bill || student.khurakiFee || 0;
+
+                    return (
+                      <tr key={student.id}>
+                        {/* ছবি */}
+                        <td className="text-center">
+                          <div className="d-flex justify-content-center">
+                            <div className="text-center">
+                              <img
+                                src={student.photo || '/students/FB_IMG_1791220812856.webp'}
+                                alt={student.name}
+                                className="img-thumbnail mb-2"
+                                style={{ width: '80px', height: '80px', objectFit: 'cover' }}
+                              />
+                              <label
+                                htmlFor={`photo-upload-${student.id}`}
+                                className="btn btn-warning btn-sm w-100"
+                                style={{ cursor: 'pointer', fontSize: '11px' }}
+                              >
+                                <i className="fa-solid fa-upload me-1"></i> ছবি
+                              </label>
+                              <input
+                                type="file"
+                                id={`photo-upload-${student.id}`}
+                                className="d-none"
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (ev) => {
+                                      student.photo = ev.target.result;
+                                      alert('ছবি সফলভাবে আপডেট হয়েছে');
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* বিবরণ */}
+                        <td>
+                          <div className="student-details" style={{ fontSize: '13px', lineHeight: '1.6' }}>
+                            <p className="mb-1">নাম: <strong>{student.name}</strong></p>
+                            <p className="mb-1">ভর্তি নং: <strong>{admissionNo}</strong></p>
+                            <p className="mb-1">জন্ম তারিখ: <strong>{birthDay}</strong></p>
+                            <p className="mb-1">রক্তের গ্রুপ: <strong>{blood}</strong></p>
+                            <p className="mb-1">ভর্তি তারিখ: <strong>{admissionDate}</strong></p>
+                            <p className="mb-1">অভিভাবকের নাম: <strong>{parentsName}</strong></p>
+                            <p className="mb-1">ই-মেইল: <strong>{student.email || 'N/A'}</strong></p>
+                            <p className="mb-1">অভিভাবকের ১ম মোবাইল : <strong>{phone1}</strong></p>
+                            <p className="mb-1">অভিভাবকের ২য় মোবাইল : <strong>{phone2}</strong></p>
+                          </div>
+                        </td>
+
+                        {/* জামাত */}
+                        <td>
+                          <div className="batch-info">
+                            <strong>{student.jamat}</strong>
+                          </div>
+                        </td>
+
+                        {/* এ্যাকাউন্ট সংক্ষিপ্তসার */}
+                        <td>
+                          <div className="account-summary" style={{ fontSize: '13px' }}>
+                            <p className="mb-1">
+                              বেতন : <strong>৳ {Number(courseFee).toLocaleString('bn-BD')}</strong>
+                            </p>
+                            <p className="mb-1">
+                              খানা খরচ : <strong>৳ {Number(foodBill).toLocaleString('bn-BD')}</strong>
+                            </p>
+                          </div>
+                        </td>
+
+                        {/* বিস্তারিত */}
+                        <td className="text-center">
+                          <div className="action-buttons d-flex flex-column align-items-center">
+                            <button
+                              className="btn btn-primary btn-sm mb-2 w-100"
+                              onClick={() => setSelectedModalStudent(student)}
+                              style={{ fontSize: '12px' }}
+                            >
+                              <i className="fa-solid fa-eye me-1"></i> বিস্তারিত
+                            </button>
+                            <button
+                              className="btn btn-success btn-sm mb-2 w-100"
+                              onClick={() => handleSendSms(student)}
+                              style={{ fontSize: '12px' }}
+                            >
+                              <i className="fa-solid fa-message me-1"></i> এস এম এস
+                            </button>
+                          </div>
+                        </td>
+
+                        {/* মুছুন */}
+                        <td className="text-center">
+                          <button
+                            className="btn btn-danger btn-sm"
+                            onClick={() => handleDelete(student.id)}
+                            style={{ fontSize: '12px' }}
+                          >
+                            <i className="fa-solid fa-trash me-1"></i> মুছুন
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      {/* Student Profile Quick View Modal */}
-      {selectedStudentForView && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl animate-in fade-in">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-base text-[#082f32]">শিক্ষার্থী বিস্তারিত প্রোফাইল</h3>
-              <button
-                onClick={() => setSelectedStudentForView(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
-            </div>
+      {/* Student Details Modal */}
+      {selectedModalStudent && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}
+          role="dialog"
+        >
+          <div className="modal-dialog modal-lg modal-dialog-scrollable">
+            <div className="modal-content">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title">
+                  <i className="fa-solid fa-user-graduate me-2"></i>ছাত্র/ছাত্রীর সম্পূর্ণ তথ্য
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setSelectedModalStudent(null)}
+                ></button>
+              </div>
+              <div className="modal-body p-4">
+                {/* Photo and Name */}
+                <div className="text-center mb-4">
+                  <img
+                    src={selectedModalStudent.photo || '/students/FB_IMG_1791220812856.webp'}
+                    alt={selectedModalStudent.name}
+                    className="rounded-circle mb-2"
+                    style={{ width: '120px', height: '120px', objectFit: 'cover', border: '3px solid #007bff' }}
+                  />
+                  <h4 className="fw-bold mb-0">{selectedModalStudent.name}</h4>
+                </div>
 
-            <div className="mt-4 flex items-center space-x-4 pb-4 border-b border-gray-100">
-              <img
-                src={selectedStudentForView.photo}
-                alt={selectedStudentForView.name}
-                className="w-16 h-16 rounded-2xl object-cover border-2 border-[#0f626a]"
-              />
-              <div>
-                <h4 className="text-lg font-bold text-gray-900">{selectedStudentForView.name}</h4>
-                <p className="text-xs text-gray-500 font-mono">{selectedStudentForView.nameEn}</p>
-                <div className="flex items-center space-x-2 mt-1">
-                  <span className="text-xs px-2 py-0.5 rounded bg-[#eaf4f5] text-[#0f626a] font-bold">
-                    {selectedStudentForView.jamat}
-                  </span>
-                  <span className="text-xs font-mono font-bold text-gray-700">
-                    রোল: {selectedStudentForView.roll}
-                  </span>
+                {/* All Information Table */}
+                <table className="table table-bordered table-sm text-start">
+                  <tbody>
+                    <tr>
+                      <td className="fw-bold" style={{ width: '35%' }}>জন্ম তারিখ</td>
+                      <td>{selectedModalStudent.birthDay || selectedModalStudent.dob || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">রক্তের গ্রুপ</td>
+                      <td>{selectedModalStudent.bloodGroup || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">Email</td>
+                      <td>{selectedModalStudent.email || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">পিতার নাম</td>
+                      <td>{selectedModalStudent.fatherName || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">মাতার নাম</td>
+                      <td>{selectedModalStudent.motherName || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">পিতার পেশা</td>
+                      <td>{selectedModalStudent.fatherProf || selectedModalStudent.fatherOcc || 'কৃষক / ব্যবসা'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">অভিভাবকের নাম</td>
+                      <td>{selectedModalStudent.parentsName || selectedModalStudent.fatherName || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">১ম ফোন নম্বর</td>
+                      <td>{selectedModalStudent.parentsPhone || selectedModalStudent.guardianPhone || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">২য় ফোন নম্বর</td>
+                      <td>{selectedModalStudent.parentsPhone2 || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">সম্পর্ক</td>
+                      <td>{selectedModalStudent.relation || 'পিতা'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">বর্তমান ঠিকানা</td>
+                      <td>{selectedModalStudent.currentAddress || selectedModalStudent.address || 'বদরখালী, কক্সবাজার'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">স্থায়ী ঠিকানা</td>
+                      <td>{selectedModalStudent.permanentAddress || selectedModalStudent.address || 'বদরখালী, কক্সবাজার'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">জামাত</td>
+                      <td>{selectedModalStudent.jamat}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">ভর্তির তারিখ</td>
+                      <td>{selectedModalStudent.admissionDate || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">ফর্ম নম্বর</td>
+                      <td>{selectedModalStudent.form_number || selectedModalStudent.roll || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">ভর্তি নম্বর</td>
+                      <td>{selectedModalStudent.admissionNumber || selectedModalStudent.admission_number || selectedModalStudent.roll || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">ভর্তি ফি</td>
+                      <td>{selectedModalStudent.admissionFee || 1500} টাকা</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">খাবার বিল</td>
+                      <td>{selectedModalStudent.food_bill || selectedModalStudent.khurakiFee || 0} টাকা</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">মাসিক বেতন</td>
+                      <td>{selectedModalStudent.coursefee || selectedModalStudent.monthlyFee || 0} টাকা</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">আবাসিক/অনাবাসিক</td>
+                      <td>{selectedModalStudent.residential || ((selectedModalStudent.khurakiFee || 0) > 0 ? 'আবাসিক' : 'অনাবাসিক')}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">খাবারের ধরন</td>
+                      <td>{selectedModalStudent.meal_type || 'সাধারণ'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">বোর্ডিং ফুড</td>
+                      <td>{selectedModalStudent.bording_food || ((selectedModalStudent.khurakiFee || 0) > 0 ? 'হ্যা' : 'না')}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">ইতিম</td>
+                      <td>{selectedModalStudent.etim || 'না'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">ছাত্র/ছাত্রীর ধরন</td>
+                      <td>{selectedModalStudent.student_type || 'নতুন'}</td>
+                    </tr>
+                    <tr>
+                      <td className="fw-bold">নোট</td>
+                      <td>{selectedModalStudent.note || 'কোন মন্তব্য নেই'}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setSelectedModalStudent(null)}
+                >
+                  <i className="fa-solid fa-times me-1"></i>বন্ধ করুন
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => {
+                    setSelectedModalStudent(null);
+                    setActiveTab('student-create');
+                  }}
+                >
+                  <i className="fa-solid fa-edit me-1"></i>সম্পাদনা করুন
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SMS Modal */}
+      {smsModalStudent && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}
+          role="dialog"
+        >
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header bg-success text-white">
+                <h5 className="modal-title">
+                  <i className="fa-solid fa-message me-2"></i>অভিভাবককে এসএমএস পাঠান
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setSmsModalStudent(null)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <p className="mb-2">
+                  <strong>শিক্ষার্থী:</strong> {smsModalStudent.name} ({smsModalStudent.jamat})
+                </p>
+                <p className="mb-3">
+                  <strong>মোবাইল নম্বর:</strong> {smsModalStudent.parentsPhone || smsModalStudent.guardianPhone}
+                </p>
+                <div className="mb-3">
+                  <label className="form-label fw-bold">মেসেজ কন্টেন্ট:</label>
+                  <textarea
+                    className="form-control"
+                    rows="4"
+                    value={smsText}
+                    onChange={(e) => setSmsText(e.target.value)}
+                  ></textarea>
                 </div>
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 py-4 text-xs border-b border-gray-100">
-              <div>
-                <span className="text-gray-400">পিতার নাম:</span>
-                <p className="font-semibold text-gray-800">{selectedStudentForView.fatherName} ({selectedStudentForView.fatherOcc})</p>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setSmsModalStudent(null)}
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-success"
+                  onClick={() => {
+                    alert(`এসএমএস পাঠানো হয়েছে: ${smsModalStudent.parentsPhone || smsModalStudent.guardianPhone}`);
+                    setSmsModalStudent(null);
+                  }}
+                >
+                  <i className="fa-solid fa-paper-plane me-1"></i> পাঠান
+                </button>
               </div>
-              <div>
-                <span className="text-gray-400">মাতার নাম:</span>
-                <p className="font-semibold text-gray-800">{selectedStudentForView.motherName}</p>
-              </div>
-              <div>
-                <span className="text-gray-400">অভিভাবকের মোবাইল:</span>
-                <p className="font-semibold text-gray-800 font-mono">{selectedStudentForView.guardianPhone}</p>
-              </div>
-              <div>
-                <span className="text-gray-400">রক্তের গ্রুপ:</span>
-                <p className="font-semibold text-rose-600">{selectedStudentForView.bloodGroup}</p>
-              </div>
-              <div>
-                <span className="text-gray-400">জন্ম তারিখ:</span>
-                <p className="font-semibold text-gray-800 font-mono">{selectedStudentForView.dob}</p>
-              </div>
-              <div>
-                <span className="text-gray-400">জন্ম নিবন্ধন নম্বর:</span>
-                <p className="font-semibold text-gray-800 font-mono">{selectedStudentForView.birthReg}</p>
-              </div>
-              <div className="col-span-2">
-                <span className="text-gray-400">ঠিকানা:</span>
-                <p className="font-semibold text-gray-800">{selectedStudentForView.address}</p>
-              </div>
-            </div>
-
-            <div className="mt-4 flex justify-between items-center">
-              <button
-                onClick={() => {
-                  setSelectedStudentForIdCard(selectedStudentForView);
-                  setActiveTab('idcard-student');
-                  setSelectedStudentForView(null);
-                }}
-                className="px-4 py-2 bg-[#0f626a] text-white text-xs font-semibold rounded-xl hover:bg-[#0c5259] transition flex items-center space-x-1.5"
-              >
-                <IdCard className="w-4 h-4" />
-                <span>আইডি কার্ড জেনারেট করুন</span>
-              </button>
-
-              <button
-                onClick={() => setSelectedStudentForView(null)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-xl hover:bg-gray-200"
-              >
-                বন্ধ করুন
-              </button>
             </div>
           </div>
         </div>

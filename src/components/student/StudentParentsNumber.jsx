@@ -1,178 +1,136 @@
 import React, { useState } from 'react';
-import {
-  Phone,
-  MessageSquare,
-  Search,
-  Printer,
-  Plus,
-  Users
-} from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const StudentParentsNumber = () => {
   const { students, jamats, setActiveTab } = useApp();
-  const [selectedJamat, setSelectedJamat] = useState('সকল জামাত');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedJamat, setSelectedJamat] = useState('');
 
-  const filteredStudents = students.filter(s => {
-    const matchJamat = selectedJamat === 'সকল জামাত' || s.jamat === selectedJamat;
-    const matchSearch =
-      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.roll.includes(searchTerm) ||
-      s.guardianPhone.includes(searchTerm) ||
-      (s.fatherName && s.fatherName.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchJamat && matchSearch;
-  });
+  const filteredStudents = selectedJamat
+    ? students.filter(s => s.jamat === selectedJamat)
+    : students;
 
   return (
-    <div className="space-y-4">
-      {/* Page Header */}
-      <div className="card shadow-sm border-0 mb-3 no-print">
-        <div className="card-header bg-primary py-3 d-flex flex-wrap justify-content-between align-items-center">
-          <h5 className="mb-0 text-white font-bold d-flex align-items-center">
-            <i className="fa-solid fa-phone-volume me-2"></i>
-            জামাত অনুযায়ী অভিভাবকের মোবাইল নাম্বার
+    <div className="container-fluid p-0">
+      {/* Top Filter Card */}
+      <div className="card shadow-sm mb-4 no-print">
+        <div className="card-header bg-primary">
+          <h5 className="mb-0 text-white">
+            <i className="fa-solid fa-users me-2"></i> জামাত অনুযায়ী অভিভাবকের মোবাইল নাম্বারর
           </h5>
-          <div className="d-flex gap-2">
-            <button
-              onClick={() => setActiveTab('student-create')}
-              className="btn btn-sm btn-danger text-white fw-bold d-flex align-items-center gap-1"
-            >
-              <i className="fa-solid fa-plus"></i> নতুন ছাত্র/ছাত্রী যুক্ত করুন
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="btn btn-sm btn-info text-white fw-bold d-flex align-items-center gap-1"
-            >
-              <i className="fa-solid fa-print"></i> প্রিন্ট করুন
-            </button>
-          </div>
         </div>
 
-        <div className="card-body bg-light py-3">
-          {/* Jamat List Pills */}
-          <div className="mb-3">
-            <label className="form-label fw-bold small text-muted mb-2">জামাত লিস্ট:</label>
-            <div className="d-flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setSelectedJamat('সকল জামাত')}
-                className={`btn btn-sm rounded-pill px-3 ${
-                  selectedJamat === 'সকল জামাত' ? 'btn-primary' : 'btn-outline-secondary bg-white'
-                }`}
+        <div className="card-body mb-3">
+          <div className="row align-items-end">
+            <div className="col-md-6">
+              <label htmlFor="jamat_select" className="form-label fw-bold">
+                জামাত লিস্ট
+              </label>
+              <select
+                name="jamat_id"
+                id="jamat_select"
+                className="form-select"
+                value={selectedJamat}
+                onChange={(e) => setSelectedJamat(e.target.value)}
               >
-                সকল জামাত
-              </button>
-              {jamats.map(j => (
-                <button
-                  key={j.id}
-                  type="button"
-                  onClick={() => setSelectedJamat(j.name)}
-                  className={`btn btn-sm rounded-pill px-3 ${
-                    selectedJamat === j.name ? 'btn-primary' : 'btn-outline-secondary bg-white'
-                  }`}
-                >
-                  {j.name}
-                </button>
-              ))}
+                <option value="">সকল জামাত</option>
+                {jamats.map((j) => (
+                  <option key={j.id || j.name} value={j.name}>
+                    {j.name}
+                  </option>
+                ))}
+              </select>
             </div>
-          </div>
 
-          {/* Search Box & Counter */}
-          <div className="row g-2 align-items-center justify-content-between">
-            <div className="col-md-5">
-              <div className="input-group input-group-sm">
-                <span className="input-group-text bg-white"><i className="fa-solid fa-search text-muted"></i></span>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="ছাত্রের নাম, রোল, অভিভাবক বা মোবাইল দিয়ে খুঁজুন..."
-                  className="form-control"
-                />
-              </div>
-            </div>
-            <div className="col-auto">
-              <span className="badge bg-success fs-6 px-3 py-2">
-                অভিভাবক: <strong>{filteredStudents.length} জন</strong>
-              </span>
+            <div className="col-md-6 text-md-end text-start mt-3 mt-md-0">
+              <button
+                onClick={() => setActiveTab('student-create')}
+                className="btn btn-danger text-white fw-bold"
+              >
+                <i className="fa-solid fa-plus me-1"></i> নতুন ছাত্র/ছাত্রী যুক্ত করুন
+              </button>
+              <p id="totalParents" style={{ fontSize: '17px' }} className="mt-3 fw-bold px-3">
+                অভিভাবক: {filteredStudents.length} জন
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Table Card */}
-      <div className="card shadow-sm border-0">
-        <div className="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-          <h6 className="mb-0 fw-bold text-dark">
-            জামাত অনুযায়ী অভিভাবকের মোবাইল নাম্বার সন ২০২৬ ইং {selectedJamat !== 'সকল জামাত' ? `(${selectedJamat})` : ''}
-          </h6>
-          <span className="text-muted small">তালিকাভুক্ত: {filteredStudents.length} জন</span>
+      {/* Printable Card */}
+      <div className="card border-0 shadow-sm mb-4" id="printContent">
+        <div className="card-body py-4">
+          <img
+            src="/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg"
+            alt="Banner"
+            className="w-100 img-fluid"
+          />
+          <div className="row mt-3">
+            <div className="col-md-2"></div>
+            <div className="col-md-8 text-center">
+              <h5 className="fw-semibold" style={{ color: '#2c5f2d' }}>
+                জামাত অনুযায়ী অভিভাবকের মোবাইল নাম্বারর
+              </h5>
+              {selectedJamat && <p className="mb-0 text-muted">জামাত: <strong>{selectedJamat}</strong></p>}
+            </div>
+            <div className="col-md-2 text-end">
+              <p className="mb-0 fw-semibold">সন ২০২৬ ইং</p>
+            </div>
+          </div>
         </div>
 
-        <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-bordered table-striped table-hover align-middle mb-0 text-center text-xs">
-              <thead className="table-light">
-                <tr className="text-dark fw-bold">
-                  <th style={{ width: '45px' }}>ক্রমিক নং</th>
-                  <th className="text-start">ছাত্রের নাম</th>
-                  <th>ভর্তি নং</th>
-                  <th>জামাত</th>
-                  <th className="text-start">অভিভাবকের নাম</th>
-                  <th>১ম মোবাইল</th>
-                  <th>২য় মোবাইল</th>
-                  <th>সম্পর্ক</th>
-                  <th>যোগাযোগ</th>
+        <div className="table-responsive card-body">
+          <table className="table table-bordered table-striped align-middle mb-0 print-table text-center">
+            <thead className="bg-primary print-thead text-white">
+              <tr className="text-center">
+                <th>ক্রমিক নং</th>
+                <th>ছাত্রের নাম</th>
+                <th>অভিভাবক</th>
+                <th>১ম মোবাইল</th>
+                <th>২য় মোবাইল</th>
+                <th>সম্পর্ক</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredStudents.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="text-center py-4 text-muted">
+                    কোন অভিভাবকের তথ্য পাওয়া যায়নি
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filteredStudents.length === 0 ? (
-                  <tr>
-                    <td colSpan="9" className="py-4 text-muted">
-                      কোনো অভিভাবক রেকর্ড পাওয়া যায়নি
-                    </td>
-                  </tr>
-                ) : (
-                  filteredStudents.map((s, idx) => (
-                    <tr key={s.id}>
-                      <td className="font-mono fw-bold">{idx + 1}</td>
-                      <td className="text-start fw-bold text-dark">{s.name}</td>
-                      <td className="font-mono text-primary fw-bold">{s.roll}</td>
-                      <td><span className="badge bg-light text-dark border">{s.jamat}</span></td>
-                      <td className="text-start fw-semibold">{s.fatherName}</td>
-                      <td className="font-mono fw-semibold text-primary">{s.guardianPhone}</td>
-                      <td className="font-mono text-muted">018000000{idx % 10}</td>
-                      <td>
-                        <span className="badge bg-info-subtle text-info border">
-                          {idx % 7 === 0 ? 'মা' : idx % 9 === 0 ? 'বড় ভাই' : 'বাবা'}
-                        </span>
+              ) : (
+                filteredStudents.map((student, idx) => {
+                  const guardianName = student.parentsName || student.fatherName || 'মাওলানা নুরুল হক';
+                  const phone1 = student.parentsPhone || student.guardianPhone || '01810003871';
+                  const phone2 = student.parentsPhone2 || 'N/A';
+                  const rel = student.relation || 'পিতা';
+
+                  return (
+                    <tr key={student.id}>
+                      <td className="text-center">{idx + 1}</td>
+                      <td className="text-start ps-3 fw-semibold">{student.name}</td>
+                      <td className="text-start ps-3">{guardianName}</td>
+                      <td className="text-center fw-mono">
+                        <a href={`tel:${phone1}`} className="text-decoration-none text-dark">
+                          {phone1}
+                        </a>
                       </td>
-                      <td>
-                        <div className="d-flex justify-content-center gap-1">
-                          <a
-                            href={`tel:${s.guardianPhone}`}
-                            className="btn btn-sm btn-outline-success px-2 py-1"
-                            title="কল করুন"
-                          >
-                            <i className="fa-solid fa-phone"></i>
-                          </a>
-                          <button
-                            type="button"
-                            onClick={() => setActiveTab('sms-student')}
-                            className="btn btn-sm btn-outline-primary px-2 py-1"
-                            title="এসএমএস পাঠান"
-                          >
-                            <i className="fa-solid fa-envelope"></i>
-                          </button>
-                        </div>
-                      </td>
+                      <td className="text-center fw-mono">{phone2}</td>
+                      <td className="text-center">{rel}</td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Print Button */}
+      <div className="row mb-3 no-print">
+        <div className="col-12 d-flex justify-content-center">
+          <button onClick={() => window.print()} className="btn btn-primary px-4 py-2">
+            <i className="fas fa-print me-2"></i> প্রিন্ট করুন
+          </button>
         </div>
       </div>
     </div>

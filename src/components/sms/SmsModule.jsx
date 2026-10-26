@@ -1,15 +1,4 @@
-import React, { useState } from 'react';
-import {
-  MessageSquare,
-  Send,
-  PlusCircle,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  FileText,
-  Users,
-  Sparkles
-} from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 
 export const SmsModule = ({ defaultView = 'compose', defaultRecipientTarget = 'all_students' }) => {
@@ -21,370 +10,409 @@ export const SmsModule = ({ defaultView = 'compose', defaultRecipientTarget = 'a
     jamats,
     sendSms,
     smsLogs,
-    rechargeSmsBalance
+    rechargeSmsBalance,
+    showToast
   } = useApp();
 
-  const [recipientTarget, setRecipientTarget] = useState(defaultRecipientTarget);
-  const [selectedJamat, setSelectedJamat] = useState(jamats[0]?.name || 'হিফজ বিভাগ');
-  const [customNumbers, setCustomNumbers] = useState('');
-  const [message, setMessage] = useState('');
+  const [activeTab, setActiveTab] = useState(
+    defaultRecipientTarget === 'all_teachers' ? 'teacher' : 'client'
+  );
+  const [selectedStudentId, setSelectedStudentId] = useState('all');
+  const [selectedTeacherId, setSelectedTeacherId] = useState('all');
+  const [messageBody, setMessageBody] = useState('');
   const [showRechargeModal, setShowRechargeModal] = useState(false);
   const [rechargeAmount, setRechargeAmount] = useState('100');
+
+  useEffect(() => {
+    if (defaultRecipientTarget === 'all_teachers') {
+      setActiveTab('teacher');
+    } else {
+      setActiveTab('client');
+    }
+  }, [defaultRecipientTarget]);
+
+  const maxChars = 160;
+  const remainingChars = Math.max(0, maxChars - messageBody.length);
+
+  const handleSend = (e) => {
+    e.preventDefault();
+    if (!messageBody.trim()) {
+      alert('বার্তার বিষয়বস্তু লিখুন');
+      return;
+    }
+
+    let numbers = [];
+    if (activeTab === 'client') {
+      if (selectedStudentId === 'all') {
+        numbers = students.map(s => s.guardianPhone).filter(Boolean);
+      } else {
+        const s = students.find(st => String(st.id) === String(selectedStudentId));
+        if (s && s.guardianPhone) numbers = [s.guardianPhone];
+      }
+    } else {
+      if (selectedTeacherId === 'all') {
+        numbers = teachers.map(t => t.mobile).filter(Boolean);
+      } else {
+        const t = teachers.find(tc => String(tc.id) === String(selectedTeacherId));
+        if (t && t.mobile) numbers = [t.mobile];
+      }
+    }
+
+    if (numbers.length === 0) {
+      alert('কোনো প্রাপক নম্বর পাওয়া যায়নি');
+      return;
+    }
+
+    sendSms(numbers, messageBody);
+    setMessageBody('');
+    showToast(`${numbers.length} টি নম্বরে এসএমএস সফলভাবে পাঠানো হয়েছে!`);
+  };
 
   const handleRechargeSubmit = (e) => {
     e.preventDefault();
     if (!rechargeAmount || isNaN(rechargeAmount)) return;
     rechargeSmsBalance(rechargeAmount);
     setShowRechargeModal(false);
-  };
-
-  // Pre-defined Templates
-  const templates = [
-    {
-      title: 'ফি বকেয়া তাগাদা',
-      text: `আসসালামু আলাইকুম। জব্বর নগর স্বতন্ত্র ইবতেদায়ী মাদ্রাসার পক্ষ থেকে জানানো যাচ্ছে যে, আপনার সন্তানের চলতি মাসের বেতন ও খোরাকী ফি বাকি রয়েছে। অতিসত্বর মাদ্রাসার অফিসে পরিশোধের অনুরোধ করা হলো। মোবা: ${profile.phone1}`
-    },
-    {
-      title: 'পরীক্ষার নোটিশ',
-      text: `মুহতারাম অভিভাবক, জব্বর নগর স্বতন্ত্র ইবতেদায়ী মাদ্রাসার বার্ষিক মূল্যায়ন পরীক্ষা আগামী ১৫ নভেম্বর থেকে শুরু হতে যাচ্ছে। আপনার সন্তানকে নিয়মিত মাদ্রাসায় উপস্থিত রাখুন। পরীক্ষক: মাহমুদুল করিম।`
-    },
-    {
-      title: 'ছুটির বিজ্ঞপ্তি',
-      text: `আসসালামু আলাইকুম। পবিত্র রমজান ও ঈদ উপলক্ষে মাদ্রাসার সকল জামাত আগামী কাল থেকে বন্ধ থাকবে। খোলার সঠিক তারিখ যথাসময়ে জানানো হবে। মুহতামিম, জব্বর নগর মাদ্রাসা।`
-    },
-    {
-      title: 'জরুরি অভিভাবক সমাবেশ',
-      text: `সম্মানিত অভিভাবক, আগামী শুক্রবার বাদ আছর মাদ্রাসার মিলনায়তনে বিশেষ জরুরি অভিভাবক সমাবেশ অনুষ্ঠিত হবে। আপনার উপস্থিতি একান্ত কাম্য।`
-    }
-  ];
-
-  // Calculate recipients count
-  const getRecipientsList = () => {
-    if (recipientTarget === 'all_students') {
-      return students.map(s => s.guardianPhone);
-    }
-    if (recipientTarget === 'by_jamat') {
-      return students.filter(s => s.jamat === selectedJamat).map(s => s.guardianPhone);
-    }
-    if (recipientTarget === 'teachers') {
-      return teachers.map(t => t.mobile);
-    }
-    if (recipientTarget === 'committee') {
-      return committee.map(c => c.phone);
-    }
-    if (recipientTarget === 'custom') {
-      return customNumbers.split(',').map(n => n.trim()).filter(Boolean);
-    }
-    return [];
-  };
-
-  const recipientList = getRecipientsList();
-  const costPerSms = 0.40;
-  const estimatedCost = +(recipientList.length * costPerSms).toFixed(2);
-  const charCount = message.length;
-  const smsSegments = Math.ceil(charCount / 70) || 1; // Standard Bangla Unicode SMS segment length
-
-  const handleSend = (e) => {
-    e.preventDefault();
-    if (!message.trim()) {
-      alert('অনুগ্রহ করে মেসেজের বিবরণ লিখুন');
-      return;
-    }
-    if (recipientList.length === 0) {
-      alert('কোন প্রাপক নম্বর পাওয়া যায়নি');
-      return;
-    }
-
-    sendSms(recipientList, message);
+    showToast(`৳ ${rechargeAmount} SMS ব্যালেন্স রিচার্জ সম্পন্ন হয়েছে!`);
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-2xl p-5 border border-[#e2e8f0] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-[#082f32] flex items-center space-x-2">
-            <MessageSquare className="w-6 h-6 text-[#0f626a]" />
-            <span>বাল্ক ও ইনস্ট্যান্ট এসএমএস ম্যানেজমেন্ট (SMS Gateway)</span>
-          </h2>
-          <p className="text-xs text-gray-500 mt-0.5">
-            অভিভাবক, শিক্ষক ও কমিটির নিকট প্রাতিষ্ঠানিক বাংলা নোটিশ ও জরুরি বার্তা প্রেরণ
-          </p>
+    <div className="container-fluid p-0">
+      {/* View Switcher Top Tabs (no-print) */}
+      <div className="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print">
+        <div className="btn-group shadow-sm">
+          <button
+            type="button"
+            onClick={() => setActiveTab('client')}
+            className={`btn btn-sm ${activeTab === 'client' ? 'btn-primary' : 'btn-outline-primary'}`}
+          >
+            <i className="fa-solid fa-users me-1"></i> ছাত্র ছাত্রীকে SMS দিন
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('teacher')}
+            className={`btn btn-sm ${activeTab === 'teacher' ? 'btn-primary' : 'btn-outline-primary'}`}
+          >
+            <i className="fa-solid fa-chalkboard-user me-1"></i> শিক্ষককে SMS দিন
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('logs')}
+            className={`btn btn-sm ${activeTab === 'logs' ? 'btn-primary' : 'btn-outline-primary'}`}
+          >
+            <i className="fa-solid fa-clock-rotate-left me-1"></i> এসএমএস লগ
+          </button>
         </div>
 
-        {/* Live Balance & Recharge */}
-        <div className="flex items-center space-x-3 bg-[#f0f9fa] border border-[#0f626a]/30 p-2.5 rounded-xl shadow-xs">
-          <div className="text-right">
-            <span className="text-[10px] text-gray-500 block leading-none">বর্তমান এসএমএস ব্যালেন্স</span>
-            <span className="font-extrabold text-base text-[#0f626a] font-mono leading-tight">
-              {profile.smsBalance.toFixed(2)} ৳
-            </span>
-          </div>
+        <div className="d-flex align-items-center gap-2">
           <button
+            type="button"
             onClick={() => setShowRechargeModal(true)}
-            className="px-3 py-1.5 bg-[#0f626a] text-white text-xs font-bold rounded-lg hover:bg-[#0c5259] transition flex items-center space-x-1"
+            className="btn btn-sm btn-outline-success font-monospace"
           >
-            <PlusCircle className="w-3.5 h-3.5" />
-            <span>রিচার্জ</span>
+            <i className="fa-solid fa-wallet me-1"></i> ব্যালেন্স রিচার্জ
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* SMS Composer */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-[#e2e8f0] shadow-sm">
-          <h3 className="font-bold text-sm text-[#082f32] pb-3 border-b border-gray-100 flex items-center space-x-2">
-            <Send className="w-4 h-4 text-[#0f626a]" />
-            <span>নতুন এসএমএস রচনা করুন (Compose SMS)</span>
-          </h3>
+      {/* 1. SEND TO CLIENT / STUDENT (Matches sms_send_to_client.html) */}
+      {activeTab === 'client' && (
+        <div className="main-content-body">
+          <div className="row row-sm">
+            <div className="col-12">
+              <div className="card shadow-lg border-0">
+                <div className="card-header bg-gradient border-0 py-3">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <h5 className="card-title mb-0 fw-bold text-dark">
+                      <i className="fas fa-sms me-2 text-primary"></i>ছাত্র ছাত্রীকে SMS দিন
+                    </h5>
+                  </div>
+                </div>
 
-          <form onSubmit={handleSend} className="mt-4 space-y-4 text-xs">
-            {/* Target Selector */}
-            <div>
-              <label className="block font-semibold text-gray-700 mb-1">প্রাপক গ্রুপ নির্বাচন করুন: *</label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {[
-                  { id: 'all_students', label: 'সকল অভিভাবক (১৯৭ জন)' },
-                  { id: 'by_jamat', label: 'জামাতভিত্তিক অভিভাবক' },
-                  { id: 'teachers', label: 'সকল শিক্ষক (৫ জন)' },
-                  { id: 'committee', label: 'পরিচালনা কমিটি (৬ জন)' },
-                  { id: 'custom', label: 'কাস্টম মোবাইল নম্বর' },
-                ].map(opt => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setRecipientTarget(opt.id)}
-                    className={`p-2 rounded-xl border text-center font-semibold transition ${
-                      recipientTarget === opt.id
-                        ? 'bg-[#0f626a] text-white border-[#0f626a]'
-                        : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+                <div className="card-body p-4 p-md-5">
+                  <div className="row justify-content-center">
+                    <div className="col-lg-8 col-xl-7">
+                      <form onSubmit={handleSend}>
+                        <div className="row g-4">
+                          {/* Message Body */}
+                          <div className="col-12">
+                            <div className="form-floating">
+                              <textarea
+                                className="form-control shadow-sm"
+                                name="message_body"
+                                id="messageBody"
+                                style={{ height: '180px', resize: 'none' }}
+                                placeholder="এখানে আপনার বার্তা লিখুন..."
+                                value={messageBody}
+                                onChange={(e) => setMessageBody(e.target.value)}
+                                maxLength={maxChars}
+                                required
+                              ></textarea>
+                              <label htmlFor="messageBody">
+                                <i className="fas fa-comment-dots me-2"></i>বার্তার বিষয়বস্তু
+                              </label>
+                            </div>
+                            <div className="d-flex justify-content-between align-items-center mt-2 px-2">
+                              <small className="text-muted">
+                                <i className="fas fa-info-circle me-1"></i>সর্বোচ্চ ১৬০ অক্ষর
+                              </small>
+                              <div>
+                                <span className="badge bg-primary mt-2 fs-6" id="characterCountBadge">
+                                  অবশিষ্ট অক্ষর:{' '}
+                                  <span id="characterCount" className="fw-bold">
+                                    {remainingChars}
+                                  </span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Client Selection */}
+                          <div className="col-12">
+                            <label htmlFor="student_id" className="form-label fw-semibold mb-2">
+                              <i className="fas fa-user-graduate me-2 text-primary"></i>ছাত্র নির্বাচন করুন
+                            </label>
+                            <div className="row g-2">
+                              <div className="col-12">
+                                <select
+                                  name="student_id"
+                                  id="student_id"
+                                  className="form-control form-select student_id"
+                                  value={selectedStudentId}
+                                  onChange={(e) => setSelectedStudentId(e.target.value)}
+                                >
+                                  <option value="all">সকল ছাত্র/ছাত্রীর অভিভাবক ({students.length} জন)</option>
+                                  {students.map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                      {s.roll || s.admissionNo} - {s.name} ({s.jamat}) - {s.guardianPhone}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Submit Button */}
+                          <div className="col-12 mt-4">
+                            <div className="d-grid">
+                              <button
+                                type="submit"
+                                className="btn btn-success btn-lg rounded-pill shadow-sm"
+                                disabled={!messageBody.trim()}
+                              >
+                                <i className="fas fa-paper-plane me-2"></i>এসএমএস পাঠান
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-
-            {/* Jamat dropdown if by_jamat */}
-            {recipientTarget === 'by_jamat' && (
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">জামাত নির্বাচন করুন:</label>
-                <select
-                  value={selectedJamat}
-                  onChange={(e) => setSelectedJamat(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-                >
-                  {jamats.map(j => (
-                    <option key={j.id} value={j.name}>{j.name} ({j.count} জন)</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Custom numbers field if custom */}
-            {recipientTarget === 'custom' && (
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">কমা দিয়ে মোবাইল নম্বরসমূহ লিখুন:</label>
-                <input
-                  type="text"
-                  value={customNumbers}
-                  onChange={(e) => setCustomNumbers(e.target.value)}
-                  placeholder="01820050095, 01847657580, 01711223344"
-                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#0f626a] focus:outline-none font-mono"
-                />
-              </div>
-            )}
-
-            {/* Templates Quick Load */}
-            <div>
-              <span className="block font-semibold text-gray-700 mb-1">তৈরি টেমপ্লেট নির্বাচন করুন (ঐচ্ছিক):</span>
-              <div className="flex flex-wrap gap-1.5">
-                {templates.map((tpl, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setMessage(tpl.text)}
-                    className="px-2.5 py-1 bg-gray-100 hover:bg-teal-50 hover:text-teal-800 rounded-lg text-[11px] font-medium border border-gray-200 transition"
-                  >
-                    {tpl.title}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Message Body */}
-            <div>
-              <div className="flex justify-between items-center mb-1">
-                <label className="font-semibold text-gray-700">এসএমএস বার্তা (বাংলা ভাষায়): *</label>
-                <span className="text-[10px] text-gray-400 font-mono">
-                  অক্ষর: {charCount} | অংশ: {smsSegments} টি এসএমএস
-                </span>
-              </div>
-              <textarea
-                rows="4"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="এখানে মেসেজ লিখুন..."
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#0f626a] focus:outline-none text-xs leading-relaxed"
-              ></textarea>
-            </div>
-
-            {/* Cost Summary Box */}
-            <div className="p-3 bg-gray-50 rounded-xl border flex items-center justify-between">
-              <div>
-                <span className="text-gray-500">মোট নির্বাচিত নম্বর: </span>
-                <strong className="text-gray-900 font-mono">{recipientList.length}</strong> টি
-              </div>
-              <div>
-                <span className="text-gray-500">মোট আনুমানিক খরচ: </span>
-                <strong className="text-[#0f626a] font-mono text-sm">৳ {estimatedCost}</strong>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <button
-                type="submit"
-                className="px-6 py-2.5 bg-[#0f626a] hover:bg-[#0c5259] text-white font-bold rounded-xl shadow-lg transition flex items-center space-x-2"
-              >
-                <Send className="w-4 h-4" />
-                <span>এসএমএস পাঠিয়ে দিন</span>
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* SMS Rules & Recharge Guide */}
-        <div className="space-y-4">
-          <div className="bg-[#f0f9fa] rounded-2xl p-5 border border-[#0f626a]/30">
-            <h4 className="font-bold text-sm text-[#082f32] pb-2 border-b border-[#0f626a]/20 flex items-center space-x-1.5">
-              <Sparkles className="w-4 h-4 text-[#0f626a]" />
-              <span>এসএমএস সার্ভার নির্দেশিকা</span>
-            </h4>
-            <div className="text-xs text-gray-700 mt-3 space-y-2 leading-relaxed">
-              <p>• প্রতিটি বাংলা ইউনিকোড এসএমএস ৭০ অক্ষরে ১টি হিসেবে গণনা হয়।</p>
-              <p>• সফলভাবে পাঠানো এসএমএস অবিলম্বে প্রাপকের মোবাইলে পৌঁছাবে।</p>
-              <p>• বিকাশ / নগদে পেমেন্ট করে সরাসরি একাউন্ট রিচার্জ করা যায়।</p>
-              <p>• প্রতি এসএমএস খরচ মাত্র <strong>০.৪০ টাকা</strong>।</p>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* SMS Sent Logs Table */}
-      <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h3 className="font-bold text-sm text-[#082f32]">প্রেরিত এসএমএস লগ ও ডেলিভারি হিস্ট্রি</h3>
-          <span className="text-xs text-gray-400 font-mono">সর্বমোট {smsLogs.length} টি ক্যাম্পেইন</span>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#f0f9fa] text-gray-800 font-semibold border-b">
-              <tr>
-                <th className="py-2.5 px-3">তারিখ ও সময়</th>
-                <th className="py-2.5 px-3">প্রাপক সংখ্যা</th>
-                <th className="py-2.5 px-3">মেসেজের সারমর্ম</th>
-                <th className="py-2.5 px-3 text-right">খরচ (৳)</th>
-                <th className="py-2.5 px-3 text-center">স্ট্যাটাস</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {smsLogs.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="py-6 text-center text-gray-500">
-                    এখনো কোনো এসএমএস পাঠানো হয়নি
-                  </td>
-                </tr>
-              ) : (
-                smsLogs.map(log => (
-                  <tr key={log.id} className="hover:bg-gray-50">
-                    <td className="py-2.5 px-3 font-mono text-gray-600">{log.date}</td>
-                    <td className="py-2.5 px-3 font-bold font-mono text-[#0f626a]">{log.count} টি</td>
-                    <td className="py-2.5 px-3 text-gray-700 max-w-sm truncate">{log.message}</td>
-                    <td className="py-2.5 px-3 text-right font-mono font-bold text-gray-900">৳ {log.cost.toFixed(2)}</td>
-                    <td className="py-2.5 px-3 text-center">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        log.status === 'সফল'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-rose-100 text-rose-800'
-                      }`}>
-                        {log.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* SMS Balance Recharge Modal */}
-      {showRechargeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 no-print">
-          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl animate-in fade-in">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-sm text-[#082f32]">এসএমএস ব্যালেন্স রিচার্জ করুন</h3>
-              <button
-                onClick={() => setShowRechargeModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleRechargeSubmit} className="mt-4 space-y-4 text-xs">
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">
-                  রিচার্জের পরিমাণ (টাকা ৳):
-                </label>
-                <div className="grid grid-cols-3 gap-2 mb-2">
-                  {['100', '250', '500'].map(val => (
-                    <button
-                      key={val}
-                      type="button"
-                      onClick={() => setRechargeAmount(val)}
-                      className={`py-1.5 rounded-lg border text-xs font-mono font-bold transition ${
-                        rechargeAmount === val ? 'bg-[#0f626a] text-white border-[#0f626a]' : 'bg-gray-50 text-gray-700'
-                      }`}
-                    >
-                      ৳{val}
-                    </button>
-                  ))}
+      {/* 2. SEND TO TEACHER (Matches sms_send_to_teacher.html) */}
+      {activeTab === 'teacher' && (
+        <div className="main-content-body">
+          <div className="row row-sm">
+            <div className="col-12">
+              <div className="card shadow-lg border-0">
+                <div className="card-header bg-gradient border-0 py-3">
+                  <div className="d-flex justify-content-between align-items-center">
+                    <h5 className="card-title mb-0 fw-bold text-dark">
+                      <i className="fas fa-sms me-2 text-primary"></i>শিক্ষককে SMS দিন
+                    </h5>
+                  </div>
                 </div>
-                <input
-                  type="number"
-                  value={rechargeAmount}
-                  onChange={(e) => setRechargeAmount(e.target.value)}
-                  placeholder="অন্য অংক লিখুন..."
-                  required
-                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#0f626a] focus:outline-none font-mono font-bold text-base"
-                />
-              </div>
 
-              <div className="p-3 bg-gray-50 rounded-xl border space-y-1 text-[11px] text-gray-600">
-                <p>• রিচার্জ রেট: ৳ ০.৪০ / প্রতি বাংলা এসএমএস</p>
-                <p>• আনুমানিক প্রাপ্য: <strong>{Math.floor(parseFloat(rechargeAmount || 0) / 0.40)}</strong> টি মেসেজ</p>
-              </div>
+                <div className="card-body p-4 p-md-5">
+                  <div className="row justify-content-center">
+                    <div className="col-lg-8 col-xl-7">
+                      <form onSubmit={handleSend}>
+                        <div className="row g-4">
+                          {/* Message Body */}
+                          <div className="col-12">
+                            <div className="form-floating">
+                              <textarea
+                                className="form-control shadow-sm"
+                                name="message_body"
+                                id="messageBodyTeacher"
+                                style={{ height: '180px', resize: 'none' }}
+                                placeholder="এখানে আপনার বার্তা লিখুন..."
+                                value={messageBody}
+                                onChange={(e) => setMessageBody(e.target.value)}
+                                maxLength={maxChars}
+                                required
+                              ></textarea>
+                              <label htmlFor="messageBodyTeacher">
+                                <i className="fas fa-comment-dots me-2"></i>বার্তার বিষয়বস্তু
+                              </label>
+                            </div>
+                            <div className="d-flex justify-content-between align-items-center mt-2 px-2">
+                              <small className="text-muted">
+                                <i className="fas fa-info-circle me-1"></i>সর্বোচ্চ ১৬০ অক্ষর
+                              </small>
+                              <div>
+                                <span className="badge bg-primary mt-2 fs-6">
+                                  অবশিষ্ট অক্ষর:{' '}
+                                  <span className="fw-bold">{remainingChars}</span>
+                                </span>
+                              </div>
+                            </div>
+                          </div>
 
-              <div className="flex justify-end space-x-2 pt-2">
+                          {/* Teacher Selection */}
+                          <div className="col-12">
+                            <label htmlFor="teacher_id" className="form-label fw-semibold mb-2">
+                              <i className="fas fa-chalkboard-user me-2 text-primary"></i>শিক্ষক নির্বাচন করুন
+                            </label>
+                            <div className="row g-2">
+                              <div className="col-12">
+                                <select
+                                  name="teacher_id"
+                                  id="teacher_id"
+                                  className="form-control form-select"
+                                  value={selectedTeacherId}
+                                  onChange={(e) => setSelectedTeacherId(e.target.value)}
+                                >
+                                  <option value="all">সকল শিক্ষক ({teachers.length} জন)</option>
+                                  {teachers.map((t) => (
+                                    <option key={t.id} value={t.id}>
+                                      {t.name} ({t.designation}) - {t.mobile}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Submit Button */}
+                          <div className="col-12 mt-4">
+                            <div className="d-grid">
+                              <button
+                                type="submit"
+                                className="btn btn-success btn-lg rounded-pill shadow-sm"
+                                disabled={!messageBody.trim()}
+                              >
+                                <i className="fas fa-paper-plane me-2"></i>এসএমএস পাঠান
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. SMS LOGS */}
+      {activeTab === 'logs' && (
+        <div className="card shadow-sm">
+          <div className="card-header bg-primary text-white">
+            <h5 className="mb-0 text-white">
+              <i className="fa-solid fa-clock-rotate-left me-2"></i>এসএমএস প্রেরণের ইতিহাস
+            </h5>
+          </div>
+          <div className="card-body p-0">
+            <div className="table-responsive">
+              <table className="table table-hover table-bordered mb-0">
+                <thead className="table-light">
+                  <tr>
+                    <th>তারিখ ও সময়</th>
+                    <th>প্রাপক সংখ্যা</th>
+                    <th>বার্তার বিবরণ</th>
+                    <th>ব্যয় (৳)</th>
+                    <th>স্ট্যাটাস</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {smsLogs.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="text-center py-4 text-muted">
+                        কোনো এসএমএস প্রেরণের রেকর্ড পাওয়া যায়নি
+                      </td>
+                    </tr>
+                  ) : (
+                    smsLogs.map((log) => (
+                      <tr key={log.id}>
+                        <td>{log.date}</td>
+                        <td>
+                          <span className="badge bg-secondary font-monospace">
+                            {Array.isArray(log.recipients) ? log.recipients.length : 1} টি
+                          </span>
+                        </td>
+                        <td>{log.message}</td>
+                        <td className="font-monospace text-success">৳ {log.cost || '0.40'}</td>
+                        <td>
+                          <span className="badge bg-success">সফল</span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Balance Recharge Modal */}
+      {showRechargeModal && (
+        <div
+          className="modal show d-block"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title">
+                  <i className="fa-solid fa-wallet me-2"></i>এসএমএস ব্যালেন্স রিচার্জ
+                </h5>
                 <button
                   type="button"
+                  className="btn-close btn-close-white"
                   onClick={() => setShowRechargeModal(false)}
-                  className="px-4 py-2 bg-gray-100 rounded-xl font-semibold text-gray-600 hover:bg-gray-200"
-                >
-                  বাতিল
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[#0f626a] hover:bg-[#0c5259] text-white rounded-xl font-bold shadow transition"
-                >
-                  রিচার্জ সম্পন্ন
-                </button>
+                ></button>
               </div>
-            </form>
+              <form onSubmit={handleRechargeSubmit}>
+                <div className="modal-body p-4">
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">রিচার্জের পরিমাণ (টাকা)</label>
+                    <input
+                      type="number"
+                      className="form-control font-monospace"
+                      value={rechargeAmount}
+                      onChange={(e) => setRechargeAmount(e.target.value)}
+                      min="10"
+                      required
+                    />
+                  </div>
+                  <p className="text-muted small mb-0">
+                    প্রতি এসএমএস রেট: ৳ ০.৪০। রিচার্জকৃত টাকা আপনার মাদ্রাসা অ্যাকাউন্ট থেকে স্বয়ংক্রিয়ভাবে সমন্বয় হবে।
+                  </p>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setShowRechargeModal(false)}
+                  >
+                    বাতিল
+                  </button>
+                  <button type="submit" className="btn btn-success">
+                    রিচার্জ নিশ্চিত করুন
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

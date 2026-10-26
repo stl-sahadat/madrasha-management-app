@@ -1,590 +1,803 @@
 import React, { useState } from 'react';
-import {
-  UserPlus,
-  ArrowLeft,
-  CheckCircle,
-  Upload,
-  User,
-  Users,
-  MapPin,
-  BookOpen,
-  CreditCard,
-  Image as ImageIcon
-} from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const StudentCreate = () => {
-  const { jamats, accounts, addStudent, setActiveTab } = useApp();
+  const { jamats, accounts, receivers, addStudent, setActiveTab } = useApp();
 
-  // 5 Section Form Data
   const [formData, setFormData] = useState({
-    // Section 1: Basic Info
+    // Left column
     name: '',
-    nameEn: '',
-    jamat: jamats[0]?.name || 'হিফজ বিভাগ',
-    roll: '',
-    session: '২০২৬',
-    dob: '',
-    bloodGroup: 'A+',
-    birthReg: '',
+    birth_day: '',
+    blood_group_id: '',
+    father_name: '',
+    mother_name: '',
+    father_profesion: '',
+    parents_name: '',
+    parents_phone: '',
+    parents_phone2: '',
+    relation: 'পিতা',
+    email: '',
+    current_address: 'বদরখালী, মাতামুহুরী, চকরিয়া, কক্সবাজার',
+    same_address: true,
+    permanent_address: 'বদরখালী, মাতামুহুরী, চকরিয়া, কক্সবাজার',
 
-    // Section 2: Guardian Info
-    fatherName: '',
-    fatherOcc: '',
-    guardianPhone: '',
-    motherName: '',
-    motherOcc: '',
-    nid: '',
-
-    // Section 3: Address
-    presentAddress: '',
-    permanentAddress: '',
-
-    // Section 4: Previous Institute
-    prevInstitute: '',
-    prevClass: '',
-    prevYear: '',
-    prevResult: '',
-
-    // Section 5: Fees & Photo
-    monthlyFee: '800',
-    khurakiFee: '2000',
-    admissionFee: '1500',
-    admissionAccount: accounts[0]?.name || 'নগদ ক্যাশ (Hand Cash)',
-    photo: '/students/FB_IMG_1791220812856.webp',
+    // Right column
+    admission_date: new Date().toISOString().split('T')[0],
+    form_number: Math.floor(1000 + Math.random() * 9000).toString(),
+    admission_number: Math.floor(100 + Math.random() * 900).toString(),
+    admission_fee: '1500',
+    receiver_id: receivers[0]?.name || 'মাহমুদুল করিম',
+    account_id: accounts[0]?.name || 'নগদ ক্যাশ (Hand Cash)',
+    payment_method_id: 'cash',
+    coursefee: '800',
+    food_bill: '2000',
+    jamat_id: jamats[0]?.name || 'হিফজ বিভাগ',
+    meal_type: 'shadharon',
+    residential: 'abasik',
+    student_type: 'notun',
+    etim: 'no',
+    bording_food: 'yes',
+    note: ''
   });
 
-  const availablePhotos = [
-    '/students/FB_IMG_1791220812856.webp',
-    '/students/IMG_20261014_124639.webp',
-    '/students/IMG_20261014_124644.webp',
-    '/students/IMG_20261014_124654.webp',
-    '/students/IMG_20261014_124710.webp',
-    '/students/IMG_20261014_124723.webp',
-    '/students/IMG_20261014_124849.webp',
-    '/students/IMG_20261014_124918.webp',
-    '/students/IMG_20261014_124949.webp',
-    '/students/IMG_20261015_110444.webp',
-    '/students/IMG_20261015_110504.webp',
-    '/students/IMG_20260930_063637_063812.webp',
-  ];
-
-  const handlePhotoUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (uploadEvent) => {
-        setFormData(prev => ({ ...prev, photo: uploadEvent.target.result }));
-      };
-      reader.readAsDataURL(file);
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    if (type === 'checkbox' && name === 'same_address') {
+      setFormData(prev => ({
+        ...prev,
+        same_address: checked,
+        permanent_address: checked ? prev.current_address : prev.permanent_address
+      }));
+    } else {
+      setFormData(prev => {
+        const next = { ...prev, [name]: value };
+        if (name === 'current_address' && prev.same_address) {
+          next.permanent_address = value;
+        }
+        return next;
+      });
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleReset = () => {
+    setFormData({
+      name: '',
+      birth_day: '',
+      blood_group_id: '',
+      father_name: '',
+      mother_name: '',
+      father_profesion: '',
+      parents_name: '',
+      parents_phone: '',
+      parents_phone2: '',
+      relation: 'পিতা',
+      email: '',
+      current_address: '',
+      same_address: false,
+      permanent_address: '',
+      admission_date: new Date().toISOString().split('T')[0],
+      form_number: '',
+      admission_number: '',
+      admission_fee: '1500',
+      receiver_id: receivers[0]?.name || '',
+      account_id: accounts[0]?.name || '',
+      payment_method_id: 'cash',
+      coursefee: '800',
+      food_bill: '2000',
+      jamat_id: jamats[0]?.name || 'হিফজ বিভাগ',
+      meal_type: 'shadharon',
+      residential: 'abasik',
+      student_type: 'notun',
+      etim: 'no',
+      bording_food: 'yes',
+      note: ''
+    });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.roll || !formData.guardianPhone) {
-      alert('অনুগ্রহ করে নাম, রোল এবং অভিভাবকের ফোন নম্বর পূরণ করুন');
+    if (!formData.name) {
+      alert('অনুগ্রহ করে ছাত্রের নাম লিখুন');
       return;
     }
 
     addStudent({
-      ...formData,
-      address: formData.presentAddress || 'বদরখালী, চকরিয়া, কক্সবাজার',
-      monthlyFee: parseFloat(formData.monthlyFee) || 0,
-      khurakiFee: parseFloat(formData.khurakiFee) || 0,
-      admissionFee: parseFloat(formData.admissionFee) || 0,
-      admissionAccount: formData.admissionAccount
+      name: formData.name,
+      roll: formData.admission_number || formData.form_number || '101',
+      admissionNumber: formData.admission_number,
+      admission_number: formData.admission_number,
+      form_number: formData.form_number,
+      jamat: formData.jamat_id,
+      bloodGroup: formData.blood_group_id || 'A+',
+      dob: formData.birth_day,
+      birthDay: formData.birth_day,
+      fatherName: formData.father_name,
+      motherName: formData.mother_name,
+      fatherProf: formData.father_profesion,
+      parentsName: formData.parents_name || formData.father_name,
+      guardianPhone: formData.parents_phone,
+      parentsPhone: formData.parents_phone,
+      parentsPhone2: formData.parents_phone2,
+      relation: formData.relation,
+      email: formData.email,
+      address: formData.current_address,
+      currentAddress: formData.current_address,
+      permanentAddress: formData.permanent_address,
+      admissionDate: formData.admission_date,
+      admissionFee: parseFloat(formData.admission_fee) || 0,
+      monthlyFee: parseFloat(formData.coursefee) || 0,
+      coursefee: parseFloat(formData.coursefee) || 0,
+      khurakiFee: parseFloat(formData.food_bill) || 0,
+      food_bill: parseFloat(formData.food_bill) || 0,
+      meal_type: formData.meal_type === 'half_free' ? 'হাফ ফ্রি' : formData.meal_type === 'full_free' ? 'ফুল ফ্রি' : 'সাধারণ',
+      residential: formData.residential === 'abasik' ? 'আবাসিক' : 'অনাবাসিক',
+      student_type: formData.student_type === 'puraton' ? 'পুরাতন' : 'নতুন',
+      etim: formData.etim === 'yes' ? 'হ্যা' : 'না',
+      bording_food: formData.bording_food === 'yes' ? 'হ্যা' : 'না',
+      note: formData.note,
+      photo: '/students/FB_IMG_1791220812856.webp',
+      status: 'সক্রিয়'
     });
 
+    alert('ছাত্র/ছাত্রী সফলভাবে যুক্ত করা হয়েছে!');
     setActiveTab('student-list');
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-2xl p-5 border border-[#e2e8f0] shadow-sm flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <button
-            type="button"
-            onClick={() => setActiveTab('student-list')}
-            className="p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h2 className="text-xl font-bold text-[#082f32] flex items-center space-x-2">
-              <UserPlus className="w-6 h-6 text-[#0f626a]" />
-              <span>নতুন শিক্ষার্থী ভর্তি ফরম (/admin/student/create)</span>
-            </h2>
-            <p className="text-xs text-gray-500 mt-0.5">
-              ৫টি সুনির্দিষ্ট বিভাগে শিক্ষার্থীর পূর্ণাঙ্গ তথ্যাবলী দাখিল করুন
-            </p>
-          </div>
+    <div className="container-fluid p-0">
+      <div className="card shadow-sm border-0 rounded-3">
+        <div className="card-header bg-gradient bg-primary text-white py-3">
+          <h5 className="mb-0 text-white">
+            <i className="fas fa-clipboard-list me-2"></i>নতুন ছাত্র/ছাত্রী যুক্ত করুন
+          </h5>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setActiveTab('student-list')}
-          className="text-xs font-semibold text-[#0f626a] hover:underline"
-        >
-          তালিকায় ফিরে যান
-        </button>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* SECTION 1: Basic Information */}
-        <div className="bg-white rounded-2xl p-6 border border-[#e2e8f0] shadow-sm">
-          <div className="flex items-center space-x-2.5 pb-3 border-b border-gray-100 text-[#0f626a]">
-            <User className="w-5 h-5" />
-            <h3 className="font-bold text-sm text-[#082f32]">
-              সেকশন ১: মৌলিক তথ্য (Basic Student Information)
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                শিক্ষার্থীর নাম (বাংলায়) *
-              </label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="যেমন: মুহাম্মদ তাওহীদ হাসান"
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                শিক্ষার্থীর নাম (ইংরেজি)
-              </label>
-              <input
-                type="text"
-                name="nameEn"
-                value={formData.nameEn}
-                onChange={handleChange}
-                placeholder="e.g. Muhammad Tawhid Hasan"
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                জামাত / বিভাগ *
-              </label>
-              <select
-                name="jamat"
-                value={formData.jamat}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none bg-white"
-              >
-                {jamats.map(j => (
-                  <option key={j.id} value={j.name}>{j.name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                রোল নম্বর *
-              </label>
-              <input
-                type="text"
-                name="roll"
-                value={formData.roll}
-                onChange={handleChange}
-                placeholder="যেমন: ১১৫"
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                শিক্ষাবর্ষ / সেশন
-              </label>
-              <input
-                type="text"
-                name="session"
-                value={formData.session}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                রক্তের গ্রুপ
-              </label>
-              <select
-                name="bloodGroup"
-                value={formData.bloodGroup}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none bg-white"
-              >
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                জন্ম তারিখ
-              </label>
-              <input
-                type="date"
-                name="dob"
-                value={formData.dob}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                জন্ম নিবন্ধন নম্বর (১৭ ডিজিট)
-              </label>
-              <input
-                type="text"
-                name="birthReg"
-                value={formData.birthReg}
-                onChange={handleChange}
-                placeholder="যেমন: 20131592310001234"
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none font-mono"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 2: Guardian Information */}
-        <div className="bg-white rounded-2xl p-6 border border-[#e2e8f0] shadow-sm">
-          <div className="flex items-center space-x-2.5 pb-3 border-b border-gray-100 text-[#0f626a]">
-            <Users className="w-5 h-5" />
-            <h3 className="font-bold text-sm text-[#082f32]">
-              সেকশন ২: অভিভাবকের তথ্য (Guardian Information)
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                পিতার নাম
-              </label>
-              <input
-                type="text"
-                name="fatherName"
-                value={formData.fatherName}
-                onChange={handleChange}
-                placeholder="পিতার পুরো নাম"
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                পিতার পেশা
-              </label>
-              <input
-                type="text"
-                name="fatherOcc"
-                value={formData.fatherOcc}
-                onChange={handleChange}
-                placeholder="যেমন: ব্যবসায়ী / শিক্ষক"
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                অভিভাবকের মোবাইল নম্বর *
-              </label>
-              <input
-                type="text"
-                name="guardianPhone"
-                value={formData.guardianPhone}
-                onChange={handleChange}
-                placeholder="018XXXXXXXX"
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                মাতার নাম
-              </label>
-              <input
-                type="text"
-                name="motherName"
-                value={formData.motherName}
-                onChange={handleChange}
-                placeholder="মাতার পুরো নাম"
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                মাতার পেশা
-              </label>
-              <input
-                type="text"
-                name="motherOcc"
-                value={formData.motherOcc}
-                onChange={handleChange}
-                placeholder="যেমন: গৃহিনী"
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                অভিভাবকের এনআইডি নম্বর
-              </label>
-              <input
-                type="text"
-                name="nid"
-                value={formData.nid}
-                onChange={handleChange}
-                placeholder="NID নম্বর"
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none font-mono"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 3: Address */}
-        <div className="bg-white rounded-2xl p-6 border border-[#e2e8f0] shadow-sm">
-          <div className="flex items-center space-x-2.5 pb-3 border-b border-gray-100 text-[#0f626a]">
-            <MapPin className="w-5 h-5" />
-            <h3 className="font-bold text-sm text-[#082f32]">
-              সেকশন ৩: বর্তমান ও স্থায়ী ঠিকানা (Address Details)
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                বর্তমান ঠিকানা (গ্রাম, ডাকঘর, উপজেলা, জেলা)
-              </label>
-              <textarea
-                name="presentAddress"
-                rows="3"
-                value={formData.presentAddress}
-                onChange={handleChange}
-                placeholder="বদরখালী, মাতামুহুরী, চকরিয়া, কক্সবাজার"
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-              ></textarea>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                স্থায়ী ঠিকানা
-              </label>
-              <textarea
-                name="permanentAddress"
-                rows="3"
-                value={formData.permanentAddress}
-                onChange={handleChange}
-                placeholder="একই হলে খালি রাখুন বা স্থায়ী ঠিকানা লিখুন"
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-              ></textarea>
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 4: Previous Institute */}
-        <div className="bg-white rounded-2xl p-6 border border-[#e2e8f0] shadow-sm">
-          <div className="flex items-center space-x-2.5 pb-3 border-b border-gray-100 text-[#0f626a]">
-            <BookOpen className="w-5 h-5" />
-            <h3 className="font-bold text-sm text-[#082f32]">
-              সেকশন ৪: পূর্ববর্তী শিক্ষা প্রতিষ্ঠানের তথ্য (Previous Academic Record)
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-            <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                পূর্বের মাদ্রাসা বা স্কুলের নাম
-              </label>
-              <input
-                type="text"
-                name="prevInstitute"
-                value={formData.prevInstitute}
-                onChange={handleChange}
-                placeholder="পূর্বে অধ্যয়নকৃত প্রতিষ্ঠানের নাম"
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                পূর্বের শ্রেণী / বিভাগ
-              </label>
-              <input
-                type="text"
-                name="prevClass"
-                value={formData.prevClass}
-                onChange={handleChange}
-                placeholder="যেমন: নাজেরা"
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                পাশের সন ও প্রাপ্ত ফলাফল
-              </label>
-              <input
-                type="text"
-                name="prevResult"
-                value={formData.prevResult}
-                onChange={handleChange}
-                placeholder="যেমন: ২০২৫, মুমতাজ"
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* SECTION 5: Fees & Photo */}
-        <div className="bg-white rounded-2xl p-6 border border-[#e2e8f0] shadow-sm">
-          <div className="flex items-center space-x-2.5 pb-3 border-b border-gray-100 text-[#0f626a]">
-            <CreditCard className="w-5 h-5" />
-            <h3 className="font-bold text-sm text-[#082f32]">
-              সেকশন ৫: ফি কাঠামো ও ছবি নির্বাচন (Fee Structure & Photo Selection)
-            </h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                ভর্তি ফি (এককালীন) ৳
-              </label>
-              <input
-                type="number"
-                name="admissionFee"
-                value={formData.admissionFee}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none font-mono font-bold"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                মাসিক নির্ধারিত বেতন ৳
-              </label>
-              <input
-                type="number"
-                name="monthlyFee"
-                value={formData.monthlyFee}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none font-mono font-bold"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                মাসিক খোরাকী ফি (আবাসিক) ৳
-              </label>
-              <input
-                type="number"
-                name="khurakiFee"
-                value={formData.khurakiFee}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none font-mono font-bold"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                ভর্তি ফি জমা গ্রহণের অ্যাকাউন্ট
-              </label>
-              <select
-                name="admissionAccount"
-                value={formData.admissionAccount}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none bg-white font-medium"
-              >
-                {accounts.map(acc => (
-                  <option key={acc.id} value={acc.name}>{acc.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Photo Picker & Custom Upload */}
-          <div className="mt-5 pt-4 border-t border-gray-100">
-            <label className="block text-xs font-semibold text-gray-700 mb-2">
-              শিক্ষার্থীর ছবি নির্বাচন অথবা গ্যালারি থেকে আপলোড করুন:
-            </label>
-            <div className="flex items-center space-x-3 overflow-x-auto pb-2">
-              {/* Custom Upload Button */}
-              <label className="cursor-pointer px-3 py-2 border-2 border-dashed border-[#0f626a]/50 rounded-xl hover:bg-[#eaf4f5] text-center flex flex-col items-center justify-center shrink-0 w-24 h-20 text-[11px] text-[#0f626a] font-bold transition">
-                <Upload className="w-5 h-5 mb-1 text-[#0f626a]" />
-                <span>ছবি আপলোড</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
-              </label>
-
-              {/* Presets */}
-              {availablePhotos.map((photoPath, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setFormData(prev => ({ ...prev, photo: photoPath }))}
-                  className={`shrink-0 cursor-pointer p-1 rounded-xl border-2 transition ${
-                    formData.photo === photoPath
-                      ? 'border-[#0f626a] bg-[#eaf4f5] scale-105 shadow-md'
-                      : 'border-gray-200 hover:border-gray-300 opacity-70 hover:opacity-100'
-                  }`}
-                >
-                  <img
-                    src={photoPath}
-                    alt="avatar"
-                    className="w-14 h-14 rounded-lg object-cover"
+        <div className="card-body p-4">
+          <form onSubmit={handleSubmit} className="needs-validation">
+            <div className="row g-4">
+              {/* Left Column */}
+              <div className="col-lg-6">
+                {/* ছাত্রের নাম */}
+                <div className="mb-3">
+                  <label htmlFor="name" className="form-label fw-semibold">
+                    ছাত্রের নাম <span className="text-danger">*</span>
+                  </label>
+                  <input
+                    name="name"
+                    type="text"
+                    id="name"
+                    className="form-control"
+                    placeholder="ছাত্রের পূর্ণ নাম লিখুন"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
                   />
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
 
-        {/* Submit Actions */}
-        <div className="flex items-center justify-end space-x-3 pt-2">
-          <button
-            type="button"
-            onClick={() => setActiveTab('student-list')}
-            className="px-5 py-2.5 text-xs font-semibold text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition"
-          >
-            বাতিল
-          </button>
-          <button
-            type="submit"
-            className="px-6 py-2.5 text-xs font-bold text-white bg-[#0f626a] hover:bg-[#0c5259] rounded-xl shadow-lg transition flex items-center space-x-2"
-          >
-            <CheckCircle className="w-4 h-4" />
-            <span>ভর্তি সম্পন্ন করুন</span>
-          </button>
+                {/* জন্ম তারিখ */}
+                <div className="mb-3">
+                  <label htmlFor="birth_day" className="form-label fw-semibold">
+                    ছাত্রের জন্ম তারিখ
+                  </label>
+                  <input
+                    name="birth_day"
+                    type="date"
+                    id="birth_day"
+                    className="form-control"
+                    value={formData.birth_day}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* রক্তের গ্রুপ */}
+                <div className="mb-3">
+                  <label htmlFor="blood_group_id" className="form-label fw-semibold">
+                    রক্তের গ্রুপ (যদি জানা থাকে)
+                  </label>
+                  <select
+                    name="blood_group_id"
+                    id="blood_group_id"
+                    className="form-select"
+                    value={formData.blood_group_id}
+                    onChange={handleChange}
+                  >
+                    <option value="">নির্বাচন করুন</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                  </select>
+                </div>
+
+                {/* পিতার নাম */}
+                <div className="mb-3">
+                  <label htmlFor="father_name" className="form-label fw-semibold">
+                    পিতার নাম
+                  </label>
+                  <input
+                    type="text"
+                    id="father_name"
+                    name="father_name"
+                    className="form-control"
+                    placeholder="ছাত্রের পিতার নাম লিখুন"
+                    value={formData.father_name}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* মাতার নাম */}
+                <div className="mb-3">
+                  <label htmlFor="mother_name" className="form-label fw-semibold">
+                    মাতার নাম
+                  </label>
+                  <input
+                    type="text"
+                    id="mother_name"
+                    name="mother_name"
+                    className="form-control"
+                    placeholder="ছাত্রের মাতার নাম লিখুন"
+                    value={formData.mother_name}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* পিতার পেশা */}
+                <div className="mb-3">
+                  <label htmlFor="father_profesion" className="form-label fw-semibold">
+                    পিতার পেশা
+                  </label>
+                  <input
+                    type="text"
+                    id="father_profesion"
+                    name="father_profesion"
+                    className="form-control"
+                    placeholder="ছাত্রের পিতার পেশা লিখুন"
+                    value={formData.father_profesion}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* অভিভাবকের নাম */}
+                <div className="mb-3">
+                  <label htmlFor="parents_name" className="form-label fw-semibold">
+                    অভিভাবকের নাম
+                  </label>
+                  <input
+                    type="text"
+                    id="parents_name"
+                    name="parents_name"
+                    className="form-control"
+                    placeholder="অভিভাবকের নাম লিখুন"
+                    value={formData.parents_name}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* অভিভাবকের ১ম মোবাইল নম্বর */}
+                <div className="mb-3">
+                  <label htmlFor="parents_phone" className="form-label fw-semibold">
+                    অভিভাবকের ১ম মোবাইল নম্বর
+                  </label>
+                  <input
+                    type="tel"
+                    name="parents_phone"
+                    id="parents_phone"
+                    className="form-control"
+                    placeholder="অভিভাবকের মোবাইল নম্বর লিখুন"
+                    value={formData.parents_phone}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* অভিভাবকের ২য় মোবাইল নম্বর */}
+                <div className="mb-3">
+                  <label htmlFor="parents_phone2" className="form-label fw-semibold">
+                    অভিভাবকের ২য় মোবাইল নম্বর
+                  </label>
+                  <input
+                    type="tel"
+                    name="parents_phone2"
+                    id="parents_phone2"
+                    className="form-control"
+                    placeholder="অভিভাবকের মোবাইল নম্বর লিখুন"
+                    value={formData.parents_phone2}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* অভিবাবকের সাথে ছাত্রের সম্পর্ক */}
+                <div className="mb-3">
+                  <label htmlFor="relation" className="form-label fw-semibold">
+                    অভিবাবকের সাথে ছাত্রের সম্পর্ক
+                  </label>
+                  <input
+                    className="form-control"
+                    type="text"
+                    name="relation"
+                    placeholder="অভিবাবকের সাথে ছাত্রের সম্পর্ক"
+                    id="relation"
+                    value={formData.relation}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* ই-মেইল */}
+                <div className="mb-3">
+                  <label htmlFor="email" className="form-label fw-semibold">
+                    ই-মেইল (যদি থাকে)
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    className="form-control"
+                    placeholder="অভিভাবকের ই-মেইল লিখুন"
+                    value={formData.email}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* বর্তমান ঠিকানা */}
+                <div className="mb-3">
+                  <label htmlFor="current_address" className="form-label fw-semibold">
+                    বর্তমান ঠিকানা
+                  </label>
+                  <textarea
+                    id="current_address"
+                    name="current_address"
+                    className="form-control"
+                    rows="2"
+                    placeholder="বর্তমান ঠিকানা লিখুন"
+                    value={formData.current_address}
+                    onChange={handleChange}
+                  ></textarea>
+                </div>
+
+                {/* স্থায়ী ঠিকানা */}
+                <div className="mb-3">
+                  <label htmlFor="permanent_address" className="form-label fw-semibold d-flex align-items-center">
+                    স্থায়ী ঠিকানা
+                    <div className="form-check ms-3">
+                      <input
+                        type="checkbox"
+                        className="form-check-input"
+                        id="same_address"
+                        name="same_address"
+                        checked={formData.same_address}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label fw-normal" htmlFor="same_address">
+                        বর্তমান ঠিকানার অনুরুপ
+                      </label>
+                    </div>
+                  </label>
+                  <textarea
+                    name="permanent_address"
+                    id="permanent_address"
+                    className="form-control"
+                    rows="3"
+                    placeholder="স্থায়ী ঠিকানা লিখুন"
+                    value={formData.permanent_address}
+                    onChange={handleChange}
+                  ></textarea>
+                </div>
+              </div>
+
+              {/* Right Column */}
+              <div className="col-lg-6">
+                {/* ভর্তি তারিখ */}
+                <div className="mb-3">
+                  <label htmlFor="admission_date" className="form-label fw-semibold">
+                    ভর্তি তারিখ
+                  </label>
+                  <input
+                    name="admission_date"
+                    type="date"
+                    id="admission_date"
+                    className="form-control"
+                    value={formData.admission_date}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* ভর্তি ফরম নম্বর */}
+                <div className="mb-3">
+                  <label htmlFor="form_number" className="form-label fw-semibold">
+                    ভর্তি ফরম নম্বর
+                  </label>
+                  <input
+                    type="number"
+                    id="form_number"
+                    name="form_number"
+                    className="form-control"
+                    placeholder="ভর্তি ফরম নম্বর লিখুন"
+                    value={formData.form_number}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* ভর্তি নম্বর */}
+                <div className="mb-3">
+                  <label htmlFor="admission_number" className="form-label fw-semibold">
+                    ভর্তি নম্বর <span className="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="admission_number"
+                    name="admission_number"
+                    className="form-control"
+                    placeholder="ভর্তি নম্বর লিখুন"
+                    value={formData.admission_number}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                {/* ভর্তি ফি */}
+                <div className="mb-3">
+                  <label htmlFor="admission_fee" className="form-label fw-semibold">
+                    ভর্তি ফি
+                  </label>
+                  <input
+                    type="number"
+                    id="admission_fee"
+                    name="admission_fee"
+                    placeholder="ভর্তি ফি পরিমান লিখুন"
+                    className="form-control"
+                    value={formData.admission_fee}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* ভর্তি ফি গ্রহণকারী */}
+                <div className="mb-3">
+                  <label htmlFor="receiver_id" className="form-label fw-semibold">
+                    ভর্তি ফি গ্রহণকারী <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    name="receiver_id"
+                    id="receiver_id"
+                    className="form-select"
+                    value={formData.receiver_id}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">নির্বাচন করুন</option>
+                    {receivers.map(r => (
+                      <option key={r.id} value={r.name}>{r.name} ({r.designation || 'দায়িত্বশীল'})</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* ভর্তি ফি জমার এ্যাকাউন্ট */}
+                <div className="mb-3">
+                  <label htmlFor="account_id" className="form-label fw-semibold">
+                    ভর্তি ফি জমার এ্যাকাউন্ট <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    name="account_id"
+                    id="account_id"
+                    className="form-select"
+                    value={formData.account_id}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">নির্বাচন করুন</option>
+                    {accounts.map(a => (
+                      <option key={a.id} value={a.name}>{a.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* ভর্তি ফি জমার পেমেন্ট মেথড */}
+                <div className="mb-3">
+                  <label htmlFor="payment_method_id" className="form-label fw-semibold">
+                    ভর্তি ফি জমার পেমেন্ট মেথড <span className="text-danger">*</span>
+                  </label>
+                  <select
+                    name="payment_method_id"
+                    id="payment_method_id"
+                    className="form-select"
+                    value={formData.payment_method_id}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="cash">নগদ ক্যাশ (Cash)</option>
+                    <option value="bkash">বিকাশ (bKash)</option>
+                    <option value="nagad">নগদ (Nagad)</option>
+                    <option value="bank">ব্যাংক (Bank)</option>
+                  </select>
+                </div>
+
+                {/* বেতনের পরিমান */}
+                <div className="mb-3">
+                  <label htmlFor="coursefee" className="form-label fw-semibold">
+                    বেতনের পরিমান
+                  </label>
+                  <input
+                    type="number"
+                    id="coursefee"
+                    name="coursefee"
+                    placeholder="বেতনের পরিমান লিখুন"
+                    className="form-control"
+                    value={formData.coursefee}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* খানার টাকা */}
+                <div className="mb-3">
+                  <label htmlFor="food_bill" className="form-label fw-semibold">
+                    মাসিক খানার টাকার পরিমান
+                  </label>
+                  <input
+                    type="number"
+                    id="food_bill"
+                    name="food_bill"
+                    className="form-control"
+                    placeholder="মাসিক খানার টাকার পরিমান লিখুন"
+                    value={formData.food_bill}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                {/* জামাতের নাম */}
+                <div className="mb-3">
+                  <label className="form-label fw-semibold d-block">জামাতের নাম</label>
+                  <div className="d-flex flex-wrap gap-3">
+                    {jamats.map((j, idx) => (
+                      <div className="form-check" key={j.id || idx}>
+                        <input
+                          className="form-check-input"
+                          type="radio"
+                          name="jamat_id"
+                          id={`jamat_${idx}`}
+                          value={j.name}
+                          checked={formData.jamat_id === j.name}
+                          onChange={handleChange}
+                        />
+                        <label className="form-check-label" htmlFor={`jamat_${idx}`}>
+                          {j.name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* টাইপ নির্ধারণ করুন */}
+                <div className="mb-3">
+                  <label className="form-label fw-semibold d-block">টাইপ নির্ধারণ করুন</label>
+                  <div className="d-flex gap-3">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="meal_type"
+                        id="meal_type1"
+                        value="shadharon"
+                        checked={formData.meal_type === 'shadharon'}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label" htmlFor="meal_type1">
+                        সাধারণ
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="meal_type"
+                        id="meal_type2"
+                        value="half_free"
+                        checked={formData.meal_type === 'half_free'}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label" htmlFor="meal_type2">
+                        হাফ ফ্রি
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="meal_type"
+                        id="meal_type3"
+                        value="full_free"
+                        checked={formData.meal_type === 'full_free'}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label" htmlFor="meal_type3">
+                        ফুল ফ্রি
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* আবাসিক / অনাবাসিক */}
+                <div className="mb-3">
+                  <label className="form-label fw-semibold d-block">আবাসিক / অনাবাসিক</label>
+                  <div className="d-flex gap-3">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="residential"
+                        id="residential1"
+                        value="abasik"
+                        checked={formData.residential === 'abasik'}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label" htmlFor="residential1">
+                        আবাসিক
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="residential"
+                        id="residential2"
+                        value="onabashik"
+                        checked={formData.residential === 'onabashik'}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label" htmlFor="residential2">
+                        অনাবাসিক
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* নতুন / পুরাতন */}
+                <div className="mb-3">
+                  <label className="form-label fw-semibold d-block">নতুন / পুরাতন</label>
+                  <div className="d-flex gap-3">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="student_type"
+                        id="student_type1"
+                        value="notun"
+                        checked={formData.student_type === 'notun'}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label" htmlFor="student_type1">
+                        নতুন
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="student_type"
+                        id="student_type2"
+                        value="puraton"
+                        checked={formData.student_type === 'puraton'}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label" htmlFor="student_type2">
+                        পুরাতন
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* এতিম */}
+                <div className="mb-3">
+                  <label className="form-label fw-semibold d-block">ছাত্র / ছাত্রী টি কি এতিম ?</label>
+                  <div className="d-flex gap-3">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="etim"
+                        id="etim0"
+                        value="no"
+                        checked={formData.etim === 'no'}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label" htmlFor="etim0">
+                        না
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="etim"
+                        id="etim1"
+                        value="yes"
+                        checked={formData.etim === 'yes'}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label" htmlFor="etim1">
+                        এতিম
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* বোর্ডিং এ খানা */}
+                <div className="mb-3">
+                  <label className="form-label fw-semibold d-block">বোর্ডিং এ খানা খায়?</label>
+                  <div className="d-flex gap-3">
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="bording_food"
+                        id="bording_food1"
+                        value="no"
+                        checked={formData.bording_food === 'no'}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label" htmlFor="bording_food1">
+                        না
+                      </label>
+                    </div>
+                    <div className="form-check">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="bording_food"
+                        id="bording_food2"
+                        value="yes"
+                        checked={formData.bording_food === 'yes'}
+                        onChange={handleChange}
+                      />
+                      <label className="form-check-label" htmlFor="bording_food2">
+                        হ্যা
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* মন্তব্য */}
+                <div className="mb-3">
+                  <label htmlFor="note" className="form-label fw-semibold">
+                    নোট/মন্তব্য
+                  </label>
+                  <textarea
+                    name="note"
+                    id="note"
+                    rows="4"
+                    className="form-control"
+                    placeholder="ছাত্র সম্পর্কে মন্তব্য লিখুন"
+                    value={formData.note}
+                    onChange={handleChange}
+                  ></textarea>
+                </div>
+              </div>
+            </div>
+
+            {/* Form Actions */}
+            <div className="row mt-4">
+              <div className="col-12">
+                <div className="d-flex gap-2 justify-content-end">
+                  <button type="submit" name="submit" className="btn btn-success btn-lg px-4">
+                    <i className="fas fa-check-circle me-2"></i>ছাত্র/ছাত্রী যুক্ত করুন
+                  </button>
+                  <button type="button" className="btn btn-warning btn-lg px-4" onClick={handleReset}>
+                    <i className="fas fa-redo me-2"></i>রিসেট
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger btn-lg px-4"
+                    onClick={() => setActiveTab('student-list')}
+                  >
+                    <i className="fas fa-times-circle me-2"></i>বাতিল
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
     </div>
   );
 };

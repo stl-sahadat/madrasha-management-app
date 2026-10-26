@@ -1,193 +1,124 @@
 import React, { useState } from 'react';
-import {
-  Calendar,
-  Printer,
-  Plus,
-  CreditCard,
-  Search,
-  Filter,
-  CheckCircle,
-  FileSpreadsheet,
-  DollarSign
-} from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { MONTH_NAMES } from '../../data/initialData';
 
 export const StudentSalaryRegister = () => {
-  const { students, jamats, setActiveTab } = useApp();
-  const [selectedYear, setSelectedYear] = useState('2026');
-  const [selectedJamat, setSelectedJamat] = useState('সকল জামাত');
-  const [searchTerm, setSearchTerm] = useState('');
+  const { students, jamats } = useApp();
+  const [selectedJamat, setSelectedJamat] = useState('');
 
-  const filteredStudents = students.filter(s => {
-    const matchJamat = selectedJamat === 'সকল জামাত' || s.jamat === selectedJamat;
-    const matchSearch =
-      s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.roll.includes(searchTerm);
-    return matchJamat && matchSearch;
-  });
+  const filteredStudents = selectedJamat
+    ? students.filter(s => s.jamat === selectedJamat)
+    : students;
 
   return (
-    <div className="space-y-4">
-      {/* Page Header */}
-      <div className="card shadow-sm border-0 mb-3 no-print">
-        <div className="card-header bg-primary py-3 d-flex flex-wrap justify-content-between align-items-center">
-          <h5 className="mb-0 text-white font-bold d-flex align-items-center">
-            <i className="fa-solid fa-table me-2"></i>
-            ছাত্রদের বেতনের টাকা আদায়ের রেজিস্টার সন {selectedYear} ইং
+    <div className="container-fluid p-0">
+      {/* Top Filter Bar (no-print) */}
+      <div className="card shadow-sm mb-4 no-print">
+        <div className="card-header bg-primary">
+          <h5 className="mb-0 text-white">
+            <i className="fa-solid fa-table me-2"></i> বেতনের টাকা আদায়ের রেজিস্টার
           </h5>
-          <div className="d-flex gap-2">
-            <button
-              onClick={() => setActiveTab('student-salary-entry')}
-              className="btn btn-sm btn-danger text-white fw-bold d-flex align-items-center gap-1"
-            >
-              <i className="fa-solid fa-plus"></i> নতুন বেতন জমা এন্ট্রি
-            </button>
-            <button
-              onClick={() => setActiveTab('student-fees')}
-              className="btn btn-sm btn-light text-primary fw-bold d-flex align-items-center gap-1"
-            >
-              <i className="fa-solid fa-credit-card"></i> একক ছাত্র ফি কার্ড
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="btn btn-sm btn-info text-white fw-bold d-flex align-items-center gap-1"
-            >
-              <i className="fa-solid fa-print"></i> প্রিন্ট করুন
-            </button>
-          </div>
         </div>
-
-        <div className="card-body bg-light py-3">
-          {/* Jamat Filters */}
-          <div className="mb-3">
-            <label className="form-label fw-bold small text-muted mb-2">জামাত লিস্ট:</label>
-            <div className="d-flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setSelectedJamat('সকল জামাত')}
-                className={`btn btn-sm rounded-pill px-3 ${
-                  selectedJamat === 'সকল জামাত' ? 'btn-primary' : 'btn-outline-secondary bg-white'
-                }`}
-              >
-                সকল জামাত
-              </button>
-              {jamats.map(j => (
-                <button
-                  key={j.id}
-                  type="button"
-                  onClick={() => setSelectedJamat(j.name)}
-                  className={`btn btn-sm rounded-pill px-3 ${
-                    selectedJamat === j.name ? 'btn-primary' : 'btn-outline-secondary bg-white'
-                  }`}
-                >
-                  {j.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="row g-2 align-items-center justify-content-between">
+        <div className="card-body py-3">
+          <div className="row align-items-center">
             <div className="col-md-4">
-              <div className="input-group input-group-sm">
-                <span className="input-group-text bg-white"><i className="fa-solid fa-search text-muted"></i></span>
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="নাম বা রোল দিয়ে খুঁজুন..."
-                  className="form-control"
-                />
-              </div>
-            </div>
-
-            <div className="col-auto d-flex align-items-center gap-2">
-              <label className="fw-bold small mb-0">সন:</label>
+              <label className="form-label fw-bold">জামাত নির্বাচন করুন:</label>
               <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="form-select form-select-sm"
+                className="form-select"
+                value={selectedJamat}
+                onChange={(e) => setSelectedJamat(e.target.value)}
               >
-                <option value="2026">2026 ইং</option>
-                <option value="2025">2025 ইং</option>
-                <option value="2024">2024 ইং</option>
+                <option value="">সকল জামাত</option>
+                {jamats.map(j => (
+                  <option key={j.id || j.name} value={j.name}>{j.name}</option>
+                ))}
               </select>
+            </div>
+            <div className="col-md-8 text-end">
+              <p className="mb-0 fw-semibold text-muted">
+                মোট শিক্ষার্থী: {filteredStudents.length} জন
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Main Table Card */}
-      <div className="card shadow-sm border-0">
-        <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-bordered table-striped table-hover align-middle mb-0 text-center text-xs">
-              <thead className="table-light">
-                <tr className="text-dark fw-bold">
-                  <th style={{ width: '40px' }}>ক্র.নং</th>
-                  <th className="text-start" style={{ minWidth: '130px' }}>ছাত্রের নাম</th>
-                  <th>ভর্তি নং</th>
-                  <th>মাসিক বেতন</th>
-                  <th>জামাত</th>
-                  {MONTH_NAMES.map(m => (
-                    <th key={m} style={{ minWidth: '55px' }}>{m.slice(0, 4)}</th>
-                  ))}
-                  <th className="bg-success-subtle text-success">মোট আদায়</th>
-                  <th className="bg-danger-subtle text-danger">মোট বকেয়া</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredStudents.length === 0 ? (
-                  <tr>
-                    <td colSpan="18" className="py-4 text-muted">
-                      কোনো শিক্ষার্থী পাওয়া যায়নি
-                    </td>
-                  </tr>
-                ) : (
-                  filteredStudents.slice(0, 50).map((s, idx) => {
-                    const monthlyFee = s.monthlyFee || 500;
-                    // Paid months up to current month (October = index 9)
-                    const paidMonthsCount = Math.max(4, 10 - (idx % 5));
-                    const totalPaid = paidMonthsCount * monthlyFee;
-                    const totalDue = Math.max(0, (10 - paidMonthsCount) * monthlyFee);
-
-                    return (
-                      <tr key={s.id}>
-                        <td className="font-mono fw-bold">{idx + 1}</td>
-                        <td className="text-start fw-bold text-dark">{s.name}</td>
-                        <td className="font-mono text-primary fw-bold">{s.roll}</td>
-                        <td className="font-mono fw-bold text-success">৳ {monthlyFee}</td>
-                        <td><span className="badge bg-light text-dark border">{s.jamat}</span></td>
-                        {MONTH_NAMES.map((m, mIdx) => {
-                          const isPaid = mIdx < paidMonthsCount;
-                          const isDue = mIdx >= paidMonthsCount && mIdx < 10;
-                          return (
-                            <td key={m} className="p-1">
-                              {isPaid ? (
-                                <span className="badge bg-success-subtle text-success border border-success-subtle p-1 font-mono">
-                                  ৳{monthlyFee}
-                                </span>
-                              ) : isDue ? (
-                                <span className="badge bg-danger-subtle text-danger p-1">বকেয়া</span>
-                              ) : (
-                                <span className="text-muted">-</span>
-                              )}
-                            </td>
-                          );
-                        })}
-                        <td className="font-mono fw-bold text-success bg-success-subtle">
-                          ৳ {totalPaid.toLocaleString('en-IN')}
-                        </td>
-                        <td className="font-mono fw-bold text-danger bg-danger-subtle">
-                          ৳ {totalDue.toLocaleString('en-IN')}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+      {/* Printable Register Card */}
+      <div className="card border-0 shadow-sm mb-4" id="printContent">
+        <div className="card-body py-4">
+          <img
+            src="/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg"
+            alt="Banner"
+            className="w-100 img-fluid"
+          />
+          <div className="row mt-3">
+            <div className="col-md-2"></div>
+            <div className="col-md-8 text-center">
+              <h5 className="fw-semibold" style={{ color: '#2c5f2d' }}>
+                বেতনের টাকা আদায়ের রেজিস্টার
+              </h5>
+              {selectedJamat && <p className="mb-0 text-muted">জামাত: <strong>{selectedJamat}</strong></p>}
+            </div>
+            <div className="col-md-2 text-end">
+              <p className="mb-0 fw-semibold">সন ২০২৬ ইং</p>
+            </div>
           </div>
+        </div>
+
+        <div className="table-responsive card-body p-0">
+          <table className="table table-bordered table-striped align-middle mb-0 print-table text-center" style={{ fontSize: '11px' }}>
+            <thead className="bg-primary print-thead text-white">
+              <tr className="text-center align-middle">
+                <th>ক্রমিক নং</th>
+                <th style={{ minWidth: '120px' }}>ছাত্রের নাম</th>
+                <th>ভর্তি নং</th>
+                <th>বেতন</th>
+                {MONTH_NAMES.map(m => (
+                  <th key={m} style={{ minWidth: '55px' }}>{m}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredStudents.length === 0 ? (
+                <tr>
+                  <td colSpan="16" className="text-center py-4 text-muted">
+                    কোন রেকর্ড পাওয়া যায়নি
+                  </td>
+                </tr>
+              ) : (
+                filteredStudents.map((student, idx) => {
+                  const admissionNo = student.admissionNumber || student.admission_number || student.roll || idx + 101;
+                  const fee = student.coursefee || student.monthlyFee || 800;
+
+                  return (
+                    <tr key={student.id}>
+                      <td>{idx + 1}</td>
+                      <td className="text-start ps-2 fw-semibold">{student.name}</td>
+                      <td>{admissionNo}</td>
+                      <td>৳ {fee}</td>
+                      {MONTH_NAMES.map((m, mIdx) => {
+                        const isPaid = mIdx < 4 || (student.fees && student.fees[m]?.paid);
+                        return (
+                          <td key={m} className={isPaid ? 'text-success fw-bold' : 'text-muted'}>
+                            {isPaid ? '✓' : '-'}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Print Button */}
+      <div className="row mb-3 no-print">
+        <div className="col-12 d-flex justify-content-center">
+          <button onClick={() => window.print()} className="btn btn-primary px-4 py-2">
+            <i className="fas fa-print me-2"></i> প্রিন্ট করুন
+          </button>
         </div>
       </div>
     </div>

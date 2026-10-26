@@ -1,262 +1,186 @@
 import React, { useState } from 'react';
-import {
-  CreditCard,
-  Search,
-  CheckCircle,
-  Printer,
-  Calendar,
-  User,
-  AlertCircle
-} from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { MONTH_NAMES } from '../../data/initialData';
 
 export const StudentSalaryEntry = () => {
-  const {
-    students,
-    accounts,
-    receivers,
-    addStudentFeePayment,
-    setSelectedReceiptForPrint,
-    setActiveTab
-  } = useApp();
+  const { students, accounts, receivers, addTuitionPayment, setSelectedReceiptForPrint } = useApp();
 
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || '');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [month, setMonth] = useState('অক্টোবর');
-  const [year, setYear] = useState('2026');
-  const [account, setAccount] = useState(accounts[0]?.name || 'নগদ ক্যাশ (Hand Cash)');
-  const [receiver, setReceiver] = useState(receivers[0]?.name || 'মাহমুদুল করিম');
-  const [customAmount, setCustomAmount] = useState('');
-  const [discount, setDiscount] = useState('0');
-  const [note, setNote] = useState('');
+  const [selectedYear, setSelectedYear] = useState('2026');
+  const [selectedAccount, setSelectedAccount] = useState(accounts[0]?.name || 'নগদ ক্যাশ (Hand Cash)');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('cash');
 
   const currentStudent = students.find(s => s.id === selectedStudentId) || students[0];
-  const baseFee = parseFloat(currentStudent?.monthlyFee) || 500;
-  const netAmount = customAmount !== '' ? parseFloat(customAmount) : Math.max(0, baseFee - (parseFloat(discount) || 0));
 
-  const handleSubmit = (e) => {
+  // 12 months rows state
+  const defaultFee = currentStudent?.coursefee || currentStudent?.monthlyFee || 800;
+  const [rows, setRows] = useState(() => {
+    return MONTH_NAMES.map(month => ({
+      month,
+      date: new Date().toISOString().split('T')[0],
+      bookNo: '01',
+      receiptNo: Math.floor(100 + Math.random() * 900).toString(),
+      amount: '',
+      receiver: receivers[0]?.name || 'মাহমুদুল করিম',
+      note: ''
+    }));
+  });
+
+  const handleRowChange = (index, field, value) => {
+    setRows(prev => {
+      const copy = [...prev];
+      copy[index][field] = value;
+      return copy;
+    });
+  };
+
+  const handleSave = (e) => {
     e.preventDefault();
-    if (!netAmount || netAmount <= 0) {
-      alert('সঠিক টাকার অংক উল্লেখ করুন');
+    const paidRows = rows.filter(r => parseFloat(r.amount) > 0);
+    if (paidRows.length === 0) {
+      alert('কমপক্ষে একটি মাসের টাকার পরিমাণ লিখুন');
       return;
     }
 
-    const voucher = addStudentFeePayment({
-      date,
-      month,
-      year,
-      studentId: currentStudent.id,
-      studentName: currentStudent.name,
-      roll: currentStudent.roll,
-      jamat: currentStudent.jamat,
-      amount: netAmount,
-      account,
-      receiver,
-      note: note || `মাসিক বেতন জমা (${month} ${year})`
+    let lastVoucher = null;
+    paidRows.forEach(row => {
+      const voucher = addTuitionPayment({
+        date: row.date,
+        month: row.month,
+        year: selectedYear,
+        studentId: currentStudent.id,
+        studentName: currentStudent.name,
+        roll: currentStudent.roll || currentStudent.admissionNumber,
+        jamat: currentStudent.jamat,
+        amount: parseFloat(row.amount),
+        account: selectedAccount,
+        receiver: row.receiver,
+        receiptNo: row.receiptNo,
+        bookNo: row.bookNo,
+        note: row.note || `ছাত্র বেতন জমা (${row.month} ${selectedYear})`
+      });
+      lastVoucher = voucher;
     });
 
-    if (voucher) {
-      setSelectedReceiptForPrint(voucher);
+    alert('ছাত্র বেতন সফলভাবে সংরক্ষণ করা হয়েছে!');
+    if (lastVoucher) {
+      setSelectedReceiptForPrint(lastVoucher);
     }
   };
 
   return (
-    <div className="space-y-4">
-      {/* Header Card */}
-      <div className="card shadow-sm border-0 mb-3 no-print">
-        <div className="card-header bg-primary py-3 d-flex flex-wrap justify-content-between align-items-center">
-          <h5 className="mb-0 text-white font-bold d-flex align-items-center">
-            <i className="fa-solid fa-money-bill-wave me-2"></i>
-            বেতন জমার এন্ট্রি সিস্টেম
+    <div className="container-fluid p-0">
+      {/* Top Filter Card */}
+      <div className="card shadow-sm mb-4">
+        <div className="card-header bg-primary">
+          <h5 className="mb-0 text-white">
+            <i className="fa-solid fa-users me-2"></i> বেতন জমার এন্ট্রি সিস্টেম
           </h5>
-          <div className="d-flex gap-2">
-            <button
-              onClick={() => setActiveTab('student-salary-list')}
-              className="btn btn-sm btn-info text-white fw-bold d-flex align-items-center gap-1"
-            >
-              <i className="fa-solid fa-list"></i> বেতনের তালিকা
-            </button>
-            <button
-              onClick={() => setActiveTab('student-salary-register')}
-              className="btn btn-sm btn-light text-primary fw-bold d-flex align-items-center gap-1"
-            >
-              <i className="fa-solid fa-table"></i> বেতন আদায় রেজিস্টার
-            </button>
-          </div>
         </div>
 
-        <div className="card-body bg-light py-3">
-          <p className="small text-muted mb-0">
-            শিক্ষার্থীদের নিয়মিত মাসিক টিউশন ফি আদায়, ছাড় ও মানি রসিদ তৈরির অফিশিয়াল কাউন্টার
-          </p>
-        </div>
-      </div>
-
-      <div className="row g-4">
-        {/* Left Side: Student Profile */}
-        <div className="col-lg-5">
-          <div className="card shadow-sm border-0 h-100">
-            <div className="card-header bg-white py-3 border-bottom">
-              <h6 className="mb-0 fw-bold text-dark d-flex align-items-center">
-                <i className="fa-solid fa-user-graduate text-primary me-2"></i>
-                শিক্ষার্থী নির্বাচন করুন
-              </h6>
-            </div>
-            <div className="card-body">
-              <div className="mb-3">
-                <label className="form-label fw-bold small">ভর্তি নং দিয়ে খুঁজুন:</label>
+        <div className="card-body mb-3">
+          <form onSubmit={(e) => e.preventDefault()} className="w-100">
+            <div className="row g-3">
+              {/* ভর্তি নং দিয়ে খুঁজুন */}
+              <div className="col-md-3 col-12">
+                <label className="form-label fw-bold">ভর্তি নং দিয়ে খুঁজুন</label>
                 <select
-                  value={selectedStudentId}
-                  onChange={(e) => {
-                    setSelectedStudentId(e.target.value);
-                    setCustomAmount('');
-                  }}
+                  name="student_id"
+                  id="name_select"
                   className="form-select"
+                  value={selectedStudentId}
+                  onChange={(e) => setSelectedStudentId(e.target.value)}
+                  required
                 >
-                  {students.map(s => (
-                    <option key={s.id} value={s.id}>
-                      {s.roll} - {s.name} ({s.jamat})
-                    </option>
-                  ))}
+                  <option value="">ভর্তি নং নির্বাচন করুন</option>
+                  {students.map((s) => {
+                    const adm = s.admissionNumber || s.admission_number || s.roll;
+                    return (
+                      <option key={s.id} value={s.id}>
+                        {adm} - {s.name}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
-              {currentStudent && (
-                <div className="bg-light p-3 rounded-3 border">
-                  <div className="d-flex align-items-center gap-3 mb-3">
-                    <img
-                      src={currentStudent.photo || '/students/FB_IMG_1791220812856.webp'}
-                      alt={currentStudent.name}
-                      className="rounded-circle border"
-                      style={{ width: '60px', height: '60px', objectFit: 'cover' }}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(currentStudent.name) + '&background=0f626a&color=fff';
-                      }}
-                    />
-                    <div>
-                      <h6 className="fw-bold mb-0 text-dark">{currentStudent.name}</h6>
-                      <span className="badge bg-primary text-white me-1">রোল: {currentStudent.roll}</span>
-                      <span className="badge bg-secondary text-white">{currentStudent.jamat}</span>
-                    </div>
-                  </div>
+              {/* Year Select */}
+              <div className="col-md-3 col-12">
+                <label htmlFor="year_select" className="form-label fw-bold">সাল</label>
+                <select
+                  name="year"
+                  id="year_select"
+                  className="form-select"
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  required
+                >
+                  <option value="2026">2026</option>
+                  <option value="2025">2025</option>
+                  <option value="2024">2024</option>
+                </select>
+              </div>
 
-                  <hr className="my-2" />
+              {/* Deposit Category */}
+              <div className="col-md-3 col-12">
+                <label htmlFor="deposit_category_select" className="form-label fw-bold">
+                  জমার ধরন
+                </label>
+                <select
+                  name="deposit_category_id"
+                  id="deposit_category_select"
+                  className="form-select custom-select"
+                  disabled
+                >
+                  <option value="10" selected>মাসিক বেতন</option>
+                </select>
+              </div>
 
-                  <div className="small space-y-1">
-                    <div className="d-flex justify-content-between py-1 border-bottom">
-                      <span className="text-muted">পিতার নাম:</span>
-                      <span className="fw-semibold">{currentStudent.fatherName}</span>
-                    </div>
-                    <div className="d-flex justify-content-between py-1 border-bottom">
-                      <span className="text-muted">মোবাইল নম্বর:</span>
-                      <span className="font-mono fw-semibold">{currentStudent.guardianPhone}</span>
-                    </div>
-                    <div className="d-flex justify-content-between py-1 border-bottom">
-                      <span className="text-muted">নির্ধারিত মাসিক বেতন:</span>
-                      <span className="font-mono fw-bold text-success fs-6">৳ {currentStudent.monthlyFee || 500}</span>
-                    </div>
-                    <div className="d-flex justify-content-between py-1">
-                      <span className="text-muted">বকেয়া স্ট্যাটাস:</span>
-                      <span className="badge bg-warning-subtle text-warning">নভেম্বর ও ডিসেম্বর বকেয়া</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* Search button */}
+              <div className="col-12 text-end mt-3">
+                <button type="button" className="btn btn-info px-5 py-2 b-r-22">
+                  <i className="fa-solid fa-search me-2"></i>ফলাফল দেখান
+                </button>
+              </div>
             </div>
-          </div>
+          </form>
         </div>
+      </div>
 
-        {/* Right Side: Payment Form */}
-        <div className="col-lg-7">
-          <div className="card shadow-sm border-0">
-            <div className="card-header bg-white py-3 border-bottom">
-              <h6 className="mb-0 fw-bold text-dark d-flex align-items-center">
-                <i className="fa-solid fa-credit-card text-success me-2"></i>
-                বেতন জমার ফরম
-              </h6>
+      {/* Student Details & Payment Card */}
+      {currentStudent && (
+        <div className="card shadow b-t-4-secondary mb-4" id="StudentCard">
+          <div className="card-body">
+            <div className="row">
+              <div className="col-md-4 mb-3 mb-md-0">
+                <p className="mb-2"><strong>ছাত্রের নামঃ</strong> <span id="name">{currentStudent.name}</span></p>
+                <p className="mb-2"><strong>জামাতঃ</strong> <span id="jamat">{currentStudent.jamat}</span></p>
+              </div>
+              <div className="col-md-4">
+                <p className="mb-2">
+                  <strong>বেতনঃ</strong>{' '}
+                  <span id="coursefee">৳ {currentStudent.coursefee || currentStudent.monthlyFee || defaultFee}</span>
+                </p>
+                <p className="mb-2">
+                  <strong>ভর্তি নংঃ</strong>{' '}
+                  <span id="admission_number">{currentStudent.admissionNumber || currentStudent.admission_number || currentStudent.roll}</span>
+                </p>
+              </div>
             </div>
-            <div className="card-body">
-              <form onSubmit={handleSubmit} className="row g-3">
-                <div className="col-md-6">
-                  <label className="form-label fw-bold small">তারিখ *</label>
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="form-control"
+
+            <form onSubmit={handleSave} id="paymentForm">
+              <hr />
+
+              <div className="row">
+                <div className="col-md-4 col-sm-12 mb-4">
+                  <label htmlFor="account" className="form-label fw-bold">এ্যাকাউন্ট</label>
+                  <select
+                    name="account_id"
+                    id="account"
+                    className="form-select custom-select"
+                    value={selectedAccount}
+                    onChange={(e) => setSelectedAccount(e.target.value)}
                     required
-                  />
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label fw-bold small">কোন মাসে দিচ্ছে *</label>
-                  <select
-                    value={month}
-                    onChange={(e) => setMonth(e.target.value)}
-                    className="form-select"
-                  >
-                    {MONTH_NAMES.map(m => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label fw-bold small">সাল *</label>
-                  <select
-                    value={year}
-                    onChange={(e) => setYear(e.target.value)}
-                    className="form-select"
-                  >
-                    <option value="2026">2026</option>
-                    <option value="2025">2025</option>
-                    <option value="2024">2024</option>
-                  </select>
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label fw-bold small">জমার ধরন *</label>
-                  <input
-                    type="text"
-                    value="মাসিক বেতন (Tuition Fee)"
-                    readOnly
-                    className="form-control bg-light"
-                  />
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label fw-bold small">মওকুফ / ছাড় (টাকা)</label>
-                  <input
-                    type="number"
-                    value={discount}
-                    onChange={(e) => setDiscount(e.target.value)}
-                    className="form-control font-mono"
-                    placeholder="0"
-                  />
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label fw-bold small">পরিশোধিত টাকার পরিমাণ *</label>
-                  <div className="input-group">
-                    <span className="input-group-text">৳</span>
-                    <input
-                      type="number"
-                      value={netAmount}
-                      onChange={(e) => setCustomAmount(e.target.value)}
-                      className="form-control font-mono fw-bold text-success"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="col-md-6">
-                  <label className="form-label fw-bold small">কোন একাউন্টে জমা দিচ্ছেন *</label>
-                  <select
-                    value={account}
-                    onChange={(e) => setAccount(e.target.value)}
-                    className="form-select"
                   >
                     {accounts.map(a => (
                       <option key={a.id} value={a.name}>{a.name}</option>
@@ -264,44 +188,113 @@ export const StudentSalaryEntry = () => {
                   </select>
                 </div>
 
-                <div className="col-md-6">
-                  <label className="form-label fw-bold small">গ্রহণকারী *</label>
+                <div className="col-md-4 col-sm-12 mb-4">
+                  <label htmlFor="payment_method" className="form-label fw-bold">পেমেন্ট মেথড</label>
                   <select
-                    value={receiver}
-                    onChange={(e) => setReceiver(e.target.value)}
-                    className="form-select"
+                    name="payment_method_id"
+                    id="payment_method"
+                    className="form-select custom-select"
+                    value={selectedPaymentMethod}
+                    onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                    required
                   >
-                    {receivers.map(r => (
-                      <option key={r.id} value={r.name}>{r.name} ({r.designation})</option>
-                    ))}
+                    <option value="cash">নগদ ক্যাশ (Cash)</option>
+                    <option value="bkash">বিকাশ (bKash)</option>
+                    <option value="nagad">নগদ (Nagad)</option>
+                    <option value="bank">ব্যাংক (Bank)</option>
                   </select>
                 </div>
+              </div>
 
-                <div className="col-md-12">
-                  <label className="form-label fw-bold small">মন্তব্য (ঐচ্ছিক)</label>
-                  <input
-                    type="text"
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    placeholder="নোট বা বিশেষ বিবরণ..."
-                    className="form-control"
-                  />
-                </div>
+              {/* Table */}
+              <div className="table-responsive">
+                <table className="table table-bordered table-hover">
+                  <thead className="table-success">
+                    <tr>
+                      <th>মাস</th>
+                      <th>তারিখ</th>
+                      <th>বই নং</th>
+                      <th>রসিদ নং</th>
+                      <th>টাঃ পরিমান</th>
+                      <th style={{ width: '180px' }}>গ্রহণকারী</th>
+                      <th>মন্তব্য</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((row, index) => (
+                      <tr key={row.month}>
+                        <td className="fw-bold align-middle">{row.month}</td>
+                        <td>
+                          <input
+                            type="date"
+                            className="form-control form-control-sm"
+                            value={row.date}
+                            onChange={(e) => handleRowChange(index, 'date', e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            value={row.bookNo}
+                            placeholder="বই নং"
+                            onChange={(e) => handleRowChange(index, 'bookNo', e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            value={row.receiptNo}
+                            placeholder="রসিদ নং"
+                            onChange={(e) => handleRowChange(index, 'receiptNo', e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            className="form-control form-control-sm"
+                            placeholder="টাকার পরিমাণ"
+                            value={row.amount}
+                            onChange={(e) => handleRowChange(index, 'amount', e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <select
+                            className="form-select form-select-sm"
+                            value={row.receiver}
+                            onChange={(e) => handleRowChange(index, 'receiver', e.target.value)}
+                          >
+                            {receivers.map(r => (
+                              <option key={r.id} value={r.name}>{r.name}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            placeholder="নোট/মন্তব্য লিখুন"
+                            value={row.note}
+                            onChange={(e) => handleRowChange(index, 'note', e.target.value)}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-                <div className="col-12 mt-4 pt-2 border-top text-end">
-                  <button
-                    type="submit"
-                    className="btn btn-primary px-4 py-2 fw-bold d-inline-flex align-items-center gap-2"
-                  >
-                    <i className="fa-solid fa-check-circle"></i>
-                    সংরক্ষণ করুন ও রসিদ প্রিন্ট করুন
-                  </button>
-                </div>
-              </form>
-            </div>
+              {/* Submit Button */}
+              <div className="text-end mt-4">
+                <button type="submit" className="btn btn-primary btn-lg px-5">
+                  সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -1,28 +1,11 @@
 import React, { useState } from 'react';
-import {
-  CreditCard,
-  Search,
-  CheckCircle,
-  AlertCircle,
-  Printer,
-  Calendar,
-  Receipt,
-  User,
-  DollarSign
-} from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { MONTH_NAMES } from '../../data/initialData';
 
 export const StudentFeeMatrix = () => {
-  const {
-    students,
-    recordStudentFee,
-    accounts,
-    setSelectedReceiptForPrint
-  } = useApp();
+  const { students, recordStudentFee, accounts, setSelectedReceiptForPrint } = useApp();
 
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || '');
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedAccount, setSelectedAccount] = useState(accounts[0]?.name || 'নগদ ক্যাশ (Hand Cash)');
   const [payingMonth, setPayingMonth] = useState(null);
   const [payFeeType, setPayFeeType] = useState('both'); // tuition, khuraki, both
@@ -38,11 +21,14 @@ export const StudentFeeMatrix = () => {
     if (!currentStudent || !payingMonth) return;
 
     let totalAmount = 0;
+    const monthlyFee = currentStudent.coursefee || currentStudent.monthlyFee || 800;
+    const khurakiFee = currentStudent.food_bill || currentStudent.khurakiFee || 2000;
+
     if (payFeeType === 'tuition' || payFeeType === 'both') {
-      totalAmount += currentStudent.monthlyFee;
+      totalAmount += monthlyFee;
     }
     if (payFeeType === 'khuraki' || payFeeType === 'both') {
-      totalAmount += currentStudent.khurakiFee;
+      totalAmount += khurakiFee;
     }
 
     const vch = recordStudentFee(
@@ -60,258 +46,217 @@ export const StudentFeeMatrix = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-2xl p-5 border border-[#e2e8f0] shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-[#082f32] flex items-center space-x-2">
-            <CreditCard className="w-6 h-6 text-[#0f626a]" />
-            <span>১২ মাসের মাসিক বেতন ও খোরাকী ফি রেজিস্টার</span>
-          </h2>
-          <p className="text-xs text-gray-500 mt-0.5">
-            শিক্ষার্থীভিত্তিক জানুয়ারি হতে ডিসেম্বর পর্যন্ত ১২ মাসের ফি কালেকশন ম্যাট্রিক্স
-          </p>
+    <div className="container-fluid p-0">
+      {/* Top Filter Card */}
+      <div className="card shadow-sm mb-4">
+        <div className="card-header bg-primary py-3 d-flex justify-content-between align-items-center">
+          <h5 className="mb-0 text-white">
+            <i className="fa-solid fa-credit-card me-2"></i> ১২ মাসের মাসিক বেতন ও খোরাকী ফি রেজিস্টার
+          </h5>
+          <button onClick={() => window.print()} className="btn btn-sm btn-light no-print">
+            <i className="fas fa-print me-1"></i> প্রিন্ট করুন
+          </button>
         </div>
 
-        {/* Student Quick Search & Picker */}
-        <div className="w-full sm:w-72">
-          <select
-            value={selectedStudentId}
-            onChange={(e) => setSelectedStudentId(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
-          >
-            {students.map(s => (
-              <option key={s.id} value={s.id}>
-                {s.name} (রোল: {s.roll}) - {s.jamat}
-              </option>
-            ))}
-          </select>
+        <div className="card-body">
+          <div className="row g-3 align-items-end">
+            <div className="col-md-6">
+              <label className="form-label fw-bold">শিক্ষার্থী নির্বাচন করুন:</label>
+              <select
+                value={selectedStudentId}
+                onChange={(e) => setSelectedStudentId(e.target.value)}
+                className="form-select"
+              >
+                {students.map(s => {
+                  const adm = s.admissionNumber || s.admission_number || s.roll;
+                  return (
+                    <option key={s.id} value={s.id}>
+                      {adm} - {s.name} ({s.jamat})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            <div className="col-md-6">
+              <label className="form-label fw-bold">জমার এ্যাকাউন্ট:</label>
+              <select
+                value={selectedAccount}
+                onChange={(e) => setSelectedAccount(e.target.value)}
+                className="form-select"
+              >
+                {accounts.map(a => (
+                  <option key={a.id} value={a.name}>{a.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
       </div>
 
       {currentStudent && (
         <>
-          {/* Student Profile Card for Fee Collection */}
-          <div className="bg-white rounded-2xl p-5 border border-[#e2e8f0] shadow-sm">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-center space-x-4">
-                <img
-                  src={currentStudent.photo}
-                  alt={currentStudent.name}
-                  className="w-16 h-16 rounded-2xl object-cover border-2 border-[#0f626a]"
-                />
-                <div>
-                  <h3 className="text-base font-bold text-gray-900">{currentStudent.name}</h3>
-                  <p className="text-xs text-gray-500">
-                    জামাত: <span className="font-bold text-[#0f626a]">{currentStudent.jamat}</span> |
-                    রোল: <span className="font-bold text-gray-800">{currentStudent.roll}</span> |
-                    পিতা: {currentStudent.fatherName}
-                  </p>
-                  <p className="text-xs text-gray-500 font-mono mt-0.5">
-                    মোবাইল: {currentStudent.guardianPhone}
-                  </p>
+          {/* Student Info Card */}
+          <div className="card shadow-sm mb-4">
+            <div className="card-body p-4">
+              <div className="row align-items-center">
+                <div className="col-auto">
+                  <img
+                    src={currentStudent.photo || '/students/FB_IMG_1791220812856.webp'}
+                    alt={currentStudent.name}
+                    className="rounded-circle border border-3 border-primary"
+                    style={{ width: '80px', height: '80px', objectFit: 'cover' }}
+                  />
                 </div>
-              </div>
-
-              {/* Fee Rates */}
-              <div className="flex items-center space-x-3 text-xs bg-[#f0f9fa] p-3 rounded-xl border border-[#0f626a]/20">
-                <div className="text-center px-3 border-r border-[#0f626a]/20">
-                  <span className="text-gray-500 block text-[10px]">নির্ধারিত মাসিক বেতন</span>
-                  <span className="font-bold text-[#0f626a] text-sm font-mono">
-                    ৳ {currentStudent.monthlyFee}
-                  </span>
+                <div className="col">
+                  <h4 className="fw-bold mb-1 text-primary">{currentStudent.name}</h4>
+                  <div className="d-flex flex-wrap gap-3 small text-muted">
+                    <span><strong>জামাত:</strong> {currentStudent.jamat}</span>
+                    <span><strong>ভর্তি নং:</strong> {currentStudent.admissionNumber || currentStudent.roll}</span>
+                    <span><strong>অভিভাবক:</strong> {currentStudent.parentsName || currentStudent.fatherName}</span>
+                    <span><strong>মোবাইল:</strong> {currentStudent.parentsPhone || currentStudent.guardianPhone}</span>
+                  </div>
                 </div>
-                <div className="text-center px-3 border-r border-[#0f626a]/20">
-                  <span className="text-gray-500 block text-[10px]">নির্ধারিত খোরাকী ফি</span>
-                  <span className="font-bold text-[#0f626a] text-sm font-mono">
-                    ৳ {currentStudent.khurakiFee}
-                  </span>
-                </div>
-                <div className="text-center px-3">
-                  <span className="text-gray-500 block text-[10px]">মোট মাসিক দেয়</span>
-                  <span className="font-extrabold text-gray-900 text-sm font-mono">
-                    ৳ {currentStudent.monthlyFee + currentStudent.khurakiFee}
-                  </span>
+                <div className="col-auto text-end">
+                  <div className="p-3 bg-light rounded text-center">
+                    <div className="small text-muted">মাসিক বেতন + খোরাকী</div>
+                    <div className="fs-5 fw-bold text-success">
+                      ৳ {(Number(currentStudent.coursefee || currentStudent.monthlyFee || 800) + Number(currentStudent.food_bill || currentStudent.khurakiFee || 2000)).toLocaleString('bn-BD')}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 12-Month Matrix Grid Table */}
-          <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
-            <div className="p-4 bg-[#f0f9fa] border-b border-gray-200 flex items-center justify-between">
-              <span className="text-xs font-bold text-[#082f32]">
-                শিক্ষাবর্ষ ২০২৬: ১২ মাসের ফি পরিশোধের পূর্ণাঙ্গ রেকর্ড
-              </span>
-              <span className="text-xs text-gray-500">
-                পরিশোধের পর তাৎক্ষণিক প্রিন্টযোগ্য মানি রশিদ পাওয়া যাবে
-              </span>
-            </div>
+          {/* 12 Month Cards Grid */}
+          <div className="row g-3 mb-4">
+            {MONTH_NAMES.map((month) => {
+              const feeData = currentStudent.fees?.[month];
+              const isPaid = feeData?.paid;
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-gray-50 text-gray-700 font-semibold border-b border-gray-200">
-                  <tr>
-                    <th className="py-3 px-4">ক্রমিক</th>
-                    <th className="py-3 px-4">মাস (Month)</th>
-                    <th className="py-3 px-4 text-right">বেতন (৳)</th>
-                    <th className="py-3 px-4 text-right">খোরাকী (৳)</th>
-                    <th className="py-3 px-4 text-right">সর্বমোট (৳)</th>
-                    <th className="py-3 px-4 text-center">স্ট্যাটাস</th>
-                    <th className="py-3 px-4 text-center">পরিশোধের তারিখ</th>
-                    <th className="py-3 px-4 text-center">অ্যাকশন</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {MONTH_NAMES.map((month, idx) => {
-                    const feeRecord = currentStudent.fees?.[month] || {};
-                    const isPaid = feeRecord.paid;
-                    const totalMonth = currentStudent.monthlyFee + currentStudent.khurakiFee;
-
-                    return (
-                      <tr key={month} className={`hover:bg-gray-50 transition ${isPaid ? 'bg-emerald-50/20' : ''}`}>
-                        <td className="py-3 px-4 text-gray-500 font-mono">
-                          {idx + 1}
-                        </td>
-                        <td className="py-3 px-4 font-bold text-gray-800">
-                          {month}
-                        </td>
-                        <td className="py-3 px-4 text-right font-mono text-gray-700">
-                          ৳ {currentStudent.monthlyFee}
-                        </td>
-                        <td className="py-3 px-4 text-right font-mono text-gray-700">
-                          ৳ {currentStudent.khurakiFee}
-                        </td>
-                        <td className="py-3 px-4 text-right font-mono font-bold text-gray-900">
-                          ৳ {totalMonth}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          {isPaid ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              পরিশোধিত
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
-                              <AlertCircle className="w-3 h-3 mr-1" />
-                              বকেয়া
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-center text-gray-500 font-mono text-[11px]">
-                          {feeRecord.date || '—'}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          {isPaid ? (
-                            <button
-                              onClick={() => {
-                                setSelectedReceiptForPrint({
-                                  voucherNo: `REC-${currentStudent.roll}-${idx + 1}`,
-                                  date: feeRecord.date || '2026-10-18',
-                                  receiver: 'মাহমুদুল করিম',
-                                  account: 'নগদ ক্যাশ',
-                                  donorOrStudent: `${currentStudent.name} (রোল: ${currentStudent.roll})`,
-                                  items: [
-                                    { category: 'মাসিক বেতন ও খোরাকী', description: `${month} মাসের ফি`, amount: totalMonth }
-                                  ],
-                                  totalAmount: totalMonth,
-                                  note: `${month} মাসের আদায় রশিদ`
-                                });
-                              }}
-                              className="px-2.5 py-1 text-[11px] font-semibold text-[#0f626a] hover:bg-[#eaf4f5] rounded-lg transition inline-flex items-center space-x-1"
-                            >
-                              <Printer className="w-3.5 h-3.5" />
-                              <span>রশিদ প্রিন্ট</span>
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => handlePayClick(month)}
-                              className="px-3 py-1 text-[11px] font-bold text-white bg-[#0f626a] hover:bg-[#0c5259] rounded-lg shadow transition inline-flex items-center space-x-1"
-                            >
-                              <DollarSign className="w-3.5 h-3.5" />
-                              <span>ফি জমা নিন</span>
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+              return (
+                <div key={month} className="col-12 col-sm-6 col-md-4 col-lg-3">
+                  <div className={`card h-100 shadow-sm border ${isPaid ? 'border-success' : 'border-warning'}`}>
+                    <div className={`card-header py-2 text-center fw-bold ${isPaid ? 'bg-success text-white' : 'bg-warning text-dark'}`}>
+                      {month}
+                    </div>
+                    <div className="card-body p-3 text-center">
+                      <p className="mb-1 small">
+                        বেতন: <strong>৳ {currentStudent.coursefee || currentStudent.monthlyFee || 800}</strong>
+                      </p>
+                      <p className="mb-2 small">
+                        খোরাকী: <strong>৳ {currentStudent.food_bill || currentStudent.khurakiFee || 2000}</strong>
+                      </p>
+                      {isPaid ? (
+                        <div className="badge bg-success-subtle text-success p-2 w-100">
+                          <i className="fa-solid fa-check me-1"></i> পরিশোধিত ({feeData?.date || '২০২৬'})
+                        </div>
+                      ) : (
+                        <button
+                          className="btn btn-sm btn-outline-primary w-100 no-print"
+                          onClick={() => handlePayClick(month)}
+                        >
+                          <i className="fa-solid fa-credit-card me-1"></i> ফি জমা নিন
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </>
       )}
 
       {/* Payment Confirmation Modal */}
       {payingMonth && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in fade-in">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-              <h3 className="font-bold text-base text-[#082f32]">
-                ফি আদায় ফরম: {payingMonth} মাস
-              </h3>
-              <button
-                onClick={() => setPayingMonth(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleConfirmPayment} className="mt-4 space-y-4">
-              <div className="p-3 bg-gray-50 rounded-xl text-xs space-y-1">
-                <p>শিক্ষার্থী: <strong className="text-gray-900">{currentStudent.name}</strong></p>
-                <p>জামাত: <strong>{currentStudent.jamat}</strong> (রোল: {currentStudent.roll})</p>
-                <p>মাস: <strong className="text-[#0f626a]">{payingMonth}</strong></p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  ফি এর ধরণ নির্বাচন করুন:
-                </label>
-                <select
-                  value={payFeeType}
-                  onChange={(e) => setPayFeeType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none bg-white"
-                >
-                  <option value="both">উভয় (বেতন ৳{currentStudent.monthlyFee} + খোরাকী ৳{currentStudent.khurakiFee} = ৳{currentStudent.monthlyFee + currentStudent.khurakiFee})</option>
-                  <option value="tuition">শুধু বেতন (৳{currentStudent.monthlyFee})</option>
-                  <option value="khuraki">শুধু খোরাকী ফি (৳{currentStudent.khurakiFee})</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  জমা গ্রহণের একাউন্ট:
-                </label>
-                <select
-                  value={selectedAccount}
-                  onChange={(e) => setSelectedAccount(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-xl text-xs focus:ring-2 focus:ring-[#0f626a] focus:outline-none bg-white"
-                >
-                  {accounts.map(acc => (
-                    <option key={acc.id} value={acc.name}>{acc.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-2">
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}
+        >
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title">
+                  <i className="fa-solid fa-receipt me-2"></i>{payingMonth} মাসের ফি জমা
+                </h5>
                 <button
                   type="button"
+                  className="btn-close btn-close-white"
                   onClick={() => setPayingMonth(null)}
-                  className="px-4 py-2 text-xs font-medium text-gray-600 bg-gray-100 rounded-xl hover:bg-gray-200"
-                >
-                  বাতিল
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 text-xs font-bold text-white bg-[#0f626a] hover:bg-[#0c5259] rounded-xl shadow-md transition"
-                >
-                  আদায় সম্পন্ন ও রশিদ তৈরি
-                </button>
+                ></button>
               </div>
-            </form>
+              <form onSubmit={handleConfirmPayment}>
+                <div className="modal-body p-4">
+                  <p className="mb-2"><strong>শিক্ষার্থী:</strong> {currentStudent.name}</p>
+                  <p className="mb-3"><strong>জামাত:</strong> {currentStudent.jamat}</p>
+
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">জমার ধরন নির্বাচন করুন:</label>
+                    <div className="d-flex gap-3">
+                      <div className="form-check">
+                        <input
+                          type="radio"
+                          id="pay_both"
+                          name="payFeeType"
+                          className="form-check-input"
+                          value="both"
+                          checked={payFeeType === 'both'}
+                          onChange={(e) => setPayFeeType(e.target.value)}
+                        />
+                        <label htmlFor="pay_both" className="form-check-label">বেতন + খোরাকী</label>
+                      </div>
+                      <div className="form-check">
+                        <input
+                          type="radio"
+                          id="pay_tuition"
+                          name="payFeeType"
+                          className="form-check-input"
+                          value="tuition"
+                          checked={payFeeType === 'tuition'}
+                          onChange={(e) => setPayFeeType(e.target.value)}
+                        />
+                        <label htmlFor="pay_tuition" className="form-check-label">শুধু বেতন</label>
+                      </div>
+                      <div className="form-check">
+                        <input
+                          type="radio"
+                          id="pay_khuraki"
+                          name="payFeeType"
+                          className="form-check-input"
+                          value="khuraki"
+                          checked={payFeeType === 'khuraki'}
+                          onChange={(e) => setPayFeeType(e.target.value)}
+                        />
+                        <label htmlFor="pay_khuraki" className="form-check-label">শুধু খোরাকী</label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-light rounded text-center mb-3">
+                    <div className="small text-muted">মোট প্রদেয় টাকা</div>
+                    <h3 className="fw-bold text-success mb-0">
+                      ৳ {(
+                        payFeeType === 'both'
+                          ? (Number(currentStudent.coursefee || currentStudent.monthlyFee || 800) + Number(currentStudent.food_bill || currentStudent.khurakiFee || 2000))
+                          : payFeeType === 'tuition'
+                          ? Number(currentStudent.coursefee || currentStudent.monthlyFee || 800)
+                          : Number(currentStudent.food_bill || currentStudent.khurakiFee || 2000)
+                      ).toLocaleString('bn-BD')}
+                    </h3>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" onClick={() => setPayingMonth(null)}>
+                    বাতিল
+                  </button>
+                  <button type="submit" className="btn btn-success">
+                    <i className="fa-solid fa-check me-1"></i> জমা নিশ্চিত করুন
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

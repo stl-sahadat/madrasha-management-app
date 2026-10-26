@@ -1,266 +1,283 @@
 import React, { useState } from 'react';
-import { Printer, Download, UserCheck, RefreshCw } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const StudentAdmissionForm = () => {
-  const { students, profile } = useApp();
-  const [selectedStudentId, setSelectedStudentId] = useState('');
+  const { students } = useApp();
+  const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || '');
 
-  const currentStudent = students.find(s => s.id === selectedStudentId);
+  const currentStudent = students.find(s => s.id === selectedStudentId) || students[0];
+
+  const admissionNo = currentStudent?.admissionNumber || currentStudent?.admission_number || currentStudent?.roll || '101';
+  const admissionDate = currentStudent?.admissionDate || '2024-01-15';
+  const name = currentStudent?.name || '';
+  const birthDay = currentStudent?.birthDay || currentStudent?.dob || '2013-02-08';
+  const fatherName = currentStudent?.fatherName || '';
+  const fatherProf = currentStudent?.fatherProf || currentStudent?.fatherOcc || 'ব্যবসা';
+  const currentAddress = currentStudent?.currentAddress || currentStudent?.address || 'বদরখালী, কক্সবাজার';
+  const parentsName = currentStudent?.parentsName || currentStudent?.fatherName || '';
+  const relation = currentStudent?.relation || 'পিতা';
+  const parentsPhone = currentStudent?.parentsPhone || currentStudent?.guardianPhone || '01810003871';
+  const parentsPhone2 = currentStudent?.parentsPhone2 || 'N/A';
+  const courseFee = currentStudent?.coursefee || currentStudent?.monthlyFee || 800;
+  const foodBill = currentStudent?.food_bill || currentStudent?.khurakiFee || 2000;
+  const admissionFee = currentStudent?.admissionFee || 1500;
+  const totalFee = Number(courseFee) + Number(foodBill);
+  const isAbasik = (currentStudent?.khurakiFee || currentStudent?.food_bill || 0) > 0 || currentStudent?.residential === 'আবাসিক';
 
   return (
-    <div className="space-y-4">
-      {/* Top Action Bar */}
-      <div className="card shadow-sm border-0 mb-3 no-print">
-        <div className="card-header bg-primary py-3 d-flex flex-wrap justify-content-between align-items-center">
-          <h5 className="mb-0 text-white font-bold d-flex align-items-center">
-            <i className="fa-solid fa-file-signature me-2"></i>
-            অফিশিয়াল ভর্তি ফরম (Student Admission Form)
+    <div className="container-fluid p-0">
+      <style>{`
+        .form-page {
+          width: 210mm;
+          height: 297mm;
+          margin: 0 auto 20px;
+          position: relative;
+          overflow: hidden;
+          background: white;
+          box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        .form-page img.bg-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          position: absolute;
+          top: 0;
+          left: 0;
+          z-index: 1;
+        }
+        .form-content {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          z-index: 2;
+          padding: 20mm;
+          font-family: 'SolaimanLipi', sans-serif;
+        }
+        .admission_number {
+          position: absolute;
+          top: 54.4mm;
+          left: 26mm;
+          font-size: 13pt;
+          font-weight: bold;
+        }
+        .admission_date {
+          position: absolute;
+          top: 54.4mm;
+          left: 171mm;
+          font-size: 13pt;
+          font-weight: bold;
+        }
+        .name {
+          position: absolute;
+          top: 67.5mm;
+          left: 40mm;
+          font-size: 13pt;
+          font-weight: 600;
+        }
+        .birth_day {
+          position: absolute;
+          top: 67.9mm;
+          left: 159mm;
+          font-size: 13pt;
+        }
+        .father_name {
+          position: absolute;
+          top: 77.9mm;
+          left: 40mm;
+          font-size: 13pt;
+        }
+        .father_profesion {
+          position: absolute;
+          top: 77.9mm;
+          left: 125mm;
+          font-size: 13pt;
+        }
+        .current_address {
+          position: absolute;
+          top: 107.1mm;
+          left: 49mm;
+          font-size: 13pt;
+          line-height: 2.1;
+        }
+        .parents_name {
+          position: absolute;
+          top: 127.4mm;
+          left: 49mm;
+          font-size: 13pt;
+          line-height: 2.1;
+        }
+        .relation {
+          position: absolute;
+          top: 127.4mm;
+          left: 126.2mm;
+          font-size: 13pt;
+          line-height: 2.1;
+        }
+        .parents_phone {
+          position: absolute;
+          top: 148.6mm;
+          left: 34.2mm;
+          font-size: 13pt;
+          line-height: 2.1;
+        }
+        .parents_phone2 {
+          position: absolute;
+          top: 148.6mm;
+          left: 128.2mm;
+          font-size: 13pt;
+          line-height: 2.1;
+        }
+        .coursefee {
+          position: absolute;
+          top: 172mm;
+          left: 40mm;
+          font-size: 13pt;
+        }
+        .food_bill {
+          position: absolute;
+          top: 172mm;
+          left: 120mm;
+          font-size: 13pt;
+        }
+        .admission_fee {
+          position: absolute;
+          top: 185mm;
+          left: 40mm;
+          font-size: 13pt;
+        }
+        .examiner {
+          position: absolute;
+          top: 226mm;
+          left: 45.2mm;
+          font-size: 13pt;
+          line-height: 2.1;
+        }
+        .abasik {
+          position: absolute;
+          top: 60.1mm;
+          left: 145mm;
+          font-size: 10pt;
+        }
+        .onabashik {
+          position: absolute;
+          top: 60.1mm;
+          left: 175mm;
+          font-size: 10pt;
+        }
+        @media print {
+          .no-print {
+            display: none !important;
+          }
+          body {
+            margin: 0;
+            padding: 0;
+          }
+          .form-page {
+            box-shadow: none !important;
+            margin: 0 !important;
+            page-break-after: always;
+          }
+        }
+      `}</style>
+
+      {/* Top Filter Card */}
+      <div className="card shadow-sm mb-4 no-print">
+        <div className="card-header bg-primary">
+          <h5 className="mb-0 text-white">
+            <i className="fa-solid fa-users me-2"></i> ভর্তি ফর্ম
           </h5>
-          <div className="d-flex gap-2">
-            <button
-              onClick={() => window.print()}
-              className="btn btn-sm btn-info text-white fw-bold d-flex align-items-center gap-1"
-            >
-              <i className="fa-solid fa-print"></i> ফরম প্রিন্ট করুন
-            </button>
-          </div>
         </div>
 
-        <div className="card-body bg-light py-3">
-          <div className="row g-3 align-items-center justify-content-between">
-            <div className="col-md-6">
-              <label className="form-label fw-bold small text-muted mb-1">
-                পূরণকৃত ফরম দেখতে শিক্ষার্থী নির্বাচন করুন (অথবা খালি ফরমের জন্য ফাঁকা রাখুন):
-              </label>
-              <select
-                value={selectedStudentId}
-                onChange={(e) => setSelectedStudentId(e.target.value)}
-                className="form-select form-select-sm"
-              >
-                <option value="">-- খালি ভর্তি ফরম (Blank Admission Form) --</option>
-                {students.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.roll} - {s.name} ({s.jamat})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-auto">
+        <div className="card-body mb-3">
+          <div className="row align-items-end">
+            <div className="col-md-8 d-flex flex-wrap gap-3 align-items-end">
+              <div className="col-12 col-md-6">
+                <label className="form-label fw-bold">ভর্তি নং দিয়ে খুঁজুন</label>
+                <select
+                  name="student_id"
+                  id="name_select"
+                  className="form-select"
+                  value={selectedStudentId}
+                  onChange={(e) => setSelectedStudentId(e.target.value)}
+                >
+                  <option value="">ভর্তি নং নির্বাচন করুন</option>
+                  {students.map((s) => {
+                    const adm = s.admissionNumber || s.admission_number || s.roll;
+                    return (
+                      <option key={s.id} value={s.id}>
+                        {adm} - {s.name}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
               <button
                 type="button"
-                onClick={() => setSelectedStudentId('')}
-                className="btn btn-sm btn-outline-secondary"
+                className="btn b-r-22 btn-info px-4 flex-shrink-0"
+                onClick={() => {}}
               >
-                <i className="fa-solid fa-rotate-left me-1"></i> খালি ফরম
+                ফলাফল দেখান
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Printable Admission Form Sheet */}
-      <div className="d-flex justify-content-center">
-        <div
-          className="bg-white p-5 border shadow-sm"
-          style={{
-            width: '210mm',
-            minHeight: '297mm',
-            position: 'relative',
-            color: '#1a202c',
-            fontFamily: "'SolaimanLipi', 'Kalpurush', sans-serif"
-          }}
-          id="admission-print-sheet"
-        >
-          {/* Header */}
-          <div className="text-center border-bottom pb-3 mb-4">
-            <div className="d-flex justify-content-between align-items-start">
-              <img
-                src="/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png"
-                alt="Logo"
-                style={{ width: '85px', height: '85px', objectFit: 'contain' }}
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = '/assets/images/avatar.svg';
-                }}
-              />
-              <div className="flex-grow-1 px-3">
-                <h3 className="fw-bold text-dark mb-1" style={{ fontSize: '24px' }}>
-                  {profile.name || 'জব্বর নগর স্বতন্ত্র ইবতেদায়ী মাদ্রাসা'}
-                </h3>
-                <p className="mb-1 text-muted small">{profile.address || 'বদরখালী, মাতামুহুরী, চকরিয়া, কক্সবাজার।'}</p>
-                <p className="mb-0 text-muted small font-mono">
-                  মোবাইল: {profile.phone1 || '01820050095'}, {profile.phone2 || '01847657580'} | ইমেইল: {profile.email}
-                </p>
-              </div>
-              {/* Photo Box */}
-              <div
-                className="border border-2 border-secondary d-flex align-items-center justify-content-center text-center p-1"
-                style={{ width: '90px', height: '110px', fontSize: '11px', color: '#718096' }}
-              >
-                {currentStudent?.photo ? (
-                  <img
-                    src={currentStudent.photo}
-                    alt="Student"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <span>পাসপোর্ট সাইজ ছবি</span>
-                )}
-              </div>
-            </div>
+      {/* Admission Form Pages */}
+      {currentStudent && (
+        <div id="printContent">
+          {/* Front Page */}
+          <div className="form-page">
+            <img src="/assets/custom/1.png" alt="Front Page" className="bg-image" />
+            <div className="form-content">
+              <div className="admission_number">{admissionNo}</div>
+              <div className="admission_date">{admissionDate}</div>
+              <div className="name">{name}</div>
+              <div className="birth_day">{birthDay}</div>
+              <div className="father_name">{fatherName}</div>
+              <div className="father_profesion">{fatherProf}</div>
+              <div className="current_address">{currentAddress}</div>
+              <div className="parents_name">{parentsName}</div>
+              <div className="relation">{relation}</div>
+              <div className="parents_phone">{parentsPhone}</div>
+              <div className="parents_phone2">{parentsPhone2}</div>
+              <div className="coursefee">৳ {courseFee}</div>
+              <div className="food_bill">৳ {foodBill}</div>
+              <div className="admission_fee">৳ {admissionFee}</div>
 
-            <div className="mt-3">
-              <span
-                className="px-4 py-1 text-white fw-bold rounded-pill text-uppercase"
-                style={{ backgroundColor: '#0f626a', fontSize: '15px' }}
-              >
-                ভর্তি ফরম
-              </span>
+              {isAbasik ? (
+                <div className="text-dark abasik">
+                  <i className="fa-solid fa-circle"></i>
+                </div>
+              ) : (
+                <div className="text-dark onabashik">
+                  <i className="fa-solid fa-circle"></i>
+                </div>
+              )}
+
+              <div className="examiner">মাহমুদুল করিম</div>
             </div>
           </div>
 
-          {/* Form Meta: Form No & Date */}
-          <div className="d-flex justify-content-between mb-4 small fw-semibold">
-            <div>
-              <span>ভর্তি ফরম নং: </span>
-              <span className="font-mono fw-bold border-bottom px-3">
-                {currentStudent ? `AF-2026-${currentStudent.roll}` : '_________________'}
-              </span>
-            </div>
-            <div>
-              <span>ভর্তি সেশন: </span>
-              <span className="fw-bold border-bottom px-2">২০২৬ ইং</span>
-            </div>
-            <div>
-              <span>ভর্তির তারিখ: </span>
-              <span className="font-mono border-bottom px-3">
-                {currentStudent ? '2026-01-15' : '____ / ____ / ২০২৬'}
-              </span>
+          {/* Back Page */}
+          <div className="form-page">
+            <img src="/assets/custom/2.png" alt="Back Page" className="bg-image" />
+            <div className="form-content">
+              {/* Back page content overlay */}
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Form Body Table Layout */}
-          <div className="table-responsive mb-4">
-            <table className="table table-bordered align-middle text-sm mb-0">
-              <tbody>
-                <tr>
-                  <td className="bg-light fw-bold" style={{ width: '25%' }}>শিক্ষার্থীর নাম (বাংলা)</td>
-                  <td colSpan="3" className="fw-bold fs-6">
-                    {currentStudent?.name || '________________________________________________'}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="bg-light fw-bold">শিক্ষার্থীর নাম (ইংরেজি)</td>
-                  <td colSpan="3" className="font-mono">
-                    {currentStudent?.nameEn || '________________________________________________'}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="bg-light fw-bold">ভর্তিকৃত জামাত/বিভাগ</td>
-                  <td className="fw-bold text-primary">
-                    {currentStudent?.jamat || '_____________________'}
-                  </td>
-                  <td className="bg-light fw-bold" style={{ width: '20%' }}>রোল / আইডি নং</td>
-                  <td className="font-mono fw-bold">
-                    {currentStudent?.roll || '_________'}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="bg-light fw-bold">জন্ম তারিখ</td>
-                  <td className="font-mono">
-                    {currentStudent?.dob || '____ / ____ / ________'}
-                  </td>
-                  <td className="bg-light fw-bold">রক্তের গ্রুপ</td>
-                  <td>
-                    <span className="badge bg-danger-subtle text-danger fs-6 fw-bold">
-                      {currentStudent?.bloodGroup || '________'}
-                    </span>
-                  </td>
-                </tr>
-                <tr>
-                  <td className="bg-light fw-bold">জন্ম নিবন্ধন নম্বর</td>
-                  <td colSpan="3" className="font-mono">
-                    {currentStudent?.birthReg || '____________________________________'}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="bg-light fw-bold">পিতার নাম</td>
-                  <td className="fw-semibold">
-                    {currentStudent?.fatherName || '________________________________'}
-                  </td>
-                  <td className="bg-light fw-bold">পিতার পেশা</td>
-                  <td>{currentStudent?.fatherOcc || 'ব্যবসা / চাকরি'}</td>
-                </tr>
-                <tr>
-                  <td className="bg-light fw-bold">মাতার নাম</td>
-                  <td className="fw-semibold">
-                    {currentStudent?.motherName || 'মোসাম্মৎ আয়েশা বেগম'}
-                  </td>
-                  <td className="bg-light fw-bold">মাতার পেশা</td>
-                  <td>গৃহিণী</td>
-                </tr>
-                <tr>
-                  <td className="bg-light fw-bold">অভিভাবকের মোবাইল নং</td>
-                  <td className="font-mono fw-bold text-success">
-                    {currentStudent?.guardianPhone || '01XXXXXXXXX'}
-                  </td>
-                  <td className="bg-light fw-bold">জরুরি মোবাইল</td>
-                  <td className="font-mono">01800000000</td>
-                </tr>
-                <tr>
-                  <td className="bg-light fw-bold">বর্তমান ঠিকানা</td>
-                  <td colSpan="3">
-                    {currentStudent?.presentAddress || currentStudent?.address || 'গ্রাম: বদরখালী, ডাকঘর: বদরখালী, উপজেলা: চকরিয়া, জেলা: কক্সবাজার।'}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="bg-light fw-bold">স্থায়ী ঠিকানা</td>
-                  <td colSpan="3">
-                    {currentStudent?.permanentAddress || currentStudent?.address || 'গ্রাম: বদরখালী, ডাকঘর: বদরখালী, উপজেলা: চকরিয়া, জেলা: কক্সবাজার।'}
-                  </td>
-                </tr>
-                <tr>
-                  <td className="bg-light fw-bold">ভর্তির ধরন</td>
-                  <td>
-                    {currentStudent?.khurakiFee > 0 ? 'আবাসিক (বোডিং)' : 'অনাবাসিক'}
-                  </td>
-                  <td className="bg-light fw-bold">নির্ধারিত মাসিক বেতন</td>
-                  <td className="font-mono fw-bold text-success">
-                    ৳ {currentStudent?.monthlyFee || '৫০০'}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Declaration Section */}
-          <div className="p-3 border rounded mb-5 bg-light" style={{ fontSize: '13px', lineHeight: '1.8' }}>
-            <h6 className="fw-bold mb-1">অভিভাবকের অঙ্গীকারনামা:</h6>
-            <p className="mb-0 text-muted">
-              আমি এই মর্মে অঙ্গীকার করছি যে, আমার সন্তান অত্র প্রতিষ্ঠানের যাবতীয় নিয়মনীতি ও শৃঙ্খলা মেনে চলবে।
-              প্রতিষ্ঠানের নিয়ম অনুযায়ী প্রতি মাসের নির্ধারিত বেতন ও খোরাকী ফি সময়মতো পরিশোধ করতে বাধ্য থাকিব।
-            </p>
-          </div>
-
-          {/* Signatures */}
-          <div className="row text-center mt-5 pt-4">
-            <div className="col-4">
-              <div className="border-top border-dark pt-1">
-                <span className="small fw-bold">অভিভাবকের স্বাক্ষর</span>
-              </div>
-            </div>
-            <div className="col-4">
-              <div className="border-top border-dark pt-1">
-                <span className="small fw-bold">ভর্তি কমিটির স্বাক্ষর</span>
-              </div>
-            </div>
-            <div className="col-4">
-              <div className="border-top border-dark pt-1">
-                <span className="small fw-bold">মুহতামিম / প্রধান শিক্ষকের সীল ও স্বাক্ষর</span>
-              </div>
-            </div>
-          </div>
+      {/* Print Button */}
+      <div className="row mb-4 no-print">
+        <div className="col-12 d-flex justify-content-center">
+          <button onClick={() => window.print()} className="btn btn-primary px-5 py-2">
+            <i className="fas fa-print me-2"></i> ভর্তি ফর্ম প্রিন্ট করুন
+          </button>
         </div>
       </div>
     </div>

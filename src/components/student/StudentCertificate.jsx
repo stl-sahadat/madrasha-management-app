@@ -1,223 +1,428 @@
 import React, { useState } from 'react';
-import { Printer, Award, UserCheck } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 
 export const StudentCertificate = () => {
-  const { students, profile } = useApp();
+  const { students } = useApp();
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || '');
-  const [issueDate, setIssueDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const student = students.find(s => s.id === selectedStudentId);
+  const currentStudent = students.find(s => s.id === selectedStudentId) || students[0];
+
+  const [certData, setCertData] = useState({
+    regNo: '20261089',
+    gpa: '৫.০০',
+    grade: 'A+',
+    issueDate: new Date().toLocaleDateString('bn-BD'),
+    certNo: 'JNM-2026-089'
+  });
+
+  const studentName = currentStudent?.name || '';
+  const fatherName = currentStudent?.fatherName || '';
+  const motherName = currentStudent?.motherName || 'মোছাঃ ফাতেমা বেগম';
+  const jamatName = currentStudent?.jamat || 'হিফজ বিভাগ';
+  const dob = currentStudent?.birthDay || currentStudent?.dob || '2013-02-08';
+  const roll = currentStudent?.admissionNumber || currentStudent?.admission_number || currentStudent?.roll || '১০১';
 
   return (
-    <div className="space-y-4">
-      {/* Control Bar */}
-      <div className="card shadow-sm border-0 mb-3 no-print">
-        <div className="card-header bg-primary py-3 d-flex flex-wrap justify-content-between align-items-center">
-          <h5 className="mb-0 text-white font-bold d-flex align-items-center">
-            <i className="fa-solid fa-award me-2"></i>
-            প্রশংসাপত্র / সার্টিফিকেট জেনারেটর (Certificate of Achievement)
-          </h5>
-          <div className="d-flex gap-2">
-            <button
-              onClick={() => window.print()}
-              className="btn btn-sm btn-info text-white fw-bold d-flex align-items-center gap-1"
-            >
-              <i className="fa-solid fa-print"></i> সার্টিফিকেট প্রিন্ট করুন
-            </button>
-          </div>
-        </div>
+    <div className="container-fluid p-0">
+      <style>{`
+        @media print {
+          .no-print {
+            display: none !important;
+          }
+          .certificate-container {
+            background: white !important;
+            padding: 0 !important;
+          }
+          .certificate-wrapper {
+            box-shadow: none !important;
+            padding: 20px !important;
+          }
+          @page {
+            size: A4;
+            margin: 15mm;
+          }
+        }
 
-        <div className="card-body bg-light py-3">
-          <div className="row g-3 align-items-center">
-            <div className="col-md-5">
-              <label className="form-label fw-bold small text-muted mb-1">শিক্ষার্থী নির্বাচন করুন:</label>
+        .certificate-container {
+          min-height: 100vh;
+          padding: 20px;
+          background: #f8f9fa;
+        }
+
+        .certificate-wrapper {
+          background: white;
+          max-width: 850px;
+          margin: 0 auto;
+          padding: 30px 40px;
+          border: 3px double #000;
+          box-shadow: 0 0 20px rgba(31, 26, 26, 0.1);
+          font-family: 'SolaimanLipi', serif;
+        }
+
+        /* Header */
+        .cert-header {
+          text-align: center;
+          margin-bottom: 15px;
+        }
+
+        .image-logo {
+          width: 140px;
+          height: auto;
+          object-fit: contain;
+          border-radius: 50%;
+          margin-bottom: 8px;
+        }
+
+        .cert-header h1 {
+          font-size: 24px;
+          font-weight: 700;
+          margin: 5px 0;
+          color: #1a1a1a;
+        }
+
+        .cert-header p {
+          font-size: 14px;
+          color: #333;
+          margin: 3px 0;
+        }
+
+        .cert-contact {
+          font-size: 12px !important;
+          color: #666 !important;
+        }
+
+        .cert-hr {
+          border: none;
+          border-top: 2px solid #000;
+          margin: 15px 0;
+        }
+
+        /* Title */
+        .cert-title {
+          text-align: center;
+          font-size: 34px;
+          font-weight: 700;
+          margin: 15px 0 5px 0;
+          letter-spacing: 1px;
+        }
+
+        .cert-subtitle {
+          text-align: center;
+          font-size: 15px;
+          font-style: italic;
+          color: #666;
+          margin-bottom: 20px;
+        }
+
+        .cert-text-center {
+          text-align: center;
+          font-size: 16px;
+          margin: 15px 0;
+        }
+
+        /* Student Name */
+        .cert-student-name {
+          text-align: center;
+          font-size: 24px;
+          font-weight: 700;
+          margin: 15px 0;
+          color: #0f626a;
+        }
+
+        /* Tables */
+        .info-table,
+        .result-table,
+        .signature-table,
+        .footer-table {
+          width: 100%;
+          margin: 15px 0;
+        }
+
+        .info-table td {
+          padding: 8px;
+          font-size: 14px;
+        }
+
+        .cert-description {
+          background: #fafafa;
+          padding: 15px;
+          margin: 15px 0;
+          border-left: 3px solid #000;
+          font-size: 15px;
+          line-height: 1.8;
+          text-align: justify;
+        }
+
+        /* Result Table */
+        .result-table {
+          margin: 20px 0;
+        }
+
+        .result-table td {
+          text-align: center;
+          padding: 12px;
+          border: 2px solid #ddd;
+          font-size: 14px;
+        }
+
+        .cert-wishes {
+          text-align: center;
+          font-size: 15px;
+          font-style: italic;
+          margin: 20px 0;
+          color: #555;
+        }
+
+        /* Signature Table */
+        .signature-table {
+          margin: 30px 0 20px 0;
+        }
+
+        .signature-table td {
+          text-align: center;
+          vertical-align: bottom;
+          padding: 0 10px;
+        }
+
+        .sig-line {
+          width: 120px;
+          height: 2px;
+          background: #000;
+          margin: 40px auto 8px auto;
+        }
+
+        .seal {
+          width: 60px;
+          height: 60px;
+          border: 2px dashed #000;
+          border-radius: 50%;
+          margin: 10px auto 8px auto;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 700;
+        }
+
+        .signature-table strong {
+          font-size: 13px;
+        }
+
+        /* Footer */
+        .footer-table td {
+          font-size: 14px;
+        }
+
+        /* Button */
+        .btn-print {
+          padding: 12px 30px;
+          font-size: 16px;
+          font-weight: 600;
+          background: #000;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          font-family: 'SolaimanLipi', serif;
+        }
+
+        .btn-print:hover {
+          background: #333;
+        }
+
+        @media (max-width: 768px) {
+          .certificate-wrapper {
+            padding: 20px;
+          }
+          .info-table td {
+            display: block;
+            width: 100%;
+          }
+        }
+      `}</style>
+
+      {/* Selector Card (No Print) */}
+      <div className="card shadow-sm mb-4 no-print">
+        <div className="card-header bg-primary py-3">
+          <h5 className="mb-0 text-white">
+            <i className="fa-solid fa-award me-2"></i> সার্টিফিকেট / প্রশংসাপত্র জেনারেটর
+          </h5>
+        </div>
+        <div className="card-body">
+          <div className="row g-3 align-items-end">
+            <div className="col-md-4">
+              <label className="form-label fw-bold">শিক্ষার্থী নির্বাচন করুন:</label>
               <select
+                className="form-select"
                 value={selectedStudentId}
                 onChange={(e) => setSelectedStudentId(e.target.value)}
-                className="form-select form-select-sm"
               >
-                <option value="">-- ফাঁকা সার্টিফিকেট (Blank) --</option>
-                {students.map(s => (
-                  <option key={s.id} value={s.id}>
-                    {s.roll} - {s.name} ({s.jamat})
-                  </option>
-                ))}
+                {students.map(s => {
+                  const adm = s.admissionNumber || s.admission_number || s.roll;
+                  return (
+                    <option key={s.id} value={s.id}>
+                      {adm} - {s.name} ({s.jamat})
+                    </option>
+                  );
+                })}
               </select>
             </div>
-
-            <div className="col-md-3">
-              <label className="form-label fw-bold small text-muted mb-1">ইস্যুর তারিখ:</label>
+            <div className="col-md-2">
+              <label className="form-label fw-bold">রেজিস্ট্রেশন:</label>
               <input
-                type="date"
-                value={issueDate}
-                onChange={(e) => setIssueDate(e.target.value)}
-                className="form-control form-control-sm"
+                type="text"
+                className="form-control"
+                value={certData.regNo}
+                onChange={(e) => setCertData({ ...certData, regNo: e.target.value })}
               />
             </div>
-
-            <div className="col-md-4 text-md-end mt-4">
-              <button
-                type="button"
-                onClick={() => setSelectedStudentId('')}
-                className="btn btn-sm btn-outline-secondary"
-              >
-                ফাঁকা সার্টিফিকেট দেখান
+            <div className="col-md-2">
+              <label className="form-label fw-bold">জিপিএ / গ্রেড:</label>
+              <div className="input-group">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="GPA"
+                  value={certData.gpa}
+                  onChange={(e) => setCertData({ ...certData, gpa: e.target.value })}
+                />
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Grade"
+                  value={certData.grade}
+                  onChange={(e) => setCertData({ ...certData, grade: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="col-md-2">
+              <label className="form-label fw-bold">সার্টিফিকেট নং:</label>
+              <input
+                type="text"
+                className="form-control"
+                value={certData.certNo}
+                onChange={(e) => setCertData({ ...certData, certNo: e.target.value })}
+              />
+            </div>
+            <div className="col-md-2">
+              <button onClick={() => window.print()} className="btn btn-dark w-100 py-2">
+                <i className="fas fa-print me-1"></i> প্রিন্ট করুন
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Official Certificate Wrapper (Matching hostzonebd 100%) */}
-      <div className="certificate-screen-area d-flex justify-content-center p-3">
-        <div
-          className="certificate-print-box bg-white p-5 position-relative"
-          style={{
-            maxWidth: '850px',
-            width: '100%',
-            border: '4px double #1a202c',
-            boxShadow: '0 0 25px rgba(0,0,0,0.1)',
-            fontFamily: "'Noto Serif Bengali', 'SolaimanLipi', serif"
-          }}
-        >
+      {/* Main Certificate Container */}
+      <div className="certificate-container" id="certificate">
+        <div className="certificate-wrapper">
           {/* Header */}
-          <div className="text-center mb-3">
+          <div className="cert-header">
             <img
               src="/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png"
               alt="Logo"
-              style={{ width: '85px', height: '85px', objectFit: 'contain' }}
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = '/assets/images/avatar.svg';
-              }}
+              className="image-logo"
             />
-            <h2 className="fw-bold text-dark mt-2 mb-1" style={{ fontSize: '24px' }}>
-              {profile.name || 'জব্বর নগর স্বতন্ত্র ইবতেদায়ী মাদ্রাসা'}
-            </h2>
-            <p className="text-muted small mb-1">{profile.address || 'বদরখালী, মাতামুহুরী, কক্সবাজার।'}</p>
-            <p className="text-muted small mb-0 font-mono">
-              মোবাইল: {profile.phone2 || '01847657580'} | ইমেইল: {profile.email || 'hafezazamnur@gmail.com'}
-            </p>
+            <h1>জব্বর নগর স্বতন্ত্র ইবতেদায়ী মাদ্রাসা</h1>
+            <p>বদরখালী, মাতামুহুরী, কক্সবাজার।</p>
+            <p className="cert-contact">মোবাইল: 01847657580 | ইমেইল: hafezazamnur@gmail.com</p>
           </div>
 
-          <hr style={{ borderTop: '2px solid #000' }} />
+          <div className="cert-hr"></div>
 
           {/* Title */}
-          <div className="text-center my-3">
-            <h1 className="fw-bold mb-0" style={{ fontSize: '32px', letterSpacing: '1px' }}>
-              সার্টিফিকেট
-            </h1>
-            <p className="fst-italic text-muted small">Certificate of Achievement</p>
-          </div>
+          <div className="cert-title">প্রশংসাপত্র</div>
+          <div className="cert-subtitle">Testimonial / Academic Certificate</div>
 
-          <p className="text-center text-muted mb-2">এই সার্টিফিকেট সগৌরবে প্রদান করা হলো</p>
+          <p className="cert-text-center">এই মর্মে প্রত্যয়ন করা যাচ্ছে যে,</p>
 
-          <h3 className="text-center fw-bold text-primary my-3 border-bottom pb-2 d-inline-block w-100" style={{ fontSize: '24px' }}>
-            {student ? student.name : '_________________________________'}
-          </h3>
+          {/* Student Name */}
+          <div className="cert-student-name">{studentName}</div>
 
-          <div className="my-4 p-3 bg-light border-start border-3 border-dark rounded">
-            <p className="mb-0 text-dark" style={{ lineHeight: '1.9', fontSize: '15px' }}>
-              তিনি অত্র মাদ্রাসার <strong>{student ? student.jamat : '_______________'}</strong> হতে ২০২৬ শিক্ষাবর্ষের
-              বার্ষিক চূড়ান্ত মূল্যায়ন পরীক্ষায় সাফল্যের সাথে উত্তীর্ণ হয়েছেন। অধ্যয়নকালে তাঁর নৈতিক চরিত্র ও আচার-ব্যবহার
-              প্রশংসনীয় ছিল।
-            </p>
-          </div>
-
-          {/* Result Summary Table */}
-          <table className="table table-bordered text-center my-4 align-middle">
-            <tbody className="small">
+          {/* Info Table */}
+          <table className="info-table">
+            <tbody>
               <tr>
-                <td className="bg-light">
-                  <strong>পিতার নাম:</strong><br />
-                  {student ? student.fatherName : '_____________'}
-                </td>
-                <td className="bg-light">
+                <td><strong>পিতা:</strong> {fatherName}</td>
+                <td><strong>মাতা:</strong> {motherName}</td>
+              </tr>
+              <tr>
+                <td><strong>জামাত/বিভাগ:</strong> {jamatName}</td>
+                <td><strong>জন্ম তারিখ:</strong> {dob}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* Description */}
+          <p className="cert-description">
+            তিনি অত্র মাদ্রাসার একজন নিয়মিত শিক্ষার্থী ছিলেন। অধ্যয়নকালীন সময়ে তিনি ধর্মীয় অনুশাসন মেনে চলেছেন এবং তার আচরণ প্রশংসনীয় ও অনুকরণীয় ছিল। অত্র প্রতিষ্ঠান বা দেশের আইন পরিপন্থী কোনো কার্যকলাপে তিনি লিপ্ত ছিলেন না।
+          </p>
+
+          {/* Result Table */}
+          <table className="result-table">
+            <tbody>
+              <tr>
+                <td>
                   <strong>রোল নং:</strong><br />
-                  <span className="font-mono fw-bold">{student ? student.roll : '_______'}</span>
+                  {roll}
                 </td>
-                <td className="bg-light">
+                <td>
                   <strong>রেজিস্ট্রেশন:</strong><br />
-                  <span className="font-mono">{student ? `REG-${student.roll}` : '_____________'}</span>
+                  {certData.regNo}
                 </td>
-                <td className="bg-light">
+                <td>
                   <strong>জিপিএ:</strong><br />
-                  <span className="font-mono fw-bold text-success">৫.০০</span>
+                  {certData.gpa}
                 </td>
-                <td className="bg-light">
+                <td>
                   <strong>গ্রেড:</strong><br />
-                  <span className="badge bg-success">মুমতাজ (A+)</span>
+                  {certData.grade}
                 </td>
               </tr>
             </tbody>
           </table>
 
-          <p className="text-center fst-italic text-muted my-4">
-            আমরা তাঁর ভবিষ্যৎ জীবনে সর্বাঙ্গীণ সাফল্য, জ্ঞান ও দ্বীনি সমৃদ্ধি কামনা করছি।
-          </p>
+          <p className="cert-wishes">আমরা তার ভবিষ্যৎ জীবনে সর্বাঙ্গীণ সাফল্য ও সমৃদ্ধি কামনা করছি।</p>
 
           {/* Signatures */}
-          <div className="row text-center mt-5 pt-3 align-items-end">
-            <div className="col-4">
-              <div style={{ width: '130px', height: '2px', background: '#000', margin: '0 auto 8px' }}></div>
-              <strong className="small">শ্রেণী শিক্ষক/শিক্ষিকা</strong>
-            </div>
-            <div className="col-4">
-              <div
-                style={{
-                  width: '60px',
-                  height: '60px',
-                  border: '2px dashed #000',
-                  borderRadius: '50%',
-                  margin: '0 auto 8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 'bold',
-                  fontSize: '12px'
-                }}
-              >
-                সীল
-              </div>
-              <strong className="small">প্রতিষ্ঠান সীল</strong>
-            </div>
-            <div className="col-4">
-              <div style={{ width: '130px', height: '2px', background: '#000', margin: '0 auto 8px' }}></div>
-              <strong className="small">মুহতামিম / প্রধান শিক্ষক</strong>
-            </div>
-          </div>
+          <table className="signature-table">
+            <tbody>
+              <tr>
+                <td>
+                  <div className="sig-line"></div>
+                  <strong>শ্রেণী শিক্ষক/শিক্ষিকা</strong>
+                </td>
+                <td>
+                  <div className="seal">সীল</div>
+                  <strong>প্রতিষ্ঠান সীল</strong>
+                </td>
+                <td>
+                  <div className="sig-line"></div>
+                  <strong>প্রধান শিক্ষক/অধ্যক্ষ</strong>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
-          <hr className="mt-4" />
+          <div className="cert-hr"></div>
 
-          {/* Footer Info */}
-          <div className="d-flex justify-content-between small text-muted">
-            <span><strong>ইস্যুর তারিখ:</strong> <span className="font-mono">{issueDate}</span></span>
-            <span><strong>সার্টিফিকেট নং:</strong> <span className="font-mono">CERT-2026-{student ? student.roll : '000'}</span></span>
-          </div>
+          {/* Footer */}
+          <table className="footer-table">
+            <tbody>
+              <tr>
+                <td><strong>ইস্যুর তারিখ:</strong> {certData.issueDate}</td>
+                <td style={{ textAlign: 'right' }}><strong>সার্টিফিকেট নং:</strong> {certData.certNo}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <style>{`
-        @media print {
-          .no-print {
-            display: none !important;
-          }
-          body {
-            background: white !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
-          .certificate-screen-area {
-            padding: 0 !important;
-          }
-          .certificate-print-box {
-            box-shadow: none !important;
-            border: 3px double #000 !important;
-            page-break-after: avoid;
-          }
-        }
-      `}</style>
+      {/* Button */}
+      <div className="text-center no-print my-4">
+        <button onClick={() => window.print()} className="btn-print">
+          🖨️ প্রিন্ট করুন
+        </button>
+      </div>
     </div>
   );
 };

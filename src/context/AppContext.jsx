@@ -1364,6 +1364,9 @@ export const AppProvider = ({ children, initialSlug }) => {
   // Dynamic Total Students Count
   const totalStudentsCount = students.length;
 
+  const depositVouchers = transactions.filter(t => t.type === 'deposit');
+  const expenseVouchers = transactions.filter(t => t.type === 'expense');
+
   return (
     <AppContext.Provider
       value={{
@@ -1375,6 +1378,8 @@ export const AppProvider = ({ children, initialSlug }) => {
         setJamats,
         transactions,
         setTransactions,
+        depositVouchers,
+        expenseVouchers,
         accounts,
         setAccounts,
         teachers,

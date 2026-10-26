@@ -1,963 +1,547 @@
 import React, { useState } from 'react';
-import {
-  Users,
-  Plus,
-  Phone,
-  Printer,
-  Calendar,
-  CreditCard,
-  FileSpreadsheet,
-  CheckCircle,
-  Eye,
-  Search,
-  MessageSquare,
-  Award,
-  DollarSign
-} from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { MONTH_NAMES } from '../../data/initialData';
 
 export const TeacherModule = ({ defaultTab = 'list' }) => {
   const {
     teachers,
     addTeacher,
+    deleteTeacher,
     accounts,
     receivers,
     teacherSalaryPayments,
     addTeacherSalaryPayment,
-    setSelectedReceiptForPrint
+    setSelectedReceiptForPrint,
+    setActiveTab: navigateTab,
+    depositCategories,
+    expenseCategories
   } = useApp();
 
   const [activeTab, setActiveTab] = useState(defaultTab);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTeacherForModal, setSelectedTeacherForModal] = useState(null);
 
-  // Salary Sheet Month Filter
-  const [selectedMonth, setSelectedMonth] = useState('সেপ্টেম্বর');
-  const [selectedYear, setSelectedYear] = useState('2026');
-
-  // Teacher Salary Day (Disbursement Entry Form) State
-  const [salaryForm, setSalaryForm] = useState({
-    teacherId: teachers[0]?.id || '',
-    month: 'অক্টোবর',
-    year: '2026',
-    date: new Date().toISOString().split('T')[0],
-    account: accounts[0]?.name || 'নগদ ক্যাশ (Hand Cash)',
-    amount: '',
+  // Teacher Create State matching /admin/teacher/create
+  const [createForm, setCreateForm] = useState({
+    designation: 'সহকারী প্রধান শিক্ষক',
+    full_name: '',
+    father_name: '',
+    mother_name: '',
+    email: '',
+    teacher_id: Math.floor(100000 + Math.random() * 900000).toString(),
+    subject: 'বাংলা ও কুরআন',
+    gender: 'male',
+    birth_date: '1990-01-01',
+    national_id: '',
+    blood_group: 'B+',
+    marital_status: 'married',
+    salary: '14000',
+    phone_number: '',
+    emergency_phone: '',
+    parents_phone: '',
+    joining_date: new Date().toISOString().split('T')[0],
+    id_card_expiry_date: '2028-12-31',
+    present_address: 'বদরখালী, চকরিয়া, কক্সবাজার',
+    permanent_address: 'বদরখালী, চকরিয়া, কক্সবাজার',
+    qualification: 'দাওরায়ে হাদিস ও কামিল',
+    skills: 'হিফজ ও কিতাব পাঠদান',
     note: ''
   });
 
-  // New Teacher Registration Form State
-  const [newTeacherData, setNewTeacherData] = useState({
-    name: '',
-    designation: 'সহকারী শিক্ষক',
-    department: 'হিফজ বিভাগ',
-    mobile: '',
-    email: '',
-    salary: '14000',
-    qualification: 'দাওরায়ে হাদিস',
-    joiningDate: new Date().toISOString().split('T')[0],
-    address: 'বদরখালী, কক্সবাজার'
+  // Salary Sheet Month Filter State
+  const [salaryMonth, setSalaryMonth] = useState('2026-10');
+
+  // Teacher Salary Day (Disbursement Entry) State matching /admin/teacher/salary/day
+  const [salaryDayForm, setSalaryDayForm] = useState({
+    payment_date: new Date().toISOString().split('T')[0],
+    salary_month: 'অক্টোবর',
+    salary_year: '2026',
+    deposit_category_id: depositCategories?.[0]?.name || 'মাসিক বেতন',
+    account: accounts?.[0]?.name || 'নগদ ক্যাশ (Hand Cash)',
+    expense_category_id: 'শিক্ষকগণের বেতন',
+    payment_method_id: 'cash'
   });
 
-  // Attendance State
-  const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
-  const [teacherAttendance, setTeacherAttendance] = useState(() => {
-    return teachers.reduce((acc, t) => ({ ...acc, [t.id]: 'উপস্থিত' }), {});
+  // Individual salary entries per teacher
+  const [salaryAmounts, setSalaryAmounts] = useState(() => {
+    const map = {};
+    (teachers || []).forEach(t => {
+      map[t.id] = { amount: t.salary || '14000', note: '' };
+    });
+    return map;
   });
 
-  // Handle Add Teacher Submit
-  const handleAddTeacherSubmit = (e) => {
+  const handleCreateSubmit = (e) => {
     e.preventDefault();
-    if (!newTeacherData.name || !newTeacherData.mobile) {
-      alert('শিক্ষকের নাম ও মোবাইল নম্বর পূরণ করুন');
+    if (!createForm.full_name || !createForm.phone_number) {
+      alert('শিক্ষকের পূর্ণ নাম এবং ফোন নম্বর পূরণ করা আবশ্যক।');
       return;
     }
     addTeacher({
-      ...newTeacherData,
-      salary: parseFloat(newTeacherData.salary) || 0
+      name: createForm.full_name,
+      designation: createForm.designation,
+      department: createForm.subject,
+      mobile: createForm.phone_number,
+      phone: createForm.phone_number,
+      emergencyPhone: createForm.emergency_phone,
+      email: createForm.email || `${createForm.teacher_id}@madrasha.edu`,
+      salary: parseFloat(createForm.salary) || 14000,
+      qualification: createForm.qualification,
+      joiningDate: createForm.joining_date,
+      address: createForm.present_address,
+      bloodGroup: createForm.blood_group,
+      teacherId: createForm.teacher_id
     });
+    alert('শিক্ষক সফলভাবে যোগ করা হয়েছে!');
     setActiveTab('list');
-    setNewTeacherData({
-      name: '',
-      designation: 'সহকারী শিক্ষক',
-      department: 'হিফজ বিভাগ',
-      mobile: '',
-      email: '',
-      salary: '14000',
-      qualification: 'দাওরায়ে হাদিস',
-      joiningDate: new Date().toISOString().split('T')[0],
-      address: 'বদরখালী, কক্সবাজার'
-    });
   };
 
-  // Handle Salary Disbursement Submit
-  const handleSalaryDisburseSubmit = (e) => {
+  const handleSalaryDaySubmit = (e) => {
     e.preventDefault();
-    const targetTeacher = teachers.find(t => t.id === salaryForm.teacherId) || teachers[0];
-    const amount = parseFloat(salaryForm.amount) || parseFloat(targetTeacher?.salary) || 0;
-
-    if (!amount || amount <= 0) {
-      alert('সঠিক টাকার অংক উল্লেখ করুন');
-      return;
-    }
-
-    const vch = addTeacherSalaryPayment({
-      teacherId: targetTeacher.id,
-      teacherName: targetTeacher.name,
-      designation: targetTeacher.designation,
-      month: salaryForm.month,
-      year: salaryForm.year,
-      date: salaryForm.date,
-      account: salaryForm.account,
-      amount,
-      note: salaryForm.note || `${salaryForm.month} ${salaryForm.year} শিক্ষক বেতন পরিশোধ`
-    });
-
-    if (vch) {
-      setSelectedReceiptForPrint(vch);
-    }
-  };
-
-  // Attendance helpers
-  const handleAttendanceChange = (teacherId, status) => {
-    setTeacherAttendance(prev => ({ ...prev, [teacherId]: status }));
-  };
-
-  const handleMarkAllPresent = () => {
-    const updated = {};
+    let count = 0;
     teachers.forEach(t => {
-      updated[t.id] = 'উপস্থিত';
+      const entry = salaryAmounts[t.id];
+      const amount = parseFloat(entry?.amount);
+      if (amount && amount > 0) {
+        addTeacherSalaryPayment({
+          teacherId: t.id,
+          teacherName: t.name,
+          month: salaryDayForm.salary_month,
+          year: salaryDayForm.salary_year,
+          date: salaryDayForm.payment_date,
+          account: salaryDayForm.account,
+          amount,
+          note: entry?.note || `${salaryDayForm.salary_month} ${salaryDayForm.salary_year}-এর শিক্ষক বেতন`
+        });
+        count++;
+      }
     });
-    setTeacherAttendance(updated);
+    alert(`${count} জন শিক্ষকের বেতন সফলভাবে প্রদান করা হয়েছে!`);
+    setActiveTab('salary-list');
   };
 
-  const presentCount = teachers.filter(t => (teacherAttendance[t.id] || 'উপস্থিত') === 'উপস্থিত').length;
-  const absentCount = teachers.length - presentCount;
-
-  // Filter teachers for phone/list
-  const filteredTeachers = teachers.filter(t =>
-    t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.mobile.includes(searchTerm) ||
-    t.designation.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleDeleteTeacher = (id) => {
+    if (window.confirm('আপনি কি নিশ্চিতভাবে এই শিক্ষককে মুছে ফেলতে চান?')) {
+      deleteTeacher(id);
+    }
+  };
 
   return (
-    <div className="space-y-4">
-      {/* Top Header Card */}
-      <div className="card shadow-sm border-0 mb-3 no-print">
-        <div className="card-header bg-primary py-3 d-flex flex-wrap justify-content-between align-items-center">
-          <h5 className="mb-0 text-white font-bold d-flex align-items-center">
-            <i className="fa-solid fa-chalkboard-user me-2"></i>
-            শিক্ষক ও উস্তাদবৃন্দ ব্যবস্থাপনা (Teacher Management)
-          </h5>
-          <div className="d-flex flex-wrap gap-2">
-            <button
-              onClick={() => setActiveTab('create')}
-              className={`btn btn-sm ${activeTab === 'create' ? 'btn-danger text-white' : 'btn-light text-primary'} fw-bold d-flex align-items-center gap-1`}
-            >
-              <i className="fa-solid fa-user-plus"></i> নতুন শিক্ষক ফর্ম
-            </button>
-            <button
-              onClick={() => setActiveTab('salary-day')}
-              className={`btn btn-sm ${activeTab === 'salary-day' ? 'btn-danger text-white' : 'btn-light text-success'} fw-bold d-flex align-items-center gap-1`}
-            >
-              <i className="fa-solid fa-money-bill-wave"></i> বেতন প্রদান
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="btn btn-sm btn-info text-white fw-bold d-flex align-items-center gap-1"
-            >
-              <i className="fa-solid fa-print"></i> প্রিন্ট
-            </button>
-          </div>
-        </div>
-
-        {/* Sub-Navigation Pills */}
-        <div className="card-body bg-light py-2 border-bottom">
-          <div className="d-flex flex-wrap gap-1">
-            <button
-              type="button"
-              onClick={() => setActiveTab('list')}
-              className={`btn btn-sm rounded-pill px-3 ${activeTab === 'list' ? 'btn-primary' : 'btn-outline-secondary bg-white'}`}
-            >
-              <i className="fa-solid fa-users me-1"></i> শিক্ষক তালিকা ({teachers.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('number')}
-              className={`btn btn-sm rounded-pill px-3 ${activeTab === 'number' ? 'btn-primary' : 'btn-outline-secondary bg-white'}`}
-            >
-              <i className="fa-solid fa-phone me-1"></i> মোবাইল নম্বর
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('salary-sheet')}
-              className={`btn btn-sm rounded-pill px-3 ${activeTab === 'salary-sheet' ? 'btn-primary' : 'btn-outline-secondary bg-white'}`}
-            >
-              <i className="fa-solid fa-file-invoice-dollar me-1"></i> বেতন বিল শিট
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('salary-day')}
-              className={`btn btn-sm rounded-pill px-3 ${activeTab === 'salary-day' ? 'btn-primary' : 'btn-outline-secondary bg-white'}`}
-            >
-              <i className="fa-solid fa-hand-holding-dollar me-1"></i> বেতন দিন
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('salary-list')}
-              className={`btn btn-sm rounded-pill px-3 ${activeTab === 'salary-list' ? 'btn-primary' : 'btn-outline-secondary bg-white'}`}
-            >
-              <i className="fa-solid fa-receipt me-1"></i> বেতনের তালিকা
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('attendance')}
-              className={`btn btn-sm rounded-pill px-3 ${activeTab === 'attendance' ? 'btn-primary' : 'btn-outline-secondary bg-white'}`}
-            >
-              <i className="fa-solid fa-user-check me-1"></i> শিক্ষক হাজিরা
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('attendance-report')}
-              className={`btn btn-sm rounded-pill px-3 ${activeTab === 'attendance-report' ? 'btn-primary' : 'btn-outline-secondary bg-white'}`}
-            >
-              <i className="fa-solid fa-chart-line me-1"></i> হাজিরা রিপোর্ট
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* VIEW 1: Teacher Create Form */}
+    <div className="container-fluid p-0">
+      {/* ---------------- 1. TEACHER CREATE FORM (/admin/teacher/create) ---------------- */}
       {activeTab === 'create' && (
-        <div className="card shadow-sm border-0">
-          <div className="card-header bg-white py-3 border-bottom">
-            <h6 className="mb-0 fw-bold text-dark d-flex align-items-center">
-              <i className="fa-solid fa-user-plus text-primary me-2"></i>
-              নতুন শিক্ষক যোগ করুন (Teacher Registration Form)
-            </h6>
-          </div>
-          <div className="card-body">
-            <form onSubmit={handleAddTeacherSubmit} className="row g-3">
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">শিক্ষকের পূর্ণ নাম *</label>
-                <input
-                  type="text"
-                  value={newTeacherData.name}
-                  onChange={(e) => setNewTeacherData({ ...newTeacherData, name: e.target.value })}
-                  placeholder="উদা: মাওলানা আব্দুল্লাহ"
-                  className="form-control"
-                  required
-                />
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">পদবী *</label>
-                <select
-                  value={newTeacherData.designation}
-                  onChange={(e) => setNewTeacherData({ ...newTeacherData, designation: e.target.value })}
-                  className="form-select"
-                >
-                  <option value="মুহতামিম / প্রধান শিক্ষক">মুহতামিম / প্রধান শিক্ষক</option>
-                  <option value="সহকারী প্রধান ও ক্যাশিয়ার">সহকারী প্রধান ও ক্যাশিয়ার</option>
-                  <option value="সিনিয়র শিক্ষক">সিনিয়র শিক্ষক</option>
-                  <option value="সহকারী শিক্ষক">সহকারী শিক্ষক</option>
-                  <option value="ক্বারী ও মুয়াল্লিম">ক্বারী ও মুয়াল্লিম</option>
-                  <option value="হিফজ শিক্ষক">হিফজ শিক্ষক</option>
-                </select>
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">বিভাগ / জামাত *</label>
-                <select
-                  value={newTeacherData.department}
-                  onChange={(e) => setNewTeacherData({ ...newTeacherData, department: e.target.value })}
-                  className="form-select"
-                >
-                  <option value="হিফজ বিভাগ">হিফজ বিভাগ</option>
-                  <option value="নাজেরা ও কায়দা">নাজেরা ও কায়দা</option>
-                  <option value="কিতাব বিভাগ">কিতাব বিভাগ</option>
-                  <option value="ইবতিদাইয়্যাহ (১ম-৫ম)">ইবতিদাইয়্যাহ (১ম-৫ম)</option>
-                  <option value="প্রশাসন ও হিসাব">প্রশাসন ও হিসাব</option>
-                </select>
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">মোবাইল নম্বর *</label>
-                <input
-                  type="text"
-                  value={newTeacherData.mobile}
-                  onChange={(e) => setNewTeacherData({ ...newTeacherData, mobile: e.target.value })}
-                  placeholder="018XXXXXXXX"
-                  className="form-control font-mono"
-                  required
-                />
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">ইমেইল (ঐচ্ছিক)</label>
-                <input
-                  type="email"
-                  value={newTeacherData.email}
-                  onChange={(e) => setNewTeacherData({ ...newTeacherData, email: e.target.value })}
-                  placeholder="teacher@madrasha.com"
-                  className="form-control"
-                />
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">মাসিক মূল বেতন (টাকা) *</label>
-                <div className="input-group">
-                  <span className="input-group-text">৳</span>
-                  <input
-                    type="number"
-                    value={newTeacherData.salary}
-                    onChange={(e) => setNewTeacherData({ ...newTeacherData, salary: e.target.value })}
-                    className="form-control font-mono fw-bold text-success"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">শিক্ষাগত যোগ্যতা *</label>
-                <input
-                  type="text"
-                  value={newTeacherData.qualification}
-                  onChange={(e) => setNewTeacherData({ ...newTeacherData, qualification: e.target.value })}
-                  placeholder="উদা: দাওরায়ে হাদিস / কামিল"
-                  className="form-control"
-                />
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">যোগদানের তারিখ *</label>
-                <input
-                  type="date"
-                  value={newTeacherData.joiningDate}
-                  onChange={(e) => setNewTeacherData({ ...newTeacherData, joiningDate: e.target.value })}
-                  className="form-control"
-                  required
-                />
-              </div>
-
-              <div className="col-12">
-                <label className="form-label fw-bold small">স্থায়ী ঠিকানা</label>
-                <input
-                  type="text"
-                  value={newTeacherData.address}
-                  onChange={(e) => setNewTeacherData({ ...newTeacherData, address: e.target.value })}
-                  placeholder="গ্রাম, ডাকঘর, উপজেলা, জেলা..."
-                  className="form-control"
-                />
-              </div>
-
-              <div className="col-12 mt-4 pt-2 border-top text-end">
+        <div className="row">
+          <div className="col-12">
+            <div className="card shadow-sm border-0 rounded-3">
+              <div className="card-header bg-gradient bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+                <h5 className="mb-0 text-white">
+                  <i className="fa-solid fa-chalkboard-user me-2"></i> শিক্ষক যোগ করুন
+                </h5>
                 <button
-                  type="submit"
-                  className="btn btn-primary px-4 py-2 fw-bold d-inline-flex align-items-center gap-2"
+                  type="button"
+                  onClick={() => setActiveTab('list')}
+                  className="btn btn-light btn-sm text-primary fw-bold"
                 >
-                  <i className="fa-solid fa-save"></i>
-                  সংরক্ষণ করুন
+                  <i className="fa-solid fa-list me-1"></i> শিক্ষকদের তালিকা
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
 
-      {/* VIEW 2: Teacher List (Cards) */}
-      {activeTab === 'list' && (
-        <div className="space-y-4">
-          <div className="card shadow-sm border-0 mb-3">
-            <div className="card-body py-2">
-              <div className="row g-2 align-items-center justify-content-between">
-                <div className="col-md-4">
-                  <div className="input-group input-group-sm">
-                    <span className="input-group-text bg-white"><i className="fa-solid fa-search text-muted"></i></span>
-                    <input
-                      type="text"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="নাম, পদবী বা মোবাইল দিয়ে খুঁজুন..."
-                      className="form-control"
-                    />
-                  </div>
-                </div>
-                <div className="col-auto">
-                  <span className="badge bg-primary fs-6 px-3 py-2">
-                    মোট শিক্ষক: <strong>{filteredTeachers.length} জন</strong>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="row g-3">
-            {filteredTeachers.map((teacher) => (
-              <div key={teacher.id} className="col-md-6 col-lg-4">
-                <div className="card h-100 shadow-sm border rounded-3 p-3 hover-shadow transition">
-                  <div className="d-flex align-items-center gap-3 pb-3 border-bottom">
-                    <div
-                      className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-5"
-                      style={{ width: '55px', height: '55px', minWidth: '55px' }}
-                    >
-                      <i className="fa-solid fa-user-tie"></i>
+              <div className="card-body p-4">
+                <form onSubmit={handleCreateSubmit} className="needs-validation">
+                  {/* Row 1: Designation, Full Name */}
+                  <div className="row g-3 mb-3">
+                    <div className="col-md-6">
+                      <label htmlFor="designation" className="form-label fw-semibold">পদবি</label>
+                      <input
+                        type="text"
+                        id="designation"
+                        className="form-control"
+                        placeholder="শিক্ষকের পদবি লিখুন"
+                        value={createForm.designation}
+                        onChange={(e) => setCreateForm({ ...createForm, designation: e.target.value })}
+                      />
                     </div>
-                    <div>
-                      <h6 className="fw-bold mb-0 text-dark">{teacher.name}</h6>
-                      <span className="badge bg-primary-subtle text-primary border border-primary-subtle small">
-                        {teacher.designation}
-                      </span>
+                    <div className="col-md-6">
+                      <label htmlFor="full_name" className="form-label fw-semibold">
+                        শিক্ষকের পূর্ণ নামঃ <span className="text-danger">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="full_name"
+                        className="form-control"
+                        placeholder="শিক্ষকের পূর্ণ নাম লিখুন"
+                        value={createForm.full_name}
+                        onChange={(e) => setCreateForm({ ...createForm, full_name: e.target.value })}
+                        required
+                      />
                     </div>
                   </div>
 
-                  <div className="mt-3 small space-y-1">
-                    <div className="d-flex justify-content-between py-1 border-bottom">
-                      <span className="text-muted">বিভাগ:</span>
-                      <span className="fw-semibold">{teacher.department}</span>
+                  {/* Row 2: Father, Mother, Email */}
+                  <div className="row g-3 mb-3">
+                    <div className="col-lg-4 col-md-6">
+                      <label htmlFor="father_name" className="form-label fw-semibold">বাবার নাম</label>
+                      <input
+                        type="text"
+                        id="father_name"
+                        className="form-control"
+                        placeholder="শিক্ষকের বাবার নাম লিখুন"
+                        value={createForm.father_name}
+                        onChange={(e) => setCreateForm({ ...createForm, father_name: e.target.value })}
+                      />
                     </div>
-                    <div className="d-flex justify-content-between py-1 border-bottom">
-                      <span className="text-muted">শিক্ষাগত যোগ্যতা:</span>
-                      <span className="fw-semibold">{teacher.qualification}</span>
+                    <div className="col-lg-4 col-md-6">
+                      <label htmlFor="mother_name" className="form-label fw-semibold">মায়ের নাম</label>
+                      <input
+                        type="text"
+                        id="mother_name"
+                        className="form-control"
+                        placeholder="শিক্ষকের মায়ের নাম লিখুন"
+                        value={createForm.mother_name}
+                        onChange={(e) => setCreateForm({ ...createForm, mother_name: e.target.value })}
+                      />
                     </div>
-                    <div className="d-flex justify-content-between py-1 border-bottom">
-                      <span className="text-muted">মোবাইল:</span>
-                      <span className="font-mono fw-bold text-dark">{teacher.mobile}</span>
-                    </div>
-                    <div className="d-flex justify-content-between py-1 border-bottom">
-                      <span className="text-muted">নির্ধারিত বেতন:</span>
-                      <span className="font-mono fw-bold text-success">৳ {teacher.salary}</span>
-                    </div>
-                    <div className="d-flex justify-content-between py-1">
-                      <span className="text-muted">যোগদান:</span>
-                      <span className="font-mono text-muted">{teacher.joiningDate}</span>
+                    <div className="col-lg-4 col-md-12">
+                      <label htmlFor="email" className="form-label fw-semibold">ইমেইল (লগইন ইউজারনেম)</label>
+                      <input
+                        type="email"
+                        id="email"
+                        className="form-control"
+                        placeholder="শিক্ষকের ইমেইল লিখুন"
+                        value={createForm.email}
+                        onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                      />
                     </div>
                   </div>
 
-                  <div className="mt-3 pt-2 border-top d-flex justify-content-between align-items-center">
-                    <span className="badge bg-success">{teacher.status || 'কর্মরত'}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSalaryForm(prev => ({
-                          ...prev,
-                          teacherId: teacher.id,
-                          amount: teacher.salary
-                        }));
-                        setActiveTab('salary-day');
-                      }}
-                      className="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1"
-                    >
-                      <i className="fa-solid fa-money-bill-wave"></i> বেতন দিন
+                  {/* Row 3: Teacher ID, Photo, Subject */}
+                  <div className="row g-3 mb-3">
+                    <div className="col-lg-4 col-md-6">
+                      <label htmlFor="teacher_id" className="form-label fw-semibold">শিক্ষকের আইডি</label>
+                      <input
+                        type="text"
+                        id="teacher_id"
+                        className="form-control"
+                        placeholder="শিক্ষকের আইডি লিখুন"
+                        value={createForm.teacher_id}
+                        onChange={(e) => setCreateForm({ ...createForm, teacher_id: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-lg-4 col-md-6">
+                      <label htmlFor="photo" className="form-label fw-semibold">শিক্ষকের ছবি</label>
+                      <input type="file" id="photo" className="form-control" accept="image/*" />
+                    </div>
+                    <div className="col-lg-4 col-md-12">
+                      <label htmlFor="subject" className="form-label fw-semibold">যে বিষয়ে জন্য নিযুক্ত</label>
+                      <input
+                        type="text"
+                        id="subject"
+                        className="form-control"
+                        placeholder="বিষয়ের নাম লিখুন"
+                        value={createForm.subject}
+                        onChange={(e) => setCreateForm({ ...createForm, subject: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Row 4: Gender, Birth Date, National ID, Blood Group, Marital Status */}
+                  <div className="row g-3 mb-3">
+                    <div className="col-lg-3 col-md-6">
+                      <label htmlFor="gender" className="form-label fw-semibold">পুরুষ / মহিলা</label>
+                      <select
+                        id="gender"
+                        className="form-select"
+                        value={createForm.gender}
+                        onChange={(e) => setCreateForm({ ...createForm, gender: e.target.value })}
+                      >
+                        <option value="male">পুরুষ</option>
+                        <option value="female">মহিলা</option>
+                      </select>
+                    </div>
+                    <div className="col-lg-3 col-md-6">
+                      <label htmlFor="birth_date" className="form-label fw-semibold">জন্ম তারিখ</label>
+                      <input
+                        type="date"
+                        id="birth_date"
+                        className="form-control"
+                        value={createForm.birth_date}
+                        onChange={(e) => setCreateForm({ ...createForm, birth_date: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-lg-2 col-md-6">
+                      <label htmlFor="national_id" className="form-label fw-semibold">জাতীয় পরিচয়পত্র নম্বর</label>
+                      <input
+                        type="text"
+                        id="national_id"
+                        className="form-control"
+                        placeholder="NID নম্বর লিখুন"
+                        value={createForm.national_id}
+                        onChange={(e) => setCreateForm({ ...createForm, national_id: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-lg-2 col-md-6">
+                      <label htmlFor="blood_group" className="form-label fw-semibold">রক্তের গ্রুপ</label>
+                      <select
+                        id="blood_group"
+                        className="form-select"
+                        value={createForm.blood_group}
+                        onChange={(e) => setCreateForm({ ...createForm, blood_group: e.target.value })}
+                      >
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                      </select>
+                    </div>
+                    <div className="col-lg-2 col-md-6">
+                      <label htmlFor="marital_status" className="form-label fw-semibold">বৈবাহিক অবস্থা</label>
+                      <select
+                        id="marital_status"
+                        className="form-select"
+                        value={createForm.marital_status}
+                        onChange={(e) => setCreateForm({ ...createForm, marital_status: e.target.value })}
+                      >
+                        <option value="single">অবিবাহিত</option>
+                        <option value="married">বিবাহিত</option>
+                        <option value="widow">বিধবা</option>
+                        <option value="divorced">বিচ্ছিন্ন</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Row 5: Salary, Phone, Emergency Phone, Parents Phone, Joining Date, ID Expiry */}
+                  <div className="row g-3 mb-3">
+                    <div className="col-lg-2 col-md-6">
+                      <label htmlFor="salary" className="form-label fw-semibold">শিক্ষকের বেতন</label>
+                      <input
+                        type="number"
+                        id="salary"
+                        className="form-control"
+                        placeholder="বেতন লিখুন"
+                        value={createForm.salary}
+                        onChange={(e) => setCreateForm({ ...createForm, salary: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-lg-2 col-md-6">
+                      <label htmlFor="phone_number" className="form-label fw-semibold">
+                        ফোন নম্বর <span className="text-danger">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="phone_number"
+                        className="form-control"
+                        placeholder="017xxxxxxxx"
+                        value={createForm.phone_number}
+                        onChange={(e) => setCreateForm({ ...createForm, phone_number: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="col-lg-2 col-md-6">
+                      <label htmlFor="emergency_phone" className="form-label fw-semibold">জরুরী ফোন</label>
+                      <input
+                        type="text"
+                        id="emergency_phone"
+                        className="form-control"
+                        placeholder="জরুরী ফোন নম্বর"
+                        value={createForm.emergency_phone}
+                        onChange={(e) => setCreateForm({ ...createForm, emergency_phone: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-lg-2 col-md-6">
+                      <label htmlFor="parents_phone" className="form-label fw-semibold">অভিভাবকের ফোন</label>
+                      <input
+                        type="text"
+                        id="parents_phone"
+                        className="form-control"
+                        placeholder="অভিভাবকের ফোন নম্বর"
+                        value={createForm.parents_phone}
+                        onChange={(e) => setCreateForm({ ...createForm, parents_phone: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-lg-2 col-md-6">
+                      <label htmlFor="joining_date" className="form-label fw-semibold">যোগদানের তারিখ</label>
+                      <input
+                        type="date"
+                        id="joining_date"
+                        className="form-control"
+                        value={createForm.joining_date}
+                        onChange={(e) => setCreateForm({ ...createForm, joining_date: e.target.value })}
+                      />
+                    </div>
+                    <div className="col-lg-2 col-md-6">
+                      <label htmlFor="id_card_expiry_date" className="form-label fw-semibold">কার্ডের মেয়াদ</label>
+                      <input
+                        type="date"
+                        id="id_card_expiry_date"
+                        className="form-control"
+                        value={createForm.id_card_expiry_date}
+                        onChange={(e) => setCreateForm({ ...createForm, id_card_expiry_date: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Row 6: Addresses */}
+                  <div className="row g-3 mb-3">
+                    <div className="col-md-6">
+                      <label htmlFor="present_address" className="form-label fw-semibold">বর্তমান ঠিকানা</label>
+                      <textarea
+                        id="present_address"
+                        className="form-control"
+                        rows="2"
+                        placeholder="বর্তমান ঠিকানা লিখুন"
+                        value={createForm.present_address}
+                        onChange={(e) => setCreateForm({ ...createForm, present_address: e.target.value })}
+                      ></textarea>
+                    </div>
+                    <div className="col-md-6">
+                      <label htmlFor="permanent_address" className="form-label fw-semibold">স্থায়ী ঠিকানা</label>
+                      <textarea
+                        id="permanent_address"
+                        className="form-control"
+                        rows="2"
+                        placeholder="স্থায়ী ঠিকানা লিখুন"
+                        value={createForm.permanent_address}
+                        onChange={(e) => setCreateForm({ ...createForm, permanent_address: e.target.value })}
+                      ></textarea>
+                    </div>
+                  </div>
+
+                  {/* Row 7: Qualification, Skills, Note */}
+                  <div className="row g-3 mb-4">
+                    <div className="col-lg-4 col-md-12">
+                      <label htmlFor="qualification" className="form-label fw-semibold">যোগ্যতা</label>
+                      <textarea
+                        id="qualification"
+                        className="form-control"
+                        rows="2"
+                        placeholder="শিক্ষকের শিক্ষাগত যোগ্যতা লিখুন"
+                        value={createForm.qualification}
+                        onChange={(e) => setCreateForm({ ...createForm, qualification: e.target.value })}
+                      ></textarea>
+                    </div>
+                    <div className="col-lg-4 col-md-12">
+                      <label htmlFor="skills" className="form-label fw-semibold">কর্মদক্ষতা</label>
+                      <textarea
+                        id="skills"
+                        className="form-control"
+                        rows="2"
+                        placeholder="কর্মদক্ষতা লিখুন"
+                        value={createForm.skills}
+                        onChange={(e) => setCreateForm({ ...createForm, skills: e.target.value })}
+                      ></textarea>
+                    </div>
+                    <div className="col-lg-4 col-md-12">
+                      <label htmlFor="note" className="form-label fw-semibold">মন্তব্য</label>
+                      <textarea
+                        id="note"
+                        className="form-control"
+                        rows="2"
+                        placeholder="মন্তব্য (ঐচ্ছিক)"
+                        value={createForm.note}
+                        onChange={(e) => setCreateForm({ ...createForm, note: e.target.value })}
+                      ></textarea>
+                    </div>
+                  </div>
+
+                  <div className="text-end">
+                    <button type="submit" className="btn btn-primary px-4 py-2 fw-bold">
+                      <i className="fa-solid fa-save me-1"></i> সংরক্ষণ করুন
                     </button>
                   </div>
-                </div>
+                </form>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       )}
 
-      {/* VIEW 3: Teacher Phone Directory (মোবাইল নম্বর) */}
-      {activeTab === 'number' && (
-        <div className="card shadow-sm border-0">
-          <div className="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-            <h6 className="mb-0 fw-bold text-dark d-flex align-items-center">
-              <i className="fa-solid fa-phone text-success me-2"></i>
-              শিক্ষকগণের মোবাইল নম্বর তালিকা
-            </h6>
+      {/* ---------------- 2. TEACHER LIST (/admin/teacher) ---------------- */}
+      {activeTab === 'list' && (
+        <div>
+          {/* Top Button */}
+          <div className="text-md-end text-start mb-3 mx-2">
             <button
-              onClick={() => window.print()}
-              className="btn btn-sm btn-outline-secondary"
+              onClick={() => setActiveTab('create')}
+              className="btn btn-danger text-white fw-bold"
             >
-              <i className="fa-solid fa-print me-1"></i> প্রিন্ট করুন
+              <i className="fa-solid fa-plus me-1"></i> নতুন শিক্ষক যুক্ত করুন
             </button>
           </div>
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-bordered table-striped table-hover align-middle mb-0 text-center text-sm">
-                <thead className="table-light">
-                  <tr className="fw-bold">
-                    <th style={{ width: '50px' }}>নং</th>
-                    <th className="text-start">নাম</th>
-                    <th>পদবী</th>
-                    <th>বিভাগ</th>
-                    <th>মোবাইল নাম্বার</th>
-                    <th>ইমেইল</th>
-                    <th>যোগাযোগ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {teachers.map((t, idx) => (
-                    <tr key={t.id}>
-                      <td className="font-mono fw-bold">{idx + 1}</td>
-                      <td className="text-start fw-bold text-dark">{t.name}</td>
-                      <td><span className="badge bg-light text-dark border">{t.designation}</span></td>
-                      <td>{t.department}</td>
-                      <td className="font-mono fw-bold text-primary">{t.mobile}</td>
-                      <td className="font-mono small text-muted">{t.email || '-'}</td>
-                      <td>
-                        <div className="d-flex justify-content-center gap-1">
-                          <a
-                            href={`tel:${t.mobile}`}
-                            className="btn btn-sm btn-success px-2 py-1"
-                            title="কল করুন"
-                          >
-                            <i className="fa-solid fa-phone"></i>
-                          </a>
-                          <a
-                            href={`https://wa.me/88${t.mobile}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="btn btn-sm btn-outline-success px-2 py-1"
-                            title="হোয়াটসঅ্যাপ"
-                          >
-                            <i className="fa-brands fa-whatsapp"></i>
-                          </a>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* VIEW 4: Teacher Salary Sheet (বেতন তালিকা) */}
-      {activeTab === 'salary-sheet' && (
-        <div className="card shadow-sm border-0">
-          <div className="card-header bg-white py-3 border-bottom">
-            <form className="row g-3 align-items-end no-print" onSubmit={(e) => e.preventDefault()}>
-              <div className="col-md-4">
-                <label className="form-label fw-bold small">বেতনের মাস নির্বাচন করুন</label>
-                <div className="d-flex gap-2">
-                  <select
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="form-select form-select-sm"
-                  >
-                    {MONTH_NAMES.map(m => (
-                      <option key={m} value={m}>{m}</option>
-                    ))}
-                  </select>
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    className="form-select form-select-sm"
-                  >
-                    <option value="2026">2026</option>
-                    <option value="2025">2025</option>
-                  </select>
+          <div className="card border-0 shadow-sm mb-4" id="printContent">
+            <div className="card-body py-4">
+              <img
+                src="/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg"
+                alt="Banner"
+                className="w-100 img-fluid rounded"
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
+              <div className="row mt-3">
+                <div className="col-md-2"></div>
+                <div className="col-md-8 text-center">
+                  <h5 className="fw-semibold" style={{ color: '#2c5f2d' }}>শিক্ষকদের তালিকা</h5>
                 </div>
-              </div>
-
-              <div className="col text-end">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('salary-day')}
-                  className="btn btn-sm btn-danger text-white fw-bold me-2"
-                >
-                  <i className="fa-solid fa-plus me-1"></i> বেতন প্রদান করুন
-                </button>
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="btn btn-sm btn-info text-white fw-bold"
-                >
-                  <i className="fa-solid fa-print me-1"></i> শিট প্রিন্ট করুন
-                </button>
-              </div>
-            </form>
-          </div>
-
-          <div className="card-body p-0">
-            <div className="text-center p-3 border-bottom bg-light">
-              <h5 className="fw-bold mb-1">শিক্ষক-কর্মচারীগণের মাসিক বেতন বিল শিট</h5>
-              <p className="text-muted small mb-0">মাস: {selectedMonth} {selectedYear} ইং</p>
-            </div>
-
-            <div className="table-responsive">
-              <table className="table table-bordered table-striped table-hover align-middle mb-0 text-center text-sm">
-                <thead className="table-light">
-                  <tr className="fw-bold">
-                    <th style={{ width: '45px' }}>ক্র.নং</th>
-                    <th className="text-start">শিক্ষকের নাম</th>
-                    <th>পদবী</th>
-                    <th className="text-end">মূল বেতন</th>
-                    <th className="text-end">ভাতা</th>
-                    <th className="text-end">কর্তন</th>
-                    <th className="text-end bg-success-subtle text-success">নিট প্রদেয়</th>
-                    <th>পরিশোধের স্থিতি</th>
-                    <th className="no-print">অ্যাকশন</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {teachers.map((t, idx) => {
-                    const basic = t.salary;
-                    const allowance = 1000;
-                    const deduction = 0;
-                    const net = basic + allowance - deduction;
-                    const paymentRecord = teacherSalaryPayments.find(
-                      p => p.teacherId === t.id && p.month === selectedMonth && p.year === selectedYear
-                    );
-
-                    return (
-                      <tr key={t.id}>
-                        <td className="font-mono fw-bold">{idx + 1}</td>
-                        <td className="text-start fw-bold text-dark">{t.name}</td>
-                        <td><span className="badge bg-light text-dark border">{t.designation}</span></td>
-                        <td className="text-end font-mono">৳ {basic.toLocaleString('en-IN')}</td>
-                        <td className="text-end font-mono text-muted">৳ {allowance}</td>
-                        <td className="text-end font-mono text-muted">৳ {deduction}</td>
-                        <td className="text-end font-mono fw-bold text-success bg-success-subtle">
-                          ৳ {net.toLocaleString('en-IN')}
-                        </td>
-                        <td>
-                          {paymentRecord ? (
-                            <span className="badge bg-success">পরিশোধিত</span>
-                          ) : (
-                            <span className="badge bg-danger-subtle text-danger border border-danger-subtle">
-                              অপরিশোধিত
-                            </span>
-                          )}
-                        </td>
-                        <td className="no-print">
-                          {!paymentRecord ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSalaryForm(prev => ({
-                                  ...prev,
-                                  teacherId: t.id,
-                                  month: selectedMonth,
-                                  year: selectedYear,
-                                  amount: net
-                                }));
-                                setActiveTab('salary-day');
-                              }}
-                              className="btn btn-sm btn-primary py-0 px-2"
-                            >
-                              পরিশোধ
-                            </button>
-                          ) : (
-                            <span className="small text-success fw-bold">✓ কমপ্লিট</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* VIEW 5: Teacher Salary Day (বেতন দিন Form) */}
-      {activeTab === 'salary-day' && (
-        <div className="card shadow-sm border-0">
-          <div className="card-header bg-white py-3 border-bottom">
-            <h6 className="mb-0 fw-bold text-dark d-flex align-items-center">
-              <i className="fa-solid fa-hand-holding-dollar text-success me-2"></i>
-              শিক্ষকগণের বেতন প্রদান ফরম (Salary Disbursement)
-            </h6>
-          </div>
-          <div className="card-body">
-            <form onSubmit={handleSalaryDisburseSubmit} className="row g-3">
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">শিক্ষক নির্বাচন করুন *</label>
-                <select
-                  value={salaryForm.teacherId}
-                  onChange={(e) => {
-                    const selId = e.target.value;
-                    const found = teachers.find(t => t.id === selId);
-                    setSalaryForm({
-                      ...salaryForm,
-                      teacherId: selId,
-                      amount: found ? found.salary : ''
-                    });
-                  }}
-                  className="form-select"
-                  required
-                >
-                  {teachers.map(t => (
-                    <option key={t.id} value={t.id}>
-                      {t.name} ({t.designation} - ৳{t.salary})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="col-md-3">
-                <label className="form-label fw-bold small">বেতনের মাস *</label>
-                <select
-                  value={salaryForm.month}
-                  onChange={(e) => setSalaryForm({ ...salaryForm, month: e.target.value })}
-                  className="form-select"
-                >
-                  {MONTH_NAMES.map(m => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="col-md-3">
-                <label className="form-label fw-bold small">সাল *</label>
-                <select
-                  value={salaryForm.year}
-                  onChange={(e) => setSalaryForm({ ...salaryForm, year: e.target.value })}
-                  className="form-select"
-                >
-                  <option value="2026">2026</option>
-                  <option value="2025">2025</option>
-                </select>
-              </div>
-
-              <div className="col-md-4">
-                <label className="form-label fw-bold small">পরিশোধের তারিখ *</label>
-                <input
-                  type="date"
-                  value={salaryForm.date}
-                  onChange={(e) => setSalaryForm({ ...salaryForm, date: e.target.value })}
-                  className="form-control"
-                  required
-                />
-              </div>
-
-              <div className="col-md-4">
-                <label className="form-label fw-bold small">কোন খাত থেকে *</label>
-                <input
-                  type="text"
-                  value="শিক্ষক-কর্মচারী বেতন"
-                  readOnly
-                  className="form-control bg-light"
-                />
-              </div>
-
-              <div className="col-md-4">
-                <label className="form-label fw-bold small">পেমেন্ট একাউন্ট *</label>
-                <select
-                  value={salaryForm.account}
-                  onChange={(e) => setSalaryForm({ ...salaryForm, account: e.target.value })}
-                  className="form-select"
-                >
-                  {accounts.map(a => (
-                    <option key={a.id} value={a.name}>{a.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">বেতনের পরিমাণ (টাকা) *</label>
-                <div className="input-group">
-                  <span className="input-group-text">৳</span>
-                  <input
-                    type="number"
-                    value={salaryForm.amount || (teachers.find(t => t.id === salaryForm.teacherId)?.salary || 14000)}
-                    onChange={(e) => setSalaryForm({ ...salaryForm, amount: e.target.value })}
-                    className="form-control font-mono fw-bold text-success fs-6"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="col-md-6">
-                <label className="form-label fw-bold small">মন্তব্য (ঐচ্ছিক)</label>
-                <input
-                  type="text"
-                  value={salaryForm.note}
-                  onChange={(e) => setSalaryForm({ ...salaryForm, note: e.target.value })}
-                  placeholder="উদা: সেপ্টেম্বর মাসের বেতন পরিশোধ"
-                  className="form-control"
-                />
-              </div>
-
-              <div className="col-12 mt-4 pt-2 border-top text-end">
-                <button
-                  type="submit"
-                  className="btn btn-success px-4 py-2 fw-bold d-inline-flex align-items-center gap-2"
-                >
-                  <i className="fa-solid fa-check-circle"></i>
-                  বেতন প্রদান করুন ও ভাউচার প্রিন্ট
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* VIEW 6: Teacher Salary List (Disbursement Vouchers) */}
-      {activeTab === 'salary-list' && (
-        <div className="card shadow-sm border-0">
-          <div className="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-            <h6 className="mb-0 fw-bold text-dark d-flex align-items-center">
-              <i className="fa-solid fa-receipt text-primary me-2"></i>
-              শিক্ষকের বেতন প্রদানের হিস্ট্রি ও ভাউচার তালিকা
-            </h6>
-            <button
-              onClick={() => setActiveTab('salary-day')}
-              className="btn btn-sm btn-primary text-white fw-bold"
-            >
-              <i className="fa-solid fa-plus me-1"></i> নতুন বেতন দিন
-            </button>
-          </div>
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-bordered table-striped table-hover align-middle mb-0 text-center text-sm">
-                <thead className="table-light">
-                  <tr className="fw-bold">
-                    <th style={{ width: '45px' }}>নং</th>
-                    <th>ভাউচার নং</th>
-                    <th className="text-start">শিক্ষকের নাম</th>
-                    <th>পদবী</th>
-                    <th>বেতনের মাস</th>
-                    <th>পরিশোধের তারিখ</th>
-                    <th className="text-end">বেতনের পরিমাণ</th>
-                    <th>মন্তব্য</th>
-                    <th>স্লিপ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {teacherSalaryPayments.map((p, idx) => (
-                    <tr key={p.id}>
-                      <td className="font-mono fw-bold">{idx + 1}</td>
-                      <td className="font-mono text-primary fw-bold">{p.voucherNo}</td>
-                      <td className="text-start fw-bold text-dark">{p.teacherName}</td>
-                      <td><span className="badge bg-light text-dark border">{p.designation}</span></td>
-                      <td><span className="badge bg-info-subtle text-info">{p.month} {p.year}</span></td>
-                      <td className="font-mono">{p.date}</td>
-                      <td className="text-end font-mono fw-bold text-success">৳ {p.amount.toLocaleString('en-IN')}</td>
-                      <td className="small text-muted">{p.note || 'বেতন পরিশোধ'}</td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedReceiptForPrint({
-                              id: p.id,
-                              type: 'expense',
-                              voucherNo: p.voucherNo,
-                              date: p.date,
-                              receiver: p.teacherName,
-                              account: p.account || 'নগদ ক্যাশ (Hand Cash)',
-                              donorOrStudent: `${p.teacherName} (${p.designation})`,
-                              items: [{
-                                category: 'শিক্ষক-কর্মচারী বেতন',
-                                description: `${p.teacherName} - ${p.month} ${p.year} বেতন`,
-                                amount: p.amount
-                              }],
-                              totalAmount: p.amount,
-                              note: p.note
-                            });
-                          }}
-                          className="btn btn-sm btn-outline-primary px-2 py-1"
-                          title="ভাউচার প্রিন্ট"
-                        >
-                          <i className="fa-solid fa-receipt me-1"></i> রসিদ
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* VIEW 7: Attendance Entry */}
-      {activeTab === 'attendance' && (
-        <div className="space-y-4">
-          <div className="card shadow-sm border-0 no-print">
-            <div className="card-body py-3 bg-light">
-              <div className="row g-3 align-items-center justify-content-between">
-                <div className="col-auto d-flex align-items-center gap-2">
-                  <label className="fw-bold small mb-0">তারিখ:</label>
-                  <input
-                    type="date"
-                    value={attendanceDate}
-                    onChange={(e) => setAttendanceDate(e.target.value)}
-                    className="form-control form-control-sm"
-                  />
-                </div>
-                <div className="col-auto d-flex gap-2">
-                  <button
-                    onClick={handleMarkAllPresent}
-                    className="btn btn-sm btn-success text-white fw-bold"
-                  >
-                    সবাইকে উপস্থিত করুন
-                  </button>
-                  <button
-                    onClick={() => window.print()}
-                    className="btn btn-sm btn-secondary text-white fw-bold"
-                  >
-                    <i className="fa-solid fa-print me-1"></i> প্রিন্ট
-                  </button>
+                <div className="col-md-2 text-end">
+                  <p className="mb-0 fw-semibold">সন ২০২৬ ইং</p>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="row g-3">
-            <div className="col-6">
-              <div className="card bg-success-subtle border-success-subtle p-3 text-center">
-                <span className="small text-success fw-bold">উপস্থিত শিক্ষক</span>
-                <h4 className="fw-bold font-mono text-success mb-0 mt-1">{presentCount} জন</h4>
-              </div>
-            </div>
-            <div className="col-6">
-              <div className="card bg-danger-subtle border-danger-subtle p-3 text-center">
-                <span className="small text-danger fw-bold">অনুপস্থিত শিক্ষক</span>
-                <h4 className="fw-bold font-mono text-danger mb-0 mt-1">{absentCount} জন</h4>
-              </div>
-            </div>
-          </div>
-
-          <div className="card shadow-sm border-0">
-            <div className="card-body p-0">
+            <div className="card-body">
               <div className="table-responsive">
-                <table className="table table-bordered table-hover align-middle mb-0 text-center text-sm">
-                  <thead className="table-light">
-                    <tr className="fw-bold">
-                      <th style={{ width: '45px' }}>আইডি</th>
-                      <th className="text-start">শিক্ষকের নাম</th>
-                      <th>পদবী ও বিভাগ</th>
-                      <th>মোবাইল</th>
-                      <th>হাজিরা স্থিতি</th>
+                <table className="table table-bordered table-striped align-middle mb-0 print-table">
+                  <thead className="bg-primary print-thead text-white">
+                    <tr>
+                      <th style={{ width: '7%' }} className="text-center align-middle">ক্রমিক নং</th>
+                      <th style={{ width: '130px' }} className="align-middle text-center">ছবি</th>
+                      <th className="align-middle">নাম ও বিস্তারিত</th>
+                      <th className="align-middle text-center" style={{ width: '170px' }}>কর্ম</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {teachers.map(t => (
-                      <tr key={t.id}>
-                        <td className="font-mono fw-bold">{t.id}</td>
-                        <td className="text-start fw-bold text-dark">{t.name}</td>
-                        <td>{t.designation} ({t.department})</td>
-                        <td className="font-mono">{t.mobile}</td>
+                    {teachers.map((teacher, index) => (
+                      <tr key={teacher.id}>
+                        <td className="text-center">{index + 1}</td>
+                        <td className="text-center">
+                          <div className="d-flex justify-content-center">
+                            <div className="text-center">
+                              <img
+                                src={teacher.photo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(teacher.name) + '&background=0f626a&color=fff'}
+                                alt="Teacher Photo"
+                                className="img-thumbnail mb-2"
+                                style={{ width: '80px', height: '80px', objectFit: 'cover' }}
+                              />
+                              <label className="btn btn-warning btn-sm w-100" style={{ cursor: 'pointer' }}>
+                                <i className="fa-solid fa-upload me-1"></i> ছবি
+                                <input type="file" className="d-none" accept="image/*" />
+                              </label>
+                            </div>
+                          </div>
+                        </td>
                         <td>
-                          <div className="btn-group btn-group-sm">
+                          <p className="mb-1">আইডিঃ <strong>{teacher.id || teacher.teacherId || '2020' + (index + 1)}</strong></p>
+                          <p className="mb-1">পদবিঃ <strong>{teacher.designation || 'সহকারী শিক্ষক'}</strong></p>
+                          <p className="mb-1">নামঃ <strong>{teacher.name}</strong></p>
+                          <p className="mb-1">মোবাইল নম্বরঃ <strong>{teacher.mobile || teacher.phone || '01711000000'}</strong></p>
+                          <p className="mb-1">জরুরী যোগাযোগ নম্বরঃ <strong>{teacher.emergencyPhone || ''}</strong></p>
+                          <p className="mb-1">বিভাগঃ <strong>{teacher.department || 'সাধারণ'}</strong></p>
+                          <p className="mb-0">যোগদানের তারিখঃ <strong>{teacher.joiningDate || '2024-01-01'}</strong></p>
+                        </td>
+                        <td className="text-center align-middle">
+                          <div className="d-flex flex-column justify-content-center align-items-center gap-2">
                             <button
-                              type="button"
-                              onClick={() => handleAttendanceChange(t.id, 'উপস্থিত')}
-                              className={`btn ${
-                                (teacherAttendance[t.id] || 'উপস্থিত') === 'উপস্থিত'
-                                  ? 'btn-success'
-                                  : 'btn-outline-secondary'
-                              }`}
+                              onClick={() => setSelectedTeacherForModal(teacher)}
+                              className="btn btn-secondary btn-sm p-1 px-3"
                             >
-                              উপস্থিত
+                              <i className="fa-solid fa-eye me-1"></i> বিস্তারিত
                             </button>
                             <button
-                              type="button"
-                              onClick={() => handleAttendanceChange(t.id, 'অনুপস্থিত')}
-                              className={`btn ${
-                                teacherAttendance[t.id] === 'অনুপস্থিত'
-                                  ? 'btn-danger'
-                                  : 'btn-outline-secondary'
-                              }`}
+                              onClick={() => handleDeleteTeacher(teacher.id)}
+                              className="btn btn-danger btn-sm p-1 px-3 delete-btn"
                             >
-                              অনুপস্থিত
+                              <i className="fa-solid fa-trash me-1"></i> মুছে ফেলুন
                             </button>
                           </div>
                         </td>
@@ -966,59 +550,499 @@ export const TeacherModule = ({ defaultTab = 'list' }) => {
                   </tbody>
                 </table>
               </div>
+
+              <div className="mt-3 text-end no-print">
+                <button onClick={() => window.print()} className="btn btn-primary fw-bold">
+                  <i className="fa-solid fa-print me-1"></i> প্রিন্ট করুন
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* VIEW 8: Attendance Report */}
-      {activeTab === 'attendance-report' && (
-        <div className="card shadow-sm border-0">
-          <div className="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
-            <h6 className="mb-0 fw-bold text-dark">
-              শিক্ষক হাজিরা মাসিক প্রতিবেদন সন ২০২৬ ইং
-            </h6>
+      {/* ---------------- 3. TEACHER NUMBER (/admin/teacher/number) ---------------- */}
+      {activeTab === 'number' && (
+        <div>
+          <div className="text-md-end text-start mb-3 mx-2">
             <button
-              onClick={() => window.print()}
-              className="btn btn-sm btn-info text-white fw-bold"
+              onClick={() => setActiveTab('create')}
+              className="btn btn-danger text-white fw-bold"
             >
-              <i className="fa-solid fa-print me-1"></i> প্রিন্ট রিপোর্ট
+              <i className="fa-solid fa-plus me-1"></i> নতুন শিক্ষক যুক্ত করুন
             </button>
           </div>
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-bordered table-striped align-middle mb-0 text-center text-sm">
+
+          <div className="card border-0 shadow-sm mb-4" id="printContent">
+            <div className="card-body py-4">
+              <img
+                src="/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg"
+                alt="Banner"
+                className="w-100 img-fluid rounded"
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
+              <div className="row mt-3">
+                <div className="col-md-2"></div>
+                <div className="col-md-8 text-center">
+                  <h5 className="fw-semibold" style={{ color: '#2c5f2d' }}>শিক্ষকগণের মোবাইল নম্বর</h5>
+                </div>
+                <div className="col-md-2 text-end">
+                  <p className="mb-0 fw-semibold">সন ২০২৬ ইং</p>
+                </div>
+              </div>
+
+              <div className="table-responsive mt-3">
+                <table className="table table-bordered table-striped align-middle mb-0 print-table">
+                  <thead className="bg-primary print-thead text-white">
+                    <tr>
+                      <th className="text-center align-middle" style={{ width: '10%' }}>নং</th>
+                      <th>নাম</th>
+                      <th className="text-center align-middle">পদবী</th>
+                      <th className="text-center align-middle">মোবাইল নাম্বার</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {teachers.map((t, idx) => (
+                      <tr key={t.id}>
+                        <td className="text-center align-middle">{idx + 1}</td>
+                        <td className="fw-bold">{t.name}</td>
+                        <td className="text-center align-middle">{t.designation || 'সহকারী শিক্ষক'}</td>
+                        <td className="text-center align-middle font-monospace fw-bold">
+                          {t.mobile || t.phone || '01711000000'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="m-3 d-flex justify-content-end no-print">
+                <button className="btn btn-primary fw-bold" onClick={() => window.print()}>
+                  <i className="fa-solid fa-print me-2"></i> প্রিন্ট করুন
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------- 4. TEACHER SALARY SHEET (/admin/teacher/salary/sheet) ---------------- */}
+      {activeTab === 'salary-sheet' && (
+        <div>
+          <div className="card shadow-sm mb-4">
+            <div className="card-header bg-primary">
+              <h5 className="mb-0 text-white">
+                <i className="fa-solid fa-chalkboard-user me-2"></i> শিক্ষকগণের বেতন তালিকা
+              </h5>
+            </div>
+
+            <div className="card-body mb-3">
+              <div className="row align-items-end">
+                <div className="col-md-6 d-flex gap-3 align-items-end">
+                  <div className="flex-grow-1">
+                    <label htmlFor="salary-month" className="form-label fw-semibold">বেতনের মাস</label>
+                    <input
+                      name="salary_month"
+                      type="month"
+                      id="salary-month"
+                      className="form-control"
+                      value={salaryMonth}
+                      onChange={(e) => setSalaryMonth(e.target.value)}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {}}
+                    className="btn btn-info px-4 text-white fw-bold"
+                  >
+                    দেখুন
+                  </button>
+                </div>
+
+                <div className="col-md-6 text-md-end text-start mt-3">
+                  <button
+                    onClick={() => setActiveTab('create')}
+                    className="btn btn-danger text-white fw-bold"
+                  >
+                    <i className="fa-solid fa-plus me-1"></i> নতুন শিক্ষক যুক্ত করুন
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="card border-0 shadow-sm mb-4" id="printContent">
+            <div className="card-body py-4">
+              <img
+                src="/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg"
+                alt="Banner"
+                className="w-100 img-fluid rounded"
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
+              <div className="row mt-3">
+                <div className="col-md-2"></div>
+                <div className="col-md-8 text-center">
+                  <h5 className="fw-semibold" style={{ color: '#2c5f2d' }}>শিক্ষকগণের মাসিক বেতন বিবরণী</h5>
+                  <p className="text-muted small">মাসঃ {salaryMonth}</p>
+                </div>
+                <div className="col-md-2 text-end">
+                  <p className="mb-0 fw-semibold">সন ২০২৬ ইং</p>
+                </div>
+              </div>
+
+              <div className="table-responsive mt-3">
+                <table className="table table-bordered table-striped align-middle mb-0 print-table">
+                  <thead className="bg-primary print-thead text-white">
+                    <tr>
+                      <th className="text-center" style={{ width: '60px' }}>নং</th>
+                      <th>শিক্ষকের নাম</th>
+                      <th>পদবী</th>
+                      <th className="text-end">নির্ধারিত বেতন</th>
+                      <th className="text-center">স্ট্যাটাস</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {teachers.map((t, idx) => (
+                      <tr key={t.id}>
+                        <td className="text-center">{idx + 1}</td>
+                        <td className="fw-bold">{t.name}</td>
+                        <td>{t.designation || 'সহকারী শিক্ষক'}</td>
+                        <td className="text-end font-monospace">৳ {parseFloat(t.salary || 14000).toLocaleString('en-IN')}</td>
+                        <td className="text-center">
+                          <span className="badge bg-success">অনুমোদিত</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-4 d-flex justify-content-end no-print">
+                <button className="btn btn-primary fw-bold" onClick={() => window.print()}>
+                  <i className="fa-solid fa-print me-2"></i> প্রিন্ট করুন
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------- 5. TEACHER SALARY DAY (/admin/teacher/salary/day) ---------------- */}
+      {activeTab === 'salary-day' && (
+        <div className="card shadow-sm mb-4">
+          <div className="card-header bg-primary">
+            <h5 className="mb-0 text-white">
+              <i className="fa-solid fa-chalkboard-user me-2"></i> শিক্ষকগণের বেতন দিন
+            </h5>
+          </div>
+
+          <form onSubmit={handleSalaryDaySubmit} id="salaryForm">
+            <div className="card-body mb-3">
+              <div className="row align-items-end mb-3">
+                {/* Date */}
+                <div className="col-md-3 mb-2">
+                  <label htmlFor="today-day" className="form-label fw-semibold">তারিখ</label>
+                  <input
+                    name="payment_date"
+                    type="date"
+                    id="today-day"
+                    className="form-control"
+                    value={salaryDayForm.payment_date}
+                    onChange={(e) => setSalaryDayForm({ ...salaryDayForm, payment_date: e.target.value })}
+                    required
+                  />
+                </div>
+
+                {/* Salary Month */}
+                <div className="col-md-3 mb-2">
+                  <label htmlFor="salay-month" className="form-label fw-semibold">কোন মাসে দিচ্ছে</label>
+                  <select
+                    name="salary_month"
+                    id="salay-month"
+                    className="form-select"
+                    value={salaryDayForm.salary_month}
+                    onChange={(e) => setSalaryDayForm({ ...salaryDayForm, salary_month: e.target.value })}
+                    required
+                  >
+                    <option value="জানুয়ারি">জানুয়ারি</option>
+                    <option value="ফেব্রুয়ারি">ফেব্রুয়ারি</option>
+                    <option value="মার্চ">মার্চ</option>
+                    <option value="এপ্রিল">এপ্রিল</option>
+                    <option value="মে">মে</option>
+                    <option value="জুন">জুন</option>
+                    <option value="জুলাই">জুলাই</option>
+                    <option value="অগাস্ট">অগাস্ট</option>
+                    <option value="সেপ্টেম্বর">সেপ্টেম্বর</option>
+                    <option value="অক্টোবর">অক্টোবর</option>
+                    <option value="নভেম্বর">নভেম্বর</option>
+                    <option value="ডিসেম্বর">ডিসেম্বর</option>
+                  </select>
+                </div>
+
+                {/* Deposit Category */}
+                <div className="col-md-3 mb-2">
+                  <label htmlFor="deposit_category" className="form-label fw-semibold">কোন খাত থেকে</label>
+                  <select
+                    name="deposit_category_id"
+                    id="deposit_category"
+                    className="form-select custom-select"
+                    value={salaryDayForm.deposit_category_id}
+                    onChange={(e) => setSalaryDayForm({ ...salaryDayForm, deposit_category_id: e.target.value })}
+                    required
+                  >
+                    <option value="">নির্বাচন করুন</option>
+                    <option value="মাসিক বেতন">মাসিক বেতন</option>
+                    <option value="মাসিক চাঁদা">মাসিক চাঁদা</option>
+                    <option value="ভর্তি ফি">ভর্তি ফি</option>
+                    <option value="ছাএদের খানার টাকা">ছাএদের খানার টাকা</option>
+                    <option value="দান">দান</option>
+                    <option value="যাকাত">যাকাত</option>
+                    <option value="এতিমখানার">এতিমখানার</option>
+                    <option value="বিবিধ">বিবিধ</option>
+                  </select>
+                </div>
+
+                {/* Account */}
+                <div className="col-md-3 mb-2">
+                  <label htmlFor="account" className="form-label fw-semibold">এ্যাকাউন্ট</label>
+                  <select
+                    name="account"
+                    id="account"
+                    className="form-select"
+                    value={salaryDayForm.account}
+                    onChange={(e) => setSalaryDayForm({ ...salaryDayForm, account: e.target.value })}
+                    required
+                  >
+                    {accounts.map(acc => (
+                      <option key={acc.id} value={acc.name}>{acc.name} (৳ {acc.balance})</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Expense Category */}
+                <div className="col-md-3 mb-2 col-12">
+                  <label htmlFor="expense_category" className="form-label fw-semibold">
+                    খরচের খাত <span className="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="expense_category"
+                    className="form-control"
+                    value="শিক্ষকগণের বেতন"
+                    readOnly
+                  />
+                </div>
+
+                {/* Payment Method */}
+                <div className="col-md-3 mb-2 col-sm-12">
+                  <label htmlFor="payment_method" className="form-label fw-bold">পেমেন্ট মেথড</label>
+                  <select
+                    name="payment_method_id"
+                    id="payment_method"
+                    className="form-select custom-select"
+                    value={salaryDayForm.payment_method_id}
+                    onChange={(e) => setSalaryDayForm({ ...salaryDayForm, payment_method_id: e.target.value })}
+                    required
+                  >
+                    <option value="cash">নগদ (Cash)</option>
+                    <option value="bkash">বিকাশ (Bkash)</option>
+                    <option value="bank">ব্যাংক (Bank)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Table of Teachers for Salary */}
+              <div className="table-responsive">
+                <table className="table table-bordered table-striped align-middle mb-0 print-table">
+                  <thead className="bg-primary print-thead text-white">
+                    <tr>
+                      <th className="text-center" style={{ width: '60px' }}>নং</th>
+                      <th>নাম</th>
+                      <th className="text-center" style={{ width: '220px' }}>বেতন</th>
+                      <th className="text-center" style={{ width: '220px' }}>মন্তব্য</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {teachers.map((teacher, idx) => {
+                      const entry = salaryAmounts[teacher.id] || { amount: teacher.salary || '14000', note: '' };
+                      return (
+                        <tr key={teacher.id}>
+                          <td className="text-center">{idx + 1}</td>
+                          <td className="fw-bold">
+                            {teacher.name}
+                            <span className="text-muted small d-block">({teacher.designation || 'সহকারী শিক্ষক'})</span>
+                          </td>
+                          <td className="text-center">
+                            <input
+                              type="number"
+                              className="form-control salary-amount text-end font-monospace"
+                              value={entry.amount}
+                              onChange={(e) => setSalaryAmounts({
+                                ...salaryAmounts,
+                                [teacher.id]: { ...entry, amount: e.target.value }
+                              })}
+                              step="1"
+                              required
+                            />
+                          </td>
+                          <td className="text-center">
+                            <input
+                              type="text"
+                              placeholder="মন্তব্য লিখুন"
+                              className="form-control"
+                              value={entry.note}
+                              onChange={(e) => setSalaryAmounts({
+                                ...salaryAmounts,
+                                [teacher.id]: { ...entry, note: e.target.value }
+                              })}
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mt-4 text-end">
+                <button type="submit" className="btn btn-success btn-lg px-4 fw-bold">
+                  <i className="fa-solid fa-save me-2"></i> বেতন সংরক্ষণ করুন
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ---------------- 6. TEACHER SALARY LIST (/admin/teacher/salary/list) ---------------- */}
+      {activeTab === 'salary-list' && (
+        <div className="container-fluid p-0">
+          <div className="card shadow-sm border-0">
+            <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+              <h4 className="mb-0 text-white">
+                <i className="fas fa-list-alt me-2"></i>শিক্ষকের বেতন প্রদানের লিস্ট
+              </h4>
+              <button
+                onClick={() => setActiveTab('salary-day')}
+                className="btn btn-success btn-sm fw-bold"
+              >
+                <i className="fas fa-plus me-1"></i> নতুন যুক্ত করুন
+              </button>
+            </div>
+
+            <div className="table-responsive card-body">
+              <table className="table table-striped table-hover align-middle" id="teacher-salaries-datatable">
                 <thead className="table-light">
-                  <tr className="fw-bold">
-                    <th style={{ width: '45px' }}>নং</th>
-                    <th className="text-start">শিক্ষকের নাম</th>
-                    <th>পদবী</th>
-                    <th>মোট কার্যদিবস</th>
-                    <th>উপস্থিতি</th>
-                    <th>ছুটি</th>
-                    <th>অনুপস্থিত</th>
-                    <th>উপস্থিতির হার (%)</th>
+                  <tr>
+                    <th title="নং" style={{ width: '50px' }}>নং</th>
+                    <th title="ভাউচার নং">ভাউচার নং</th>
+                    <th title="শিক্ষকের নাম">শিক্ষকের নাম</th>
+                    <th title="বেতনের মাস">বেতনের মাস</th>
+                    <th title="পরিশোধের তারিখ">পরিশোধের তারিখ</th>
+                    <th title="বেতনের পরিমাণ" className="text-end">বেতনের পরিমাণ</th>
+                    <th title="মন্তব্য">মন্তব্য</th>
+                    <th title="স্লিপ" className="text-center">স্লিপ</th>
+                    <th title="কার্যক্রম" className="text-center">কার্যক্রম</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {teachers.map((t, idx) => (
-                    <tr key={t.id}>
-                      <td className="font-mono fw-bold">{idx + 1}</td>
-                      <td className="text-start fw-bold text-dark">{t.name}</td>
-                      <td>{t.designation}</td>
-                      <td className="font-mono">২৬ দিন</td>
-                      <td className="font-mono fw-bold text-success">{25 - (idx % 2)} দিন</td>
-                      <td className="font-mono text-muted">{idx % 2} দিন</td>
-                      <td className="font-mono text-muted">০ দিন</td>
-                      <td>
-                        <span className="badge bg-success font-mono fs-6">
-                          {96 - idx * 2}%
-                        </span>
+                  {teacherSalaryPayments.length === 0 ? (
+                    <tr>
+                      <td colSpan="9" className="text-center text-muted py-4">
+                        কোন বেতন প্রদানের তথ্য পাওয়া যায়নি।
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    teacherSalaryPayments.map((p, idx) => (
+                      <tr key={p.id}>
+                        <td className="text-center">{idx + 1}</td>
+                        <td className="font-monospace fw-bold text-primary">{p.voucherNo || `TSAL-${1000 + idx}`}</td>
+                        <td className="fw-bold">{p.teacherName}</td>
+                        <td>{p.month} {p.year}</td>
+                        <td>{p.date}</td>
+                        <td className="text-end font-monospace fw-bold">৳ {parseFloat(p.amount || 0).toLocaleString('en-IN')}</td>
+                        <td>{p.note || '-'}</td>
+                        <td className="text-center">
+                          <button
+                            onClick={() => setSelectedReceiptForPrint(p)}
+                            className="btn btn-sm btn-info text-white"
+                          >
+                            <i className="fa-solid fa-print"></i> স্লিপ
+                          </button>
+                        </td>
+                        <td className="text-center">
+                          <button
+                            onClick={() => setSelectedReceiptForPrint(p)}
+                            className="btn btn-sm btn-secondary"
+                          >
+                            <i className="fa-solid fa-eye"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Teacher Details Modal */}
+      {selectedTeacherForModal && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+          <div className="modal-dialog modal-lg modal-dialog-scrollable">
+            <div className="modal-content border-0 shadow">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title font-bold">
+                  <i className="fa-solid fa-user-tie me-2"></i>শিক্ষকের বিস্তারিত তথ্য
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setSelectedTeacherForModal(null)}
+                ></button>
+              </div>
+
+              <div className="modal-body p-4">
+                <div className="text-center mb-4">
+                  <img
+                    src={selectedTeacherForModal.photo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(selectedTeacherForModal.name) + '&background=0f626a&color=fff'}
+                    alt="Teacher Photo"
+                    className="img-thumbnail rounded-circle"
+                    style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                  />
+                  <h4 className="mt-2 mb-0 fw-bold">{selectedTeacherForModal.name}</h4>
+                  <p className="text-muted">{selectedTeacherForModal.designation || 'সহকারী শিক্ষক'}</p>
+                </div>
+
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <p className="mb-2"><strong>আইডিঃ</strong> {selectedTeacherForModal.id}</p>
+                    <p className="mb-2"><strong>মোবাইল নম্বরঃ</strong> {selectedTeacherForModal.mobile || selectedTeacherForModal.phone}</p>
+                    <p className="mb-2"><strong>জরুরী যোগাযোগঃ</strong> {selectedTeacherForModal.emergencyPhone || '-'}</p>
+                    <p className="mb-2"><strong>ইমেইলঃ</strong> {selectedTeacherForModal.email || '-'}</p>
+                    <p className="mb-2"><strong>বিভাগঃ</strong> {selectedTeacherForModal.department || 'সাধারণ'}</p>
+                  </div>
+                  <div className="col-md-6">
+                    <p className="mb-2"><strong>বেতনঃ</strong> ৳ {parseFloat(selectedTeacherForModal.salary || 14000).toLocaleString('en-IN')}</p>
+                    <p className="mb-2"><strong>রক্তের গ্রুপঃ</strong> {selectedTeacherForModal.bloodGroup || 'B+'}</p>
+                    <p className="mb-2"><strong>যোগ্যতাঃ</strong> {selectedTeacherForModal.qualification || 'দাওরায়ে হাদিস'}</p>
+                    <p className="mb-2"><strong>যোগদানের তারিখঃ</strong> {selectedTeacherForModal.joiningDate || '2024-01-01'}</p>
+                    <p className="mb-2"><strong>ঠিকানাঃ</strong> {selectedTeacherForModal.address || 'বদরখালী, চকরিয়া, কক্সবাজার'}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setSelectedTeacherForModal(null)}
+                >
+                  বন্ধ করুন
+                </button>
+              </div>
             </div>
           </div>
         </div>
