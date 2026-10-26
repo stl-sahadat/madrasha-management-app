@@ -84,6 +84,9 @@ export function pathnameToTab(pathname) {
   if (clean === 'admin/id-card') return 'idcard-student';
   if (clean === 'admin/sms') return 'sms-student';
   if (clean === 'admin/account') return 'account-list';
+  if (clean === 'admin/report/daily/deposit-expense' || clean === 'report/daily/deposit-expense') return 'report-daily';
+  if (clean === 'admin/report/yearly/deposit-expense' || clean === 'report/yearly/deposit-expense') return 'report-yearly';
+  if (clean === 'admin/report/bank' || clean === 'report/bank') return 'report-bank';
   if (clean === 'admin/report') return 'report-deposit';
   if (clean === 'admin/login' || clean === 'login') return 'login';
   if (clean === 'admin/register' || clean === 'register' || clean === 'signup') return 'register';
@@ -381,6 +384,12 @@ export const AppProvider = ({ children, initialSlug }) => {
           ? '/admin/login'
           : tab === 'register'
           ? '/admin/register'
+          : tab === 'report-daily'
+          ? '/admin/report/daily/deposit-expense'
+          : tab === 'report-yearly'
+          ? '/admin/report/yearly/deposit-expense'
+          : tab === 'report-bank'
+          ? '/admin/report/bank'
           : '/' + tab;
       if (window.location.pathname !== targetPath) {
         window.history.pushState({ tab }, '', targetPath);

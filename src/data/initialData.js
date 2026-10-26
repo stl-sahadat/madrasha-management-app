@@ -87,8 +87,8 @@ export const EXPENSE_CATEGORIES = [
 ];
 
 export const ACCOUNTS = [
-  { id: "bkash", name: "বিকাশ হিসাব (01820050095)", type: "মোবাইল ব্যাংকিং", balance: 545.00 },
-  { id: "cash", name: "নগদ ক্যাশ (Hand Cash)", type: "ক্যাশ ইন হ্যান্ড", balance: 400.00 },
+  { id: "bkash", name: "বিকাশ হিসাব (01820050095)", type: "মোবাইল ব্যাংকিং", accountNumber: "01820050095", isBank: true, balance: 545.00 },
+  { id: "cash", name: "নগদ ক্যাশ (Hand Cash)", type: "ক্যাশ ইন হ্যান্ড", balance: 400.00, isBank: false },
 ];
 
 export const RECEIVERS = [

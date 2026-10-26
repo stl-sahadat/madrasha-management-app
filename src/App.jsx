@@ -46,6 +46,9 @@ import { IdCardGenerator } from './components/idcard/IdCardGenerator';
 import { SmsModule } from './components/sms/SmsModule';
 import { AccountsModule } from './components/accounts/AccountsModule';
 import { ReportsModule } from './components/reports/ReportsModule';
+import { DailyReport } from './components/reports/DailyReport';
+import { YearlyReport } from './components/reports/YearlyReport';
+import { BankReport } from './components/reports/BankReport';
 import { SettingsModule } from './components/settings/SettingsModule';
 import { PrintReceiptModal } from './components/common/PrintReceiptModal';
 import { AuthPage } from './components/auth/AuthPage';
@@ -284,11 +287,11 @@ export const App = () => {
       case 'report-account-details':
         return <ReportsModule key="report-account-details" initialReportId="12" />;
       case 'report-daily':
-        return <ReportsModule key="report-daily" initialReportId="1" />;
+        return <DailyReport key="report-daily" />;
       case 'report-yearly':
-        return <ReportsModule key="report-yearly" initialReportId="14" />;
+        return <YearlyReport key="report-yearly" />;
       case 'report-bank':
-        return <ReportsModule key="report-bank" initialReportId="12" />;
+        return <BankReport key="report-bank" />;
       case 'reports-view':
         return <ReportsModule />;
 

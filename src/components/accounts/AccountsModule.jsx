@@ -1,44 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { numberToBengaliWords } from '../../utils/bengaliWords';
 
 function toBengaliDigits(num) {
   const digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
   return String(num).replace(/[0-9]/g, d => digits[d]);
-}
-
-function numberToBengaliWords(num) {
-  const ones = ['', 'এক', 'দুই', 'তিন', 'চার', 'পাঁচ', 'ছয়', 'সাত', 'আট', 'নয়'];
-  const teens = ['দশ', 'এগারো', 'বারো', 'তেরো', 'চৌদ্দ', 'পনেরো', 'ষোলো', 'সতেরো', 'আঠারো', 'উনিশ'];
-  const tens = ['', '', 'বিশ', 'ত্রিশ', 'চল্লিশ', 'পঞ্চাশ', 'ষাট', 'সত্তর', 'আশি', 'নব্বই'];
-
-  const n = Math.floor(Number(num) || 0);
-  if (n === 0) return 'শূন্য';
-  if (n < 0) return 'ঋণাত্মক ' + numberToBengaliWords(-n);
-
-  let words = '';
-  const crore = Math.floor(n / 10000000);
-  let rem = n % 10000000;
-  const lakh = Math.floor(rem / 100000);
-  rem %= 100000;
-  const thousand = Math.floor(rem / 1000);
-  rem %= 1000;
-  const hundred = Math.floor(rem / 100);
-  rem %= 100;
-
-  if (crore > 0) words += `${numberToBengaliWords(crore)} কোটি `;
-  if (lakh > 0) words += `${lakh} লাখ `;
-  if (thousand > 0) words += `${thousand} হাজার `;
-  if (hundred > 0) words += `${ones[hundred]} শত `;
-  if (rem > 0) {
-    if (rem < 10) words += ones[rem];
-    else if (rem < 20) words += teens[rem - 10];
-    else {
-      const t = Math.floor(rem / 10);
-      const o = rem % 10;
-      words += tens[t] + (o > 0 ? ' ' + ones[o] : '');
-    }
-  }
-  return words.trim();
 }
 
 export const AccountsModule = ({ defaultView = 'list' }) => {
