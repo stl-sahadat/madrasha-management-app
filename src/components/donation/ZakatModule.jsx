@@ -4,22 +4,21 @@ import { MONTH_NAMES } from '../../data/initialData';
 
 export const ZakatModule = ({ defaultMode = 'list' }) => {
   const {
-    donors,
-    addDonor,
-    deleteDonor,
+    zakatDonors,
+    addZakatDonor,
+    updateZakatDonor,
+    deleteZakatDonor,
     addDonationRecord,
     transactions,
     accounts,
     receivers,
+    paymentMethods,
     setSelectedReceiptForPrint,
     setActiveTab
   } = useApp();
 
   const [activeMode, setActiveMode] = useState(defaultMode);
   const [showAddModal, setShowAddModal] = useState(false);
-
-  // Filter or use donors specifically designated or general for Zakat
-  const zakatDonors = donors.filter(d => d.donationType === 'যাকাত' || d.type === 'zakat' || true);
 
   // New Zakat Donor Form matching /admin/zakatdoner modal
   const [newZakatDonor, setNewZakatDonor] = useState({
@@ -28,6 +27,28 @@ export const ZakatModule = ({ defaultMode = 'list' }) => {
     mobile: '',
     address: 'চকরিয়া, কক্সবাজার',
     note: 'যাকাত তহবিল'
+  });
+
+  // Edit Zakat Donor State
+  const [editingZakatDonor, setEditingZakatDonor] = useState(null);
+  const [editingZakatDonorForm, setEditingZakatDonorForm] = useState({
+    name: '',
+    fatherName: '',
+    mobile: '',
+    address: '',
+    note: ''
+  });
+
+  // Single Quick Zakat Collection Modal State
+  const [collectingZakatDonor, setCollectingZakatDonor] = useState(null);
+  const [singleZakatForm, setSingleZakatForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    amount: '5000',
+    account: accounts?.[0]?.name || 'নগদ ক্যাশ (Hand Cash)',
+    receiver: receivers?.[0]?.name || 'মাহমুদুল করিম',
+    bookNo: '03',
+    receiptNo: '301',
+    note: 'যাকাত গ্রহণ'
   });
 
   // Zakat Donation Add Form matching /admin/zakatdonation/create
@@ -72,7 +93,7 @@ export const ZakatModule = ({ defaultMode = 'list' }) => {
       alert('যাকাত দাতার নাম এবং মোবাইল নম্বর পূরণ করা আবশ্যক।');
       return;
     }
-    addDonor({
+    addZakatDonor({
       name: newZakatDonor.name,
       fatherName: newZakatDonor.father_name,
       mobile: newZakatDonor.mobile,
@@ -89,6 +110,69 @@ export const ZakatModule = ({ defaultMode = 'list' }) => {
       address: 'চকরিয়া, কক্সবাজার',
       note: 'যাকাত তহবিল'
     });
+  };
+
+  const handleOpenEditZakatDonor = (d) => {
+    setEditingZakatDonor(d);
+    setEditingZakatDonorForm({
+      name: d.name || '',
+      fatherName: d.fatherName || '',
+      mobile: d.mobile || d.phone || '',
+      address: d.address || 'চকরিয়া, কক্সবাজার',
+      note: d.note || ''
+    });
+  };
+
+  const handleUpdateZakatDonorSubmit = (e) => {
+    e.preventDefault();
+    if (!editingZakatDonor) return;
+    if (updateZakatDonor) {
+      updateZakatDonor(editingZakatDonor.id, {
+        name: editingZakatDonorForm.name,
+        fatherName: editingZakatDonorForm.fatherName,
+        mobile: editingZakatDonorForm.mobile,
+        address: editingZakatDonorForm.address,
+        note: editingZakatDonorForm.note
+      });
+    }
+    setEditingZakatDonor(null);
+  };
+
+  const handleOpenCollectModal = (d) => {
+    setCollectingZakatDonor(d);
+    setSingleZakatForm({
+      date: new Date().toISOString().split('T')[0],
+      amount: '5000',
+      account: accounts?.[0]?.name || 'নগদ ক্যাশ (Hand Cash)',
+      receiver: receivers?.[0]?.name || 'মাহমুদুল করিম',
+      bookNo: '03',
+      receiptNo: Math.floor(100 + Math.random() * 900).toString(),
+      note: `যাকাত গ্রহণ (${d.name})`
+    });
+  };
+
+  const handleSingleZakatSubmit = (e) => {
+    e.preventDefault();
+    if (!collectingZakatDonor) return;
+    const amountNum = parseFloat(singleZakatForm.amount) || 0;
+
+    const receipt = addDonationRecord({
+      donorId: collectingZakatDonor.id,
+      donorName: collectingZakatDonor.name,
+      date: singleZakatForm.date,
+      account: singleZakatForm.account,
+      receiver: singleZakatForm.receiver,
+      bookNo: singleZakatForm.bookNo,
+      receiptNo: singleZakatForm.receiptNo,
+      amount: amountNum,
+      category: 'যাকাত',
+      note: singleZakatForm.note || `যাকাত তহবিল (${collectingZakatDonor.name})`
+    });
+
+    setCollectingZakatDonor(null);
+    if (receipt && setSelectedReceiptForPrint) {
+      setSelectedReceiptForPrint(receipt);
+    }
   };
 
   const handleZakatAddSubmit = (e) => {
@@ -178,18 +262,36 @@ export const ZakatModule = ({ defaultMode = 'list' }) => {
                       <td>{d.address || 'চকরিয়া, কক্সবাজার'}</td>
                       <td>{d.note || 'যাকাত তহবিল'}</td>
                       <td className="text-center no-print">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (window.confirm('আপনি কি নিশ্চিতভাবে এই যাকাত দাতাকে মুছে ফেলতে চান?')) {
-                              if (deleteDonor) deleteDonor(d.id);
-                            }
-                          }}
-                          className="btn btn-sm btn-danger delete-btn"
-                          title="ডিলিট"
-                        >
-                          <i className="fa-solid fa-trash"></i>
-                        </button>
+                        <div className="d-flex justify-content-center align-items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenCollectModal(d)}
+                            className="btn btn-sm btn-success px-2 py-1 text-nowrap"
+                            title="যাকাত গ্রহণ"
+                          >
+                            <i className="fa-solid fa-hand-holding-dollar me-1"></i> যাকাত গ্রহণ
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditZakatDonor(d)}
+                            className="btn btn-sm btn-primary"
+                            title="সম্পাদনা"
+                          >
+                            <i className="fa-solid fa-pen-to-square"></i>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (window.confirm('আপনি কি নিশ্চিতভাবে এই যাকাত দাতাকে মুছে ফেলতে চান?')) {
+                                if (deleteZakatDonor) deleteZakatDonor(d.id);
+                              }
+                            }}
+                            className="btn btn-sm btn-danger delete-btn"
+                            title="ডিলিট"
+                          >
+                            <i className="fa-solid fa-trash"></i>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -781,6 +883,220 @@ export const ZakatModule = ({ defaultMode = 'list' }) => {
                 </button>
                 <button type="submit" className="btn btn-danger">
                   <i className="fa-solid fa-save me-1"></i>সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Zakat Donor Modal */}
+      {editingZakatDonor && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+          <div className="modal-dialog modal-lg">
+            <form onSubmit={handleUpdateZakatDonorSubmit} className="modal-content border-0 shadow">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="fa-solid fa-pen-to-square me-2"></i>যাকাত দাতার তথ্য সম্পাদনা
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setEditingZakatDonor(null)}
+                ></button>
+              </div>
+
+              <div className="modal-body p-4">
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold">যাকাত দাতার নাম <span className="text-danger">*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editingZakatDonorForm.name}
+                      onChange={(e) => setEditingZakatDonorForm({ ...editingZakatDonorForm, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold">পিতার নাম</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editingZakatDonorForm.fatherName}
+                      onChange={(e) => setEditingZakatDonorForm({ ...editingZakatDonorForm, fatherName: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold">মোবাইল নম্বর <span className="text-danger">*</span></label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      value={editingZakatDonorForm.mobile}
+                      onChange={(e) => setEditingZakatDonorForm({ ...editingZakatDonorForm, mobile: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label fw-semibold">ঠিকানা</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editingZakatDonorForm.address}
+                      onChange={(e) => setEditingZakatDonorForm({ ...editingZakatDonorForm, address: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label fw-semibold">মন্তব্য</label>
+                    <textarea
+                      className="form-control"
+                      rows="2"
+                      value={editingZakatDonorForm.note}
+                      onChange={(e) => setEditingZakatDonorForm({ ...editingZakatDonorForm, note: e.target.value })}
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setEditingZakatDonor(null)}
+                >
+                  বাতিল
+                </button>
+                <button type="submit" className="btn btn-primary fw-bold">
+                  <i className="fa-solid fa-save me-1"></i> আপডেট করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Single Zakat Collection Modal */}
+      {collectingZakatDonor && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+          <div className="modal-dialog modal-lg">
+            <form onSubmit={handleSingleZakatSubmit} className="modal-content border-0 shadow">
+              <div className="modal-header bg-success text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="fa-solid fa-hand-holding-dollar me-2"></i>যাকাত গ্রহণ
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setCollectingZakatDonor(null)}
+                ></button>
+              </div>
+
+              <div className="modal-body p-4">
+                <div className="alert alert-light border mb-4">
+                  <div className="row g-2">
+                    <div className="col-md-6">
+                      <strong>যাকাত দাতা:</strong> <span className="fw-bold">{collectingZakatDonor.name}</span>
+                    </div>
+                    <div className="col-md-6">
+                      <strong>মোবাইল:</strong> <span className="font-monospace">{collectingZakatDonor.mobile || collectingZakatDonor.phone}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">আদায়ের তারিখ <span className="text-danger">*</span></label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={singleZakatForm.date}
+                      onChange={(e) => setSingleZakatForm({ ...singleZakatForm, date: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">যাকাতের পরিমাণ (টাকা) <span className="text-danger">*</span></label>
+                    <input
+                      type="number"
+                      className="form-control font-monospace fw-bold text-success fs-5"
+                      value={singleZakatForm.amount}
+                      onChange={(e) => setSingleZakatForm({ ...singleZakatForm, amount: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">এ্যাকাউন্ট <span className="text-danger">*</span></label>
+                    <select
+                      className="form-select"
+                      value={singleZakatForm.account}
+                      onChange={(e) => setSingleZakatForm({ ...singleZakatForm, account: e.target.value })}
+                      required
+                    >
+                      {accounts.map(acc => (
+                        <option key={acc.id} value={acc.name}>{acc.name} (৳ {acc.balance})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">গ্রহণকারী <span className="text-danger">*</span></label>
+                    <select
+                      className="form-select"
+                      value={singleZakatForm.receiver}
+                      onChange={(e) => setSingleZakatForm({ ...singleZakatForm, receiver: e.target.value })}
+                      required
+                    >
+                      {receivers.map(r => (
+                        <option key={r.id} value={r.name}>{r.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">বই নং</label>
+                    <input
+                      type="text"
+                      className="form-control font-monospace"
+                      value={singleZakatForm.bookNo}
+                      onChange={(e) => setSingleZakatForm({ ...singleZakatForm, bookNo: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">রসিদ নং</label>
+                    <input
+                      type="text"
+                      className="form-control font-monospace"
+                      value={singleZakatForm.receiptNo}
+                      onChange={(e) => setSingleZakatForm({ ...singleZakatForm, receiptNo: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label fw-bold">মন্তব্য</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={singleZakatForm.note}
+                      onChange={(e) => setSingleZakatForm({ ...singleZakatForm, note: e.target.value })}
+                      placeholder="মন্তব্য (ঐচ্ছিক)"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setCollectingZakatDonor(null)}
+                >
+                  বাতিল
+                </button>
+                <button type="submit" className="btn btn-success fw-bold">
+                  <i className="fa-solid fa-check me-1"></i> যাকাত জমা করুন ও রসিদ দেখুন
                 </button>
               </div>
             </form>

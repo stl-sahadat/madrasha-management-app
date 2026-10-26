@@ -273,9 +273,6 @@ export const Sidebar = () => {
               মাসিক চাঁদাদাতা
             </a>
             <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'monthly-donors' ? 'show' : ''}`} id="monthly-donors">
-              <li className={activeTab === 'contributor-create' ? 'active' : ''}>
-                <a href="#contributor-create" onClick={(e) => handleNavClick('contributor-create', e)}>নতুন চাঁদাদাতা তৈরি</a>
-              </li>
               <li className={activeTab === 'contributor-list' ? 'active' : ''}>
                 <a href="#contributor-list" onClick={(e) => handleNavClick('contributor-list', e)}>মাসিক চাঁদাদাতার তালিকা</a>
               </li>

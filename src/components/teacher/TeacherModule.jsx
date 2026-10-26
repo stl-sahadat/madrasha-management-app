@@ -1,23 +1,42 @@
 import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
+import { MONTH_NAMES } from '../../data/initialData';
 
 export const TeacherModule = ({ defaultTab = 'list' }) => {
   const {
     teachers,
     addTeacher,
+    updateTeacher,
     deleteTeacher,
     accounts,
     receivers,
     teacherSalaryPayments,
     addTeacherSalaryPayment,
+    updateTeacherSalaryPayment,
+    deleteTeacherSalaryPayment,
     setSelectedReceiptForPrint,
     setActiveTab: navigateTab,
     depositCategories,
-    expenseCategories
+    expenseCategories,
+    paymentMethods
   } = useApp();
 
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [selectedTeacherForModal, setSelectedTeacherForModal] = useState(null);
+  const [isEditingTeacherModal, setIsEditingTeacherModal] = useState(false);
+  const [teacherEditForm, setTeacherEditForm] = useState({});
+
+  // Salary Edit Modal State (matches /admin/teacher/salary/{id}/edit)
+  const [editingSalary, setEditingSalary] = useState(null);
+  const [editingSalaryForm, setEditingSalaryForm] = useState({
+    payment_date: '',
+    deposit_category_id: 'মাসিক বেতন',
+    account: '',
+    payment_method_id: 'cash',
+    expense_category_id: 'শিক্ষকগণের বেতন',
+    amount: '',
+    note: ''
+  });
 
   // Teacher Create State matching /admin/teacher/create
   const [createForm, setCreateForm] = useState({
@@ -46,8 +65,9 @@ export const TeacherModule = ({ defaultTab = 'list' }) => {
     note: ''
   });
 
-  // Salary Sheet Month Filter State
-  const [salaryMonth, setSalaryMonth] = useState('2026-10');
+  // Salary Sheet Month Filter State (Bengali month or year)
+  const [salaryMonth, setSalaryMonth] = useState('অক্টোবর');
+  const [salaryYear, setSalaryYear] = useState('2026');
 
   // Teacher Salary Day (Disbursement Entry) State matching /admin/teacher/salary/day
   const [salaryDayForm, setSalaryDayForm] = useState({
@@ -88,7 +108,8 @@ export const TeacherModule = ({ defaultTab = 'list' }) => {
       joiningDate: createForm.joining_date,
       address: createForm.present_address,
       bloodGroup: createForm.blood_group,
-      teacherId: createForm.teacher_id
+      teacherId: createForm.teacher_id,
+      photo: '/storage/teachers/w4VIRK4VVwP31z1S0tC2ralZnX6xbXswNIgeLN8A.jpg'
     });
     alert('শিক্ষক সফলভাবে যোগ করা হয়েছে!');
     setActiveTab('list');
@@ -122,6 +143,67 @@ export const TeacherModule = ({ defaultTab = 'list' }) => {
     if (window.confirm('আপনি কি নিশ্চিতভাবে এই শিক্ষককে মুছে ফেলতে চান?')) {
       deleteTeacher(id);
     }
+  };
+
+  const handleOpenTeacherModal = (teacher, editMode = false) => {
+    setSelectedTeacherForModal(teacher);
+    setIsEditingTeacherModal(editMode);
+    setTeacherEditForm({
+      name: teacher.name || '',
+      designation: teacher.designation || 'সহকারী শিক্ষক',
+      department: teacher.department || 'সাধারণ',
+      mobile: teacher.mobile || teacher.phone || '',
+      emergencyPhone: teacher.emergencyPhone || '',
+      email: teacher.email || '',
+      salary: teacher.salary || 14000,
+      bloodGroup: teacher.bloodGroup || 'B+',
+      qualification: teacher.qualification || 'দাওরায়ে হাদিস',
+      skills: teacher.skills || '',
+      joiningDate: teacher.joiningDate || '2024-01-01',
+      address: teacher.address || 'বদরখালী, চকরিয়া, কক্সবাজার',
+      photo: teacher.photo || '/storage/teachers/w4VIRK4VVwP31z1S0tC2ralZnX6xbXswNIgeLN8A.jpg'
+    });
+  };
+
+  const handleSaveTeacherEdit = (e) => {
+    e.preventDefault();
+    if (!selectedTeacherForModal) return;
+    const updated = {
+      ...selectedTeacherForModal,
+      ...teacherEditForm,
+      salary: parseFloat(teacherEditForm.salary) || selectedTeacherForModal.salary
+    };
+    updateTeacher(selectedTeacherForModal.id, updated);
+    setSelectedTeacherForModal(updated);
+    setIsEditingTeacherModal(false);
+  };
+
+  const handleOpenEditSalary = (payment) => {
+    setEditingSalary(payment);
+    setEditingSalaryForm({
+      payment_date: payment.date || new Date().toISOString().split('T')[0],
+      deposit_category_id: payment.depositCategory || 'মাসিক বেতন',
+      account: payment.account || accounts?.[0]?.name || 'নগদ ক্যাশ (Hand Cash)',
+      payment_method_id: payment.paymentMethod || 'cash',
+      expense_category_id: 'শিক্ষকগণের বেতন',
+      amount: payment.amount || '',
+      note: payment.note || ''
+    });
+  };
+
+  const handleUpdateSalarySubmit = (e) => {
+    e.preventDefault();
+    if (!editingSalary) return;
+    updateTeacherSalaryPayment(editingSalary.id, {
+      ...editingSalary,
+      date: editingSalaryForm.payment_date,
+      depositCategory: editingSalaryForm.deposit_category_id,
+      account: editingSalaryForm.account,
+      paymentMethod: editingSalaryForm.payment_method_id,
+      amount: parseFloat(editingSalaryForm.amount) || editingSalary.amount,
+      note: editingSalaryForm.note
+    });
+    setEditingSalary(null);
   };
 
   return (
@@ -508,14 +590,28 @@ export const TeacherModule = ({ defaultTab = 'list' }) => {
                           <div className="d-flex justify-content-center">
                             <div className="text-center">
                               <img
-                                src={teacher.photo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(teacher.name) + '&background=0f626a&color=fff'}
+                                src={teacher.photo || (index % 2 === 0 ? '/storage/teachers/w4VIRK4VVwP31z1S0tC2ralZnX6xbXswNIgeLN8A.jpg' : '/storage/teachers/eXUAuPhreXk0tOWTeviLX2y8J6SwvMJJnSh4Mj85.jpg')}
                                 alt="Teacher Photo"
                                 className="img-thumbnail mb-2"
                                 style={{ width: '80px', height: '80px', objectFit: 'cover' }}
                               />
-                              <label className="btn btn-warning btn-sm w-100" style={{ cursor: 'pointer' }}>
+                              <label className="btn btn-warning btn-sm w-100" style={{ cursor: 'pointer', fontSize: '11px' }}>
                                 <i className="fa-solid fa-upload me-1"></i> ছবি
-                                <input type="file" className="d-none" accept="image/*" />
+                                <input
+                                  type="file"
+                                  className="d-none"
+                                  accept="image/*"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const reader = new FileReader();
+                                      reader.onload = (ev) => {
+                                        updateTeacher(teacher.id, { photo: ev.target.result });
+                                      };
+                                      reader.readAsDataURL(file);
+                                    }
+                                  }}
+                                />
                               </label>
                             </div>
                           </div>
@@ -532,14 +628,23 @@ export const TeacherModule = ({ defaultTab = 'list' }) => {
                         <td className="text-center align-middle">
                           <div className="d-flex flex-column justify-content-center align-items-center gap-2">
                             <button
-                              onClick={() => setSelectedTeacherForModal(teacher)}
-                              className="btn btn-secondary btn-sm p-1 px-3"
+                              onClick={() => handleOpenTeacherModal(teacher, false)}
+                              className="btn btn-secondary btn-sm p-1 px-3 w-100"
+                              title="বিস্তারিত"
                             >
                               <i className="fa-solid fa-eye me-1"></i> বিস্তারিত
                             </button>
                             <button
+                              onClick={() => handleOpenTeacherModal(teacher, true)}
+                              className="btn btn-primary btn-sm p-1 px-3 w-100"
+                              title="সম্পাদনা"
+                            >
+                              <i className="fa-solid fa-pen-to-square me-1"></i> এডিট
+                            </button>
+                            <button
                               onClick={() => handleDeleteTeacher(teacher.id)}
-                              className="btn btn-danger btn-sm p-1 px-3 delete-btn"
+                              className="btn btn-danger btn-sm p-1 px-3 w-100 delete-btn"
+                              title="মুছে ফেলুন"
                             >
                               <i className="fa-solid fa-trash me-1"></i> মুছে ফেলুন
                             </button>
@@ -640,15 +745,39 @@ export const TeacherModule = ({ defaultTab = 'list' }) => {
               <div className="row align-items-end">
                 <div className="col-md-6 d-flex gap-3 align-items-end">
                   <div className="flex-grow-1">
-                    <label htmlFor="salary-month" className="form-label fw-semibold">বেতনের মাস</label>
-                    <input
-                      name="salary_month"
-                      type="month"
-                      id="salary-month"
-                      className="form-control"
+                    <label htmlFor="salary-month-select" className="form-label fw-semibold">বেতনের মাস</label>
+                    <select
+                      id="salary-month-select"
+                      className="form-select"
                       value={salaryMonth}
                       onChange={(e) => setSalaryMonth(e.target.value)}
-                    />
+                    >
+                      <option value="জানুয়ারি">জানুয়ারি</option>
+                      <option value="ফেব্রুয়ারি">ফেব্রুয়ারি</option>
+                      <option value="মার্চ">মার্চ</option>
+                      <option value="এপ্রিল">এপ্রিল</option>
+                      <option value="মে">মে</option>
+                      <option value="জুন">জুন</option>
+                      <option value="জুলাই">জুলাই</option>
+                      <option value="অগাস্ট">অগাস্ট</option>
+                      <option value="সেপ্টেম্বর">সেপ্টেম্বর</option>
+                      <option value="অক্টোবর">অক্টোবর</option>
+                      <option value="নভেম্বর">নভেম্বর</option>
+                      <option value="ডিসেম্বর">ডিসেম্বর</option>
+                    </select>
+                  </div>
+                  <div className="w-25">
+                    <label htmlFor="salary-year-select" className="form-label fw-semibold">সাল</label>
+                    <select
+                      id="salary-year-select"
+                      className="form-select"
+                      value={salaryYear}
+                      onChange={(e) => setSalaryYear(e.target.value)}
+                    >
+                      <option value="2026">2026</option>
+                      <option value="2025">2025</option>
+                      <option value="2024">2024</option>
+                    </select>
                   </div>
                   <button
                     type="button"
@@ -662,9 +791,15 @@ export const TeacherModule = ({ defaultTab = 'list' }) => {
                 <div className="col-md-6 text-md-end text-start mt-3">
                   <button
                     onClick={() => setActiveTab('create')}
-                    className="btn btn-danger text-white fw-bold"
+                    className="btn btn-danger text-white fw-bold me-2"
                   >
                     <i className="fa-solid fa-plus me-1"></i> নতুন শিক্ষক যুক্ত করুন
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('salary-day')}
+                    className="btn btn-success text-white fw-bold"
+                  >
+                    <i className="fa-solid fa-money-bill me-1"></i> বেতন প্রদান
                   </button>
                 </div>
               </div>
@@ -683,10 +818,10 @@ export const TeacherModule = ({ defaultTab = 'list' }) => {
                 <div className="col-md-2"></div>
                 <div className="col-md-8 text-center">
                   <h5 className="fw-semibold" style={{ color: '#2c5f2d' }}>শিক্ষকগণের মাসিক বেতন বিবরণী</h5>
-                  <p className="text-muted small">মাসঃ {salaryMonth}</p>
+                  <p className="text-muted small">মাসঃ {salaryMonth} {salaryYear}</p>
                 </div>
                 <div className="col-md-2 text-end">
-                  <p className="mb-0 fw-semibold">সন ২০২৬ ইং</p>
+                  <p className="mb-0 fw-semibold">সন {salaryYear} ইং</p>
                 </div>
               </div>
 
@@ -694,25 +829,92 @@ export const TeacherModule = ({ defaultTab = 'list' }) => {
                 <table className="table table-bordered table-striped align-middle mb-0 print-table">
                   <thead className="bg-primary print-thead text-white">
                     <tr>
-                      <th className="text-center" style={{ width: '60px' }}>নং</th>
+                      <th className="text-center" style={{ width: '50px' }}>নং</th>
                       <th>শিক্ষকের নাম</th>
                       <th>পদবী</th>
                       <th className="text-end">নির্ধারিত বেতন</th>
+                      <th className="text-end">প্রদত্ত বেতন</th>
                       <th className="text-center">স্ট্যাটাস</th>
+                      <th className="text-center no-print" style={{ width: '200px' }}>কার্যক্রম</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {teachers.map((t, idx) => (
-                      <tr key={t.id}>
-                        <td className="text-center">{idx + 1}</td>
-                        <td className="fw-bold">{t.name}</td>
-                        <td>{t.designation || 'সহকারী শিক্ষক'}</td>
-                        <td className="text-end font-monospace">৳ {parseFloat(t.salary || 14000).toLocaleString('en-IN')}</td>
-                        <td className="text-center">
-                          <span className="badge bg-success">অনুমোদিত</span>
-                        </td>
-                      </tr>
-                    ))}
+                    {teachers.map((t, idx) => {
+                      const payment = teacherSalaryPayments.find(p =>
+                        (p.teacherId === t.id || p.teacherName === t.name) &&
+                        (p.month === salaryMonth || (p.date && p.date.includes(salaryMonth)))
+                      );
+                      const isPaid = !!payment;
+                      return (
+                        <tr key={t.id}>
+                          <td className="text-center">{idx + 1}</td>
+                          <td className="fw-bold">{t.name}</td>
+                          <td>{t.designation || 'সহকারী শিক্ষক'}</td>
+                          <td className="text-end font-monospace">৳ {parseFloat(t.salary || 14000).toLocaleString('en-IN')}</td>
+                          <td className="text-end font-monospace fw-bold text-success">
+                            {isPaid ? `৳ ${parseFloat(payment.amount || t.salary).toLocaleString('en-IN')}` : <span className="text-muted">-</span>}
+                          </td>
+                          <td className="text-center">
+                            {isPaid ? (
+                              <span className="badge bg-success">পরিশোধিত</span>
+                            ) : (
+                              <span className="badge bg-warning text-dark">অপরিশোধিত</span>
+                            )}
+                          </td>
+                          <td className="text-center no-print">
+                            {isPaid ? (
+                              <div className="d-flex justify-content-center gap-1">
+                                <button
+                                  onClick={() => setSelectedReceiptForPrint(payment)}
+                                  className="btn btn-sm btn-info text-white"
+                                  title="স্লিপ প্রিন্ট"
+                                >
+                                  <i className="fa-solid fa-print"></i>
+                                </button>
+                                <button
+                                  onClick={() => handleOpenEditSalary(payment)}
+                                  className="btn btn-sm btn-primary"
+                                  title="এডিট"
+                                >
+                                  <i className="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (window.confirm('আপনি কি নিশ্চিতভাবে এই বেতন প্রদানের রেকর্ড মুছে ফেলতে চান?')) {
+                                      deleteTeacherSalaryPayment(payment.id);
+                                    }
+                                  }}
+                                  className="btn btn-sm btn-danger delete-btn"
+                                  title="মুছে ফেলুন"
+                                >
+                                  <i className="fa-solid fa-trash"></i>
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="d-flex justify-content-center gap-1">
+                                <button
+                                  onClick={() => {
+                                    setSalaryDayForm(prev => ({ ...prev, salary_month: salaryMonth, salary_year: salaryYear }));
+                                    setActiveTab('salary-day');
+                                  }}
+                                  className="btn btn-sm btn-success px-2 py-1"
+                                  title="বেতন দিন"
+                                >
+                                  <i className="fa-solid fa-money-bill me-1"></i> বেতন দিন
+                                </button>
+                                <button
+                                  onClick={() => handleOpenTeacherModal(t, true)}
+                                  className="btn btn-sm btn-outline-secondary"
+                                  title="স্কেল এডিট"
+                                >
+                                  <i className="fa-solid fa-gear"></i>
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -966,17 +1168,32 @@ export const TeacherModule = ({ defaultTab = 'list' }) => {
                           <button
                             onClick={() => setSelectedReceiptForPrint(p)}
                             className="btn btn-sm btn-info text-white"
+                            title="স্লিপ"
                           >
-                            <i className="fa-solid fa-print"></i> স্লিপ
+                            <i className="fa-solid fa-print me-1"></i> স্লিপ
                           </button>
                         </td>
                         <td className="text-center">
-                          <button
-                            onClick={() => setSelectedReceiptForPrint(p)}
-                            className="btn btn-sm btn-secondary"
-                          >
-                            <i className="fa-solid fa-eye"></i>
-                          </button>
+                          <div className="d-flex justify-content-center gap-1">
+                            <button
+                              onClick={() => handleOpenEditSalary(p)}
+                              className="btn btn-sm btn-primary"
+                              title="এডিট"
+                            >
+                              <i className="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (window.confirm('আপনি কি নিশ্চিতভাবে এই বেতন প্রদানের রেকর্ড মুছে ফেলতে চান?')) {
+                                  deleteTeacherSalaryPayment(p.id);
+                                }
+                              }}
+                              className="btn btn-sm btn-danger delete-btn"
+                              title="মুছে ফেলুন"
+                            >
+                              <i className="fa-solid fa-trash"></i>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -988,48 +1205,125 @@ export const TeacherModule = ({ defaultTab = 'list' }) => {
         </div>
       )}
 
-      {/* Teacher Details Modal */}
-      {selectedTeacherForModal && (
+      {/* Edit Salary Modal matching /admin/teacher/salary/{id}/edit */}
+      {editingSalary && (
         <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
-          <div className="modal-dialog modal-lg modal-dialog-scrollable">
-            <div className="modal-content border-0 shadow">
+          <div className="modal-dialog modal-lg">
+            <form onSubmit={handleUpdateSalarySubmit} className="modal-content border-0 shadow">
               <div className="modal-header bg-primary text-white">
-                <h5 className="modal-title font-bold">
-                  <i className="fa-solid fa-user-tie me-2"></i>শিক্ষকের বিস্তারিত তথ্য
+                <h5 className="modal-title fw-bold">
+                  <i className="fa-solid fa-pen-to-square me-2"></i>বেতন প্রদান তথ্য আপডেট করুন
                 </h5>
                 <button
                   type="button"
                   className="btn-close btn-close-white"
-                  onClick={() => setSelectedTeacherForModal(null)}
+                  onClick={() => setEditingSalary(null)}
                 ></button>
               </div>
 
               <div className="modal-body p-4">
-                <div className="text-center mb-4">
-                  <img
-                    src={selectedTeacherForModal.photo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(selectedTeacherForModal.name) + '&background=0f626a&color=fff'}
-                    alt="Teacher Photo"
-                    className="img-thumbnail rounded-circle"
-                    style={{ width: '120px', height: '120px', objectFit: 'cover' }}
-                  />
-                  <h4 className="mt-2 mb-0 fw-bold">{selectedTeacherForModal.name}</h4>
-                  <p className="text-muted">{selectedTeacherForModal.designation || 'সহকারী শিক্ষক'}</p>
+                <div className="alert alert-light border mb-4">
+                  <div className="row g-2">
+                    <div className="col-md-4">
+                      <strong>ভাউচার নং:</strong> <span className="font-monospace text-primary fw-bold">{editingSalary.voucherNo || 'TSAL-001'}</span>
+                    </div>
+                    <div className="col-md-4">
+                      <strong>শিক্ষকের নাম:</strong> <span className="fw-bold">{editingSalary.teacherName}</span>
+                    </div>
+                    <div className="col-md-4">
+                      <strong>বেতনের মাস:</strong> <span className="badge bg-info">{editingSalary.month} {editingSalary.year || ''}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="row g-3">
                   <div className="col-md-6">
-                    <p className="mb-2"><strong>আইডিঃ</strong> {selectedTeacherForModal.id}</p>
-                    <p className="mb-2"><strong>মোবাইল নম্বরঃ</strong> {selectedTeacherForModal.mobile || selectedTeacherForModal.phone}</p>
-                    <p className="mb-2"><strong>জরুরী যোগাযোগঃ</strong> {selectedTeacherForModal.emergencyPhone || '-'}</p>
-                    <p className="mb-2"><strong>ইমেইলঃ</strong> {selectedTeacherForModal.email || '-'}</p>
-                    <p className="mb-2"><strong>বিভাগঃ</strong> {selectedTeacherForModal.department || 'সাধারণ'}</p>
+                    <label className="form-label fw-bold">তারিখ <span className="text-danger">*</span></label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={editingSalaryForm.payment_date}
+                      onChange={(e) => setEditingSalaryForm({ ...editingSalaryForm, payment_date: e.target.value })}
+                      required
+                    />
                   </div>
+
                   <div className="col-md-6">
-                    <p className="mb-2"><strong>বেতনঃ</strong> ৳ {parseFloat(selectedTeacherForModal.salary || 14000).toLocaleString('en-IN')}</p>
-                    <p className="mb-2"><strong>রক্তের গ্রুপঃ</strong> {selectedTeacherForModal.bloodGroup || 'B+'}</p>
-                    <p className="mb-2"><strong>যোগ্যতাঃ</strong> {selectedTeacherForModal.qualification || 'দাওরায়ে হাদিস'}</p>
-                    <p className="mb-2"><strong>যোগদানের তারিখঃ</strong> {selectedTeacherForModal.joiningDate || '2024-01-01'}</p>
-                    <p className="mb-2"><strong>ঠিকানাঃ</strong> {selectedTeacherForModal.address || 'বদরখালী, চকরিয়া, কক্সবাজার'}</p>
+                    <label className="form-label fw-bold">কোন খাত থেকে</label>
+                    <select
+                      className="form-select"
+                      value={editingSalaryForm.deposit_category_id}
+                      onChange={(e) => setEditingSalaryForm({ ...editingSalaryForm, deposit_category_id: e.target.value })}
+                      required
+                    >
+                      <option value="মাসিক বেতন">মাসিক বেতন</option>
+                      <option value="মাসিক চাঁদা">মাসিক চাঁদা</option>
+                      <option value="ভর্তি ফি">ভর্তি ফি</option>
+                      <option value="ছাএদের খানার টাকা">ছাএদের খানার টাকা</option>
+                      <option value="দান">দান</option>
+                      <option value="যাকাত">যাকাত</option>
+                      <option value="এতিমখানার">এতিমখানার</option>
+                      <option value="বিবিধ">বিবিধ</option>
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">এ্যাকাউন্ট <span className="text-danger">*</span></label>
+                    <select
+                      className="form-select"
+                      value={editingSalaryForm.account}
+                      onChange={(e) => setEditingSalaryForm({ ...editingSalaryForm, account: e.target.value })}
+                      required
+                    >
+                      {accounts.map(acc => (
+                        <option key={acc.id} value={acc.name}>{acc.name} (৳ {acc.balance})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">খরচের খাত</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value="শিক্ষকগণের বেতন"
+                      readOnly
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">পেমেন্ট মেথড <span className="text-danger">*</span></label>
+                    <select
+                      className="form-select"
+                      value={editingSalaryForm.payment_method_id}
+                      onChange={(e) => setEditingSalaryForm({ ...editingSalaryForm, payment_method_id: e.target.value })}
+                      required
+                    >
+                      <option value="cash">নগদ (Cash)</option>
+                      <option value="bkash">বিকাশ (Bkash)</option>
+                      <option value="bank">ব্যাংক (Bank)</option>
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">বেতনের পরিমাণ <span className="text-danger">*</span></label>
+                    <input
+                      type="number"
+                      className="form-control font-monospace fw-bold"
+                      value={editingSalaryForm.amount}
+                      onChange={(e) => setEditingSalaryForm({ ...editingSalaryForm, amount: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label fw-bold">মন্তব্য</label>
+                    <textarea
+                      className="form-control"
+                      rows="2"
+                      value={editingSalaryForm.note}
+                      onChange={(e) => setEditingSalaryForm({ ...editingSalaryForm, note: e.target.value })}
+                    ></textarea>
                   </div>
                 </div>
               </div>
@@ -1038,11 +1332,251 @@ export const TeacherModule = ({ defaultTab = 'list' }) => {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={() => setSelectedTeacherForModal(null)}
+                  onClick={() => setEditingSalary(null)}
                 >
-                  বন্ধ করুন
+                  বাতিল করুন
+                </button>
+                <button type="submit" className="btn btn-primary fw-bold">
+                  <i className="fa-solid fa-save me-1"></i> আপডেট করুন
                 </button>
               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Teacher Details & Edit Modal */}
+      {selectedTeacherForModal && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+          <div className="modal-dialog modal-lg modal-dialog-scrollable">
+            <div className="modal-content border-0 shadow">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className={`fa-solid ${isEditingTeacherModal ? 'fa-user-pen' : 'fa-user-tie'} me-2`}></i>
+                  {isEditingTeacherModal ? 'শিক্ষকের তথ্য সম্পাদনা' : 'শিক্ষকের বিস্তারিত তথ্য'}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => {
+                    setSelectedTeacherForModal(null);
+                    setIsEditingTeacherModal(false);
+                  }}
+                ></button>
+              </div>
+
+              {isEditingTeacherModal ? (
+                <form onSubmit={handleSaveTeacherEdit}>
+                  <div className="modal-body p-4">
+                    <div className="text-center mb-4">
+                      <img
+                        src={teacherEditForm.photo || '/storage/teachers/w4VIRK4VVwP31z1S0tC2ralZnX6xbXswNIgeLN8A.jpg'}
+                        alt="Teacher"
+                        className="img-thumbnail rounded-circle mb-2"
+                        style={{ width: '100px', height: '100px', objectFit: 'cover' }}
+                      />
+                      <div>
+                        <label className="btn btn-sm btn-outline-primary">
+                          <i className="fa-solid fa-camera me-1"></i> ছবি পরিবর্তন
+                          <input
+                            type="file"
+                            className="d-none"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (ev) => {
+                                  setTeacherEditForm({ ...teacherEditForm, photo: ev.target.result });
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">শিক্ষকের নাম <span className="text-danger">*</span></label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={teacherEditForm.name}
+                          onChange={(e) => setTeacherEditForm({ ...teacherEditForm, name: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">পদবি</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={teacherEditForm.designation}
+                          onChange={(e) => setTeacherEditForm({ ...teacherEditForm, designation: e.target.value })}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">বিভাগ</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={teacherEditForm.department}
+                          onChange={(e) => setTeacherEditForm({ ...teacherEditForm, department: e.target.value })}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">মোবাইল নম্বর <span className="text-danger">*</span></label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={teacherEditForm.mobile}
+                          onChange={(e) => setTeacherEditForm({ ...teacherEditForm, mobile: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">জরুরী যোগাযোগ নম্বর</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={teacherEditForm.emergencyPhone}
+                          onChange={(e) => setTeacherEditForm({ ...teacherEditForm, emergencyPhone: e.target.value })}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">ইমেইল</label>
+                        <input
+                          type="email"
+                          className="form-control"
+                          value={teacherEditForm.email}
+                          onChange={(e) => setTeacherEditForm({ ...teacherEditForm, email: e.target.value })}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">বেতন (টাকা) <span className="text-danger">*</span></label>
+                        <input
+                          type="number"
+                          className="form-control font-monospace"
+                          value={teacherEditForm.salary}
+                          onChange={(e) => setTeacherEditForm({ ...teacherEditForm, salary: e.target.value })}
+                          required
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">রক্তের গ্রুপ</label>
+                        <select
+                          className="form-select"
+                          value={teacherEditForm.bloodGroup}
+                          onChange={(e) => setTeacherEditForm({ ...teacherEditForm, bloodGroup: e.target.value })}
+                        >
+                          <option value="A+">A+</option>
+                          <option value="A-">A-</option>
+                          <option value="B+">B+</option>
+                          <option value="B-">B-</option>
+                          <option value="O+">O+</option>
+                          <option value="O-">O-</option>
+                          <option value="AB+">AB+</option>
+                          <option value="AB-">AB-</option>
+                        </select>
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">শিক্ষাগত যোগ্যতা</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={teacherEditForm.qualification}
+                          onChange={(e) => setTeacherEditForm({ ...teacherEditForm, qualification: e.target.value })}
+                        />
+                      </div>
+                      <div className="col-md-6">
+                        <label className="form-label fw-semibold">যোগদানের তারিখ</label>
+                        <input
+                          type="date"
+                          className="form-control"
+                          value={teacherEditForm.joiningDate}
+                          onChange={(e) => setTeacherEditForm({ ...teacherEditForm, joiningDate: e.target.value })}
+                        />
+                      </div>
+                      <div className="col-12">
+                        <label className="form-label fw-semibold">ঠিকানা</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={teacherEditForm.address}
+                          onChange={(e) => setTeacherEditForm({ ...teacherEditForm, address: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="modal-footer">
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setIsEditingTeacherModal(false)}
+                    >
+                      বাতিল
+                    </button>
+                    <button type="submit" className="btn btn-primary fw-bold">
+                      <i className="fa-solid fa-save me-1"></i> সংরক্ষণ করুন
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <>
+                  <div className="modal-body p-4">
+                    <div className="text-center mb-4">
+                      <img
+                        src={selectedTeacherForModal.photo || '/storage/teachers/w4VIRK4VVwP31z1S0tC2ralZnX6xbXswNIgeLN8A.jpg'}
+                        alt="Teacher Photo"
+                        className="img-thumbnail rounded-circle"
+                        style={{ width: '120px', height: '120px', objectFit: 'cover' }}
+                      />
+                      <h4 className="mt-2 mb-0 fw-bold">{selectedTeacherForModal.name}</h4>
+                      <p className="text-muted">{selectedTeacherForModal.designation || 'সহকারী শিক্ষক'}</p>
+                    </div>
+
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <p className="mb-2"><strong>আইডিঃ</strong> {selectedTeacherForModal.id}</p>
+                        <p className="mb-2"><strong>মোবাইল নম্বরঃ</strong> {selectedTeacherForModal.mobile || selectedTeacherForModal.phone}</p>
+                        <p className="mb-2"><strong>জরুরী যোগাযোগঃ</strong> {selectedTeacherForModal.emergencyPhone || '-'}</p>
+                        <p className="mb-2"><strong>ইমেইলঃ</strong> {selectedTeacherForModal.email || '-'}</p>
+                        <p className="mb-2"><strong>বিভাগঃ</strong> {selectedTeacherForModal.department || 'সাধারণ'}</p>
+                      </div>
+                      <div className="col-md-6">
+                        <p className="mb-2"><strong>বেতনঃ</strong> ৳ {parseFloat(selectedTeacherForModal.salary || 14000).toLocaleString('en-IN')}</p>
+                        <p className="mb-2"><strong>রক্তের গ্রুপঃ</strong> {selectedTeacherForModal.bloodGroup || 'B+'}</p>
+                        <p className="mb-2"><strong>যোগ্যতাঃ</strong> {selectedTeacherForModal.qualification || 'দাওরায়ে হাদিস'}</p>
+                        <p className="mb-2"><strong>যোগদানের তারিখঃ</strong> {selectedTeacherForModal.joiningDate || '2024-01-01'}</p>
+                        <p className="mb-2"><strong>ঠিকানাঃ</strong> {selectedTeacherForModal.address || 'বদরখালী, চকরিয়া, কক্সবাজার'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="modal-footer d-flex justify-content-between">
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => handleOpenTeacherModal(selectedTeacherForModal, true)}
+                    >
+                      <i className="fa-solid fa-pen-to-square me-1"></i> সম্পাদনা করুন
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => {
+                        setSelectedTeacherForModal(null);
+                        setIsEditingTeacherModal(false);
+                      }}
+                    >
+                      বন্ধ করুন
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

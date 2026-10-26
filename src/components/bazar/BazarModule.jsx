@@ -25,14 +25,72 @@ export const BazarModule = ({ defaultView = 'weekly-create' }) => {
     accounts,
     receivers,
     weeklyBazar,
+    setWeeklyBazar,
     monthlyBazar,
+    setMonthlyBazar,
     addWeeklyBazarRecord,
     addMonthlyBazarRecord,
     setSelectedReceiptForPrint,
-    depositCategories
+    depositCategories,
+    showToast
   } = useApp();
 
   const [activeView, setActiveView] = useState(defaultView);
+
+  // Edit Bazar State & Handlers
+  const [editingBazar, setEditingBazar] = useState(null);
+  const [editingBazarType, setEditingBazarType] = useState('weekly');
+  const [editBazarForm, setEditBazarForm] = useState({
+    date: '',
+    buyer: '',
+    totalAmount: '',
+    note: '',
+    itemsSummary: ''
+  });
+
+  const handleOpenEditBazar = (item, type) => {
+    setEditingBazar(item);
+    setEditingBazarType(type);
+    setEditBazarForm({
+      date: item.date || new Date().toISOString().split('T')[0],
+      buyer: item.buyer || item.receiver || 'হাফেজ আযম নূর',
+      totalAmount: item.totalAmount || '',
+      note: item.note || '',
+      itemsSummary: formatBazarItems(item)
+    });
+  };
+
+  const handleSaveBazarEdit = (e) => {
+    e.preventDefault();
+    if (!editingBazar) return;
+    const updated = {
+      ...editingBazar,
+      date: editBazarForm.date,
+      buyer: editBazarForm.buyer,
+      receiver: editBazarForm.buyer,
+      totalAmount: parseFloat(editBazarForm.totalAmount) || editingBazar.totalAmount,
+      note: editBazarForm.note,
+      itemsSummary: editBazarForm.itemsSummary
+    };
+    if (editingBazarType === 'weekly') {
+      setWeeklyBazar(prev => prev.map(b => b.id === editingBazar.id ? updated : b));
+    } else {
+      setMonthlyBazar(prev => prev.map(b => b.id === editingBazar.id ? updated : b));
+    }
+    setEditingBazar(null);
+    if (showToast) showToast('বাজার খরচের তথ্য সফলভাবে আপডেট হয়েছে!');
+  };
+
+  const handleDeleteBazar = (id, type) => {
+    if (window.confirm('আপনি কি নিশ্চিতভাবে এই বাজার রেকর্ডটি মুছে ফেলতে চান?')) {
+      if (type === 'weekly') {
+        setWeeklyBazar(prev => prev.filter(b => b.id !== id));
+      } else {
+        setMonthlyBazar(prev => prev.filter(b => b.id !== id));
+      }
+      if (showToast) showToast('বাজার রেকর্ড মুছে ফেলা হয়েছে!');
+    }
+  };
 
   // Weekly Create Form matching /admin/weeklymarket/create
   const [weeklyForm, setWeeklyForm] = useState({
@@ -631,12 +689,22 @@ export const BazarModule = ({ defaultView = 'weekly-create' }) => {
                           </button>
                         </td>
                         <td className="text-center">
-                          <button
-                            onClick={() => setSelectedReceiptForPrint(item)}
-                            className="btn btn-sm btn-secondary"
-                          >
-                            <i className="fa-solid fa-eye"></i>
-                          </button>
+                          <div className="d-flex justify-content-center gap-1">
+                            <button
+                              onClick={() => handleOpenEditBazar(item, 'weekly')}
+                              className="btn btn-sm btn-primary"
+                              title="এডিট"
+                            >
+                              <i className="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteBazar(item.id, 'weekly')}
+                              className="btn btn-sm btn-danger delete-btn"
+                              title="মুছে ফেলুন"
+                            >
+                              <i className="fa-solid fa-trash"></i>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -1036,12 +1104,22 @@ export const BazarModule = ({ defaultView = 'weekly-create' }) => {
                           </button>
                         </td>
                         <td className="text-center">
-                          <button
-                            onClick={() => setSelectedReceiptForPrint(item)}
-                            className="btn btn-sm btn-secondary"
-                          >
-                            <i className="fa-solid fa-eye"></i>
-                          </button>
+                          <div className="d-flex justify-content-center gap-1">
+                            <button
+                              onClick={() => handleOpenEditBazar(item, 'monthly')}
+                              className="btn btn-sm btn-primary"
+                              title="এডিট"
+                            >
+                              <i className="fa-solid fa-pen-to-square"></i>
+                            </button>
+                            <button
+                              onClick={() => handleDeleteBazar(item.id, 'monthly')}
+                              className="btn btn-sm btn-danger delete-btn"
+                              title="মুছে ফেলুন"
+                            >
+                              <i className="fa-solid fa-trash"></i>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -1049,6 +1127,102 @@ export const BazarModule = ({ defaultView = 'weekly-create' }) => {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Bazar Modal */}
+      {editingBazar && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+          <div className="modal-dialog modal-lg">
+            <form onSubmit={handleSaveBazarEdit} className="modal-content border-0 shadow">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="fa-solid fa-pen-to-square me-2"></i>
+                  {editingBazarType === 'weekly' ? 'সাপ্তাহিক' : 'মাসিক'} বাজার খরচের তথ্য সম্পাদন
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setEditingBazar(null)}
+                ></button>
+              </div>
+
+              <div className="modal-body p-4">
+                <div className="alert alert-light border mb-4">
+                  <strong>ভাউচার নং:</strong> <span className="font-monospace text-primary fw-bold">{editingBazar.voucherNo || 'BAZ-001'}</span>
+                </div>
+
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">তারিখ <span className="text-danger">*</span></label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={editBazarForm.date}
+                      onChange={(e) => setEditBazarForm({ ...editBazarForm, date: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">ক্রেতা / গ্রহণকারী <span className="text-danger">*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editBazarForm.buyer}
+                      onChange={(e) => setEditBazarForm({ ...editBazarForm, buyer: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">মোট খরচ (টাকা) <span className="text-danger">*</span></label>
+                    <input
+                      type="number"
+                      className="form-control font-monospace fw-bold text-danger fs-5"
+                      value={editBazarForm.totalAmount}
+                      onChange={(e) => setEditBazarForm({ ...editBazarForm, totalAmount: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">পণ্যের বিবরণী</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editBazarForm.itemsSummary}
+                      onChange={(e) => setEditBazarForm({ ...editBazarForm, itemsSummary: e.target.value })}
+                      placeholder="যেমন: চাল, ডাল, তেল"
+                    />
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label fw-bold">মন্তব্য / নোট</label>
+                    <textarea
+                      className="form-control"
+                      rows="2"
+                      value={editBazarForm.note}
+                      onChange={(e) => setEditBazarForm({ ...editBazarForm, note: e.target.value })}
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setEditingBazar(null)}
+                >
+                  বাতিল
+                </button>
+                <button type="submit" className="btn btn-primary fw-bold">
+                  <i className="fa-solid fa-save me-1"></i> আপডেট করুন
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

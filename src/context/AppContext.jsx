@@ -33,20 +33,46 @@ export function pathnameToTab(pathname) {
   // Admin and classic routes mapping
   if (clean === 'admin/student/create' || clean === 'student/create') return 'student-create';
   if (clean === 'admin/student' || clean === 'admin/student/list' || clean === 'student/list') return 'student-list';
-  if (clean === 'admin/student-by-class') return 'jamat-grid';
-  if (clean === 'admin/student-admission-report') return 'student-admission-report';
-  if (clean === 'admin/student-admission-register') return 'student-admission-register';
-  if (clean === 'admin/student-blood-group') return 'student-bloodgroup';
-  if (clean === 'admin/student-parents-number') return 'student-parents-number';
-  if (clean === 'admin/khuraki-deposit-entry') return 'student-khuraki-entry';
-  if (clean === 'admin/khuraki-deposit-list') return 'student-khuraki-list';
-  if (clean === 'admin/khuraki-collection-register') return 'student-khuraki-register';
-  if (clean === 'admin/salary-deposit-entry') return 'student-salary-entry';
-  if (clean === 'admin/salary-deposit-list') return 'student-salary-list';
-  if (clean === 'admin/salary-collection-register') return 'student-salary-register';
+  if (clean === 'admin/student-by-class' || clean === 'admin/student/by/jamat') return 'jamat-grid';
+  if (clean === 'admin/student-admission-report' || clean === 'admin/student/admission/report/by/jamat') return 'student-admission-report';
+  if (clean === 'admin/student-admission-register' || clean === 'admin/student/admission/register/by/jamat') return 'student-admission-register';
+  if (clean === 'admin/student-blood-group' || clean === 'admin/student/bloodgroup') return 'student-bloodgroup';
+  if (clean === 'admin/student-parents-number' || clean === 'admin/student/parents/number/by/jamat') return 'student-parents-number';
+  if (clean === 'admin/khuraki-deposit-entry' || clean === 'admin/student/deposit/entry') return 'student-khuraki-entry';
+  if (clean === 'admin/khuraki-deposit-list' || clean === 'admin/student/deposit/list') return 'student-khuraki-list';
+  if (clean === 'admin/khuraki-collection-register' || clean === 'admin/student/deposit/register') return 'student-khuraki-register';
+  if (clean === 'admin/salary-deposit-entry' || clean === 'admin/student/salary/payment') return 'student-salary-entry';
+  if (clean === 'admin/salary-deposit-list' || clean === 'admin/student/salary/payment/list') return 'student-salary-list';
+  if (clean === 'admin/salary-collection-register' || clean === 'admin/student/salary/payment/register') return 'student-salary-register';
+  if (clean === 'admin/student/admission/form') return 'student-admission-form';
+  if (clean === 'admin/student/prottoyon/potro') return 'student-prottoyon';
+  if (clean === 'admin/student/certificate') return 'student-certificate';
+
+  // Teacher routes
   if (clean === 'admin/teacher/create' || clean === 'teacher/create') return 'teacher-create';
   if (clean === 'admin/teacher' || clean === 'teacher/list') return 'teacher-list';
-  if (clean === 'admin/monthly-donor') return 'contributor-list';
+  if (clean === 'admin/teacher/number') return 'teacher-number';
+  if (clean === 'admin/teacher/salary/sheet') return 'teacher-salary-sheet';
+  if (clean === 'admin/teacher/salary/day') return 'teacher-salary-day';
+  if (clean === 'admin/teacher/salary/list') return 'teacher-salary-list';
+
+  // Monthly Donor / Contributor routes
+  if (clean === 'admin/contributor' || clean === 'admin/monthly-donor') return 'contributor-list';
+  if (clean === 'admin/contributor/monthly/subscription/add') return 'contributor-add';
+  if (clean === 'admin/contributor/monthly/individual/contributor/list') return 'contributor-individual';
+  if (clean === 'admin/contributor/monthly/contributors/list') return 'contributor-all';
+  if (clean === 'admin/contributor/monthly/contribution/list') return 'contributor-history';
+
+  // Settings routes
+  if (clean === 'admin/settings' || clean === 'admin/settings/institute/info') return 'settings-institute';
+  if (clean === 'admin/settings/jamat/create') return 'settings-jamat';
+  if (clean === 'admin/settings/payment/create') return 'settings-payment';
+  if (clean === 'admin/settings/deposit/category/create') return 'settings-deposit-cat';
+  if (clean === 'admin/settings/expense/category/create') return 'settings-expense-cat';
+  if (clean === 'admin/settings/receiver') return 'settings-receiver';
+  if (clean === 'admin/settings/role') return 'settings-role';
+  if (clean === 'admin/settings/user') return 'settings-user';
+
   if (clean === 'admin/donor') return 'donor-list';
   if (clean === 'admin/zakat-donor') return 'zakat-donor-list';
   if (clean === 'admin/bazar') return 'bazar-weekly-create';
@@ -59,7 +85,6 @@ export function pathnameToTab(pathname) {
   if (clean === 'admin/sms') return 'sms-student';
   if (clean === 'admin/account') return 'account-list';
   if (clean === 'admin/report') return 'report-deposit';
-  if (clean === 'admin/settings') return 'settings-institute';
   if (clean === 'admin/login' || clean === 'login') return 'login';
   if (clean === 'admin/register' || clean === 'register' || clean === 'signup') return 'register';
 
@@ -238,6 +263,43 @@ export const AppProvider = ({ children, initialSlug }) => {
       return saved ? JSON.parse(saved) : INITIAL_SALARY_PAYMENTS;
     } catch {
       return INITIAL_SALARY_PAYMENTS;
+    }
+  });
+
+  const [receivers, setReceivers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('madrasha_receivers');
+      return saved ? JSON.parse(saved) : RECEIVERS;
+    } catch {
+      return RECEIVERS;
+    }
+  });
+
+  const [paymentMethods, setPaymentMethods] = useState(() => {
+    try {
+      const saved = localStorage.getItem('madrasha_payment_methods');
+      return saved ? JSON.parse(saved) : ['নগদ (Cash)', 'বিকাশ (bKash)', 'ব্যাংক একাউন্ট', 'রকেট (Rocket)'];
+    } catch {
+      return ['নগদ (Cash)', 'বিকাশ (bKash)', 'ব্যাংক একাউন্ট', 'রকেট (Rocket)'];
+    }
+  });
+
+  const [roles, setRoles] = useState(() => {
+    try {
+      const saved = localStorage.getItem('madrasha_roles');
+      return saved ? JSON.parse(saved) : [
+        { id: 1, name: 'Super Admin', desc: 'মাদ্রাসার সমস্ত মডিউল, সেটিংস ও আর্থিক ডেটাতে পূর্ণ নিয়ন্ত্রণ' },
+        { id: 2, name: 'Accountant / Cashier', desc: 'ভাউচার এন্ট্রি, ফি কালেকশন ও রিপোর্ট দেখার অনুমতি' },
+        { id: 3, name: 'Teacher', desc: 'হাজিরা গ্রহণ এবং পরীক্ষা নম্বর এন্ট্রি করার অনুমতি' },
+        { id: 4, name: 'Staff', desc: 'শুধুমাত্র নির্ধারিত ডেটা এন্ট্রি করার অনুমতি' }
+      ];
+    } catch {
+      return [
+        { id: 1, name: 'Super Admin', desc: 'মাদ্রাসার সমস্ত মডিউল, সেটিংস ও আর্থিক ডেটাতে পূর্ণ নিয়ন্ত্রণ' },
+        { id: 2, name: 'Accountant / Cashier', desc: 'ভাউচার এন্ট্রি, ফি কালেকশন ও রিপোর্ট দেখার অনুমতি' },
+        { id: 3, name: 'Teacher', desc: 'হাজিরা গ্রহণ এবং পরীক্ষা নম্বর এন্ট্রি করার অনুমতি' },
+        { id: 4, name: 'Staff', desc: 'শুধুমাত্র নির্ধারিত ডেটা এন্ট্রি করার অনুমতি' }
+      ];
     }
   });
 
@@ -473,6 +535,18 @@ export const AppProvider = ({ children, initialSlug }) => {
   useEffect(() => {
     try { localStorage.setItem('madrasha_users', JSON.stringify(users)); } catch {}
   }, [users]);
+
+  useEffect(() => {
+    try { localStorage.setItem('madrasha_receivers', JSON.stringify(receivers)); } catch {}
+  }, [receivers]);
+
+  useEffect(() => {
+    try { localStorage.setItem('madrasha_payment_methods', JSON.stringify(paymentMethods)); } catch {}
+  }, [paymentMethods]);
+
+  useEffect(() => {
+    try { localStorage.setItem('madrasha_roles', JSON.stringify(roles)); } catch {}
+  }, [roles]);
 
   // Synchronize server-side JWT session on boot
   useEffect(() => {
@@ -1043,6 +1117,18 @@ export const AppProvider = ({ children, initialSlug }) => {
       ...khurakiData,
       amount
     };
+    if (khurakiData.studentId) {
+      setStudents(prev => prev.map(s => {
+        if (s.id === khurakiData.studentId) {
+          const updatedFees = { ...(s.fees || {}) };
+          const existing = updatedFees[khurakiData.month] || {};
+          updatedFees[khurakiData.month] = { ...existing, khuraki: amount, paid: true, date: khurakiData.date };
+          return { ...s, fees: updatedFees };
+        }
+        return s;
+      }));
+    }
+
     setKhurakiPayments(prev => [newRecord, ...prev]);
     showToast(`খানার টাকা (${khurakiData.studentName} - ৳${amount}) সফলভাবে জমা হয়েছে!`);
     return vch;
@@ -1069,7 +1155,8 @@ export const AppProvider = ({ children, initialSlug }) => {
       setStudents(prev => prev.map(s => {
         if (s.id === feeData.studentId) {
           const updatedFees = { ...(s.fees || {}) };
-          updatedFees[feeData.month] = { paid: true, amount };
+          const existing = updatedFees[feeData.month] || {};
+          updatedFees[feeData.month] = { ...existing, tuition: amount, paid: true, date: feeData.date };
           return { ...s, fees: updatedFees };
         }
         return s;
@@ -1085,6 +1172,202 @@ export const AppProvider = ({ children, initialSlug }) => {
     setStudentSalaryPayments(prev => [newRecord, ...prev]);
     showToast(`মাসিক বেতন (${feeData.studentName} - ৳${amount}) সফলভাবে জমা হয়েছে!`);
     return vch;
+  };
+
+  // Teacher Update & Delete
+  const updateTeacher = (id, teacherData) => {
+    setTeachers(prev => prev.map(t => (t.id === id ? { ...t, ...teacherData } : t)));
+    showToast('শিক্ষকের তথ্য সফলভাবে আপডেট হয়েছে!');
+  };
+
+  const deleteTeacher = (id) => {
+    setTeachers(prev => prev.filter(t => t.id !== id));
+    showToast('শিক্ষক মুছে ফেলা হয়েছে!');
+  };
+
+  // Teacher Salary Payment Update & Delete
+  const updateTeacherSalaryPayment = (id, salaryData) => {
+    setTeacherSalaryPayments(prev => prev.map(p => (p.id === id ? { ...p, ...salaryData } : p)));
+    showToast('শিক্ষকের বেতন প্রদানের তথ্য আপডেট হয়েছে!');
+  };
+
+  const deleteTeacherSalaryPayment = (id) => {
+    setTeacherSalaryPayments(prev => prev.filter(p => p.id !== id));
+    showToast('শিক্ষকের বেতন প্রদানের রেকর্ড মুছে ফেলা হয়েছে!');
+  };
+
+  // Contributor Update & Delete
+  const updateContributor = (id, contributorData) => {
+    setContributors(prev => prev.map(c => (c.id === id ? { ...c, ...contributorData } : c)));
+    showToast('চাঁদাদাতার তথ্য সফলভাবে আপডেট হয়েছে!');
+  };
+
+  const deleteContributor = (id) => {
+    setContributors(prev => prev.filter(c => c.id !== id));
+    showToast('চাঁদাদাতা মুছে ফেলা হয়েছে!');
+  };
+
+  // Donor Update & Delete
+  const updateDonor = (id, donorData) => {
+    setDonors(prev => prev.map(d => (d.id === id ? { ...d, ...donorData } : d)));
+    showToast('দানকারীর তথ্য আপডেট হয়েছে!');
+  };
+
+  const deleteDonor = (id) => {
+    setDonors(prev => prev.filter(d => d.id !== id));
+    showToast('দানকারী মুছে ফেলা হয়েছে!');
+  };
+
+  // Zakat Donor Update & Delete
+  const updateZakatDonor = (id, zakatData) => {
+    setZakatDonors(prev => prev.map(z => (z.id === id ? { ...z, ...zakatData } : z)));
+    showToast('যাকাত দানকারীর তথ্য আপডেট হয়েছে!');
+  };
+
+  const deleteZakatDonor = (id) => {
+    setZakatDonors(prev => prev.filter(z => z.id !== id));
+    showToast('যাকাত দানকারী মুছে ফেলা হয়েছে!');
+  };
+
+  // Jamat CRUD
+  const addJamat = (name) => {
+    if (!name || !name.trim()) return;
+    const newJamat = {
+      id: `jamat-${Date.now()}`,
+      name: name.trim(),
+      count: 0,
+      color: "bg-emerald-50 text-emerald-700 border-emerald-200"
+    };
+    setJamats(prev => [...prev, newJamat]);
+    showToast(`নতুন জামাত "${newJamat.name}" সফলভাবে যুক্ত হয়েছে!`);
+    return newJamat;
+  };
+
+  const updateJamat = (id, newName) => {
+    if (!newName || !newName.trim()) return;
+    setJamats(prev => prev.map(j => (j.id === id ? { ...j, name: newName.trim() } : j)));
+    showToast('জামাতের তথ্য সফলভাবে আপডেট হয়েছে!');
+  };
+
+  const deleteJamat = (id) => {
+    setJamats(prev => prev.filter(j => j.id !== id));
+    showToast('জামাত মুছে ফেলা হয়েছে!');
+  };
+
+  // Deposit Category CRUD
+  const addDepositCategory = (name) => {
+    if (!name || !name.trim()) return;
+    const clean = name.trim();
+    if (!depositCategories.includes(clean)) {
+      setDepositCategories(prev => [...prev, clean]);
+      showToast(`নতুন জমার খাত "${clean}" যুক্ত হয়েছে!`);
+    }
+  };
+
+  const updateDepositCategory = (oldName, newName) => {
+    if (!newName || !newName.trim()) return;
+    setDepositCategories(prev => prev.map(c => (c === oldName ? newName.trim() : c)));
+    showToast('জমার খাত সফলভাবে আপডেট হয়েছে!');
+  };
+
+  const deleteDepositCategory = (name) => {
+    setDepositCategories(prev => prev.filter(c => c !== name));
+    showToast('জমার খাত মুছে ফেলা হয়েছে!');
+  };
+
+  // Expense Category CRUD
+  const addExpenseCategory = (name) => {
+    if (!name || !name.trim()) return;
+    const clean = name.trim();
+    if (!expenseCategories.includes(clean)) {
+      setExpenseCategories(prev => [...prev, clean]);
+      showToast(`নতুন খরচের খাত "${clean}" যুক্ত হয়েছে!`);
+    }
+  };
+
+  const updateExpenseCategory = (oldName, newName) => {
+    if (!newName || !newName.trim()) return;
+    setExpenseCategories(prev => prev.map(c => (c === oldName ? newName.trim() : c)));
+    showToast('খরচের খাত সফলভাবে আপডেট হয়েছে!');
+  };
+
+  const deleteExpenseCategory = (name) => {
+    setExpenseCategories(prev => prev.filter(c => c !== name));
+    showToast('খরচের খাত মুছে ফেলা হয়েছে!');
+  };
+
+  // Payment Method CRUD
+  const addPaymentMethod = (name) => {
+    if (!name || !name.trim()) return;
+    const clean = name.trim();
+    if (!paymentMethods.includes(clean)) {
+      setPaymentMethods(prev => [...prev, clean]);
+      showToast(`নতুন পেমেন্ট মেথড "${clean}" যুক্ত হয়েছে!`);
+    }
+  };
+
+  const updatePaymentMethod = (oldName, newName) => {
+    if (!newName || !newName.trim()) return;
+    setPaymentMethods(prev => prev.map(p => (p === oldName ? newName.trim() : p)));
+    showToast('পেমেন্ট মেথড আপডেট হয়েছে!');
+  };
+
+  const deletePaymentMethod = (name) => {
+    setPaymentMethods(prev => prev.filter(p => p !== name));
+    showToast('পেমেন্ট মেথড মুছে ফেলা হয়েছে!');
+  };
+
+  // Receiver CRUD
+  const addReceiver = (receiverData) => {
+    const newRec = {
+      id: `rec-${Date.now()}`,
+      ...receiverData
+    };
+    setReceivers(prev => [...prev, newRec]);
+    showToast(`নতুন গ্রহণকারী "${newRec.name}" যুক্ত হয়েছে!`);
+    return newRec;
+  };
+
+  const updateReceiver = (id, updatedData) => {
+    setReceivers(prev => prev.map(r => (r.id === id ? { ...r, ...updatedData } : r)));
+    showToast('গ্রহণকারীর তথ্য আপডেট হয়েছে!');
+  };
+
+  const deleteReceiver = (id) => {
+    setReceivers(prev => prev.filter(r => r.id !== id));
+    showToast('গ্রহণকারী মুছে ফেলা হয়েছে!');
+  };
+
+  // Role CRUD
+  const addRole = (roleData) => {
+    const newRole = {
+      id: roles.length + 1,
+      ...roleData
+    };
+    setRoles(prev => [...prev, newRole]);
+    showToast(`নতুন রোল "${newRole.name}" যুক্ত হয়েছে!`);
+    return newRole;
+  };
+
+  const updateRole = (id, updatedData) => {
+    setRoles(prev => prev.map(r => (r.id === id ? { ...r, ...updatedData } : r)));
+    showToast('রোলের তথ্য আপডেট হয়েছে!');
+  };
+
+  const deleteRole = (id) => {
+    setRoles(prev => prev.filter(r => r.id !== id));
+    showToast('রোল মুছে ফেলা হয়েছে!');
+  };
+
+  // User Update & Delete
+  const updateUser = (id, updatedData) => {
+    setUsers(prev => prev.map(u => (u.id === id ? { ...u, ...updatedData } : u)));
+    showToast('ইউজার তথ্য সফলভাবে আপডেট হয়েছে!');
+  };
+
+  const deleteUser = (id) => {
+    setUsers(prev => prev.filter(u => u.id !== id));
+    showToast('ইউজার মুছে ফেলা হয়েছে!');
   };
 
   // ==========================================
@@ -1429,15 +1712,24 @@ export const AppProvider = ({ children, initialSlug }) => {
         sendSms,
         rechargeSmsBalance,
         addTeacher,
+        updateTeacher,
+        deleteTeacher,
         addContributor,
+        updateContributor,
+        deleteContributor,
         addSubscriptionPayment,
         addDonor,
+        updateDonor,
+        deleteDonor,
         addDonationRecord,
         addZakatDonor,
-        addZakatPayment,
+        updateZakatDonor,
+        deleteZakatDonor,
         addWeeklyBazarRecord,
         addMonthlyBazarRecord,
         addTeacherSalaryPayment,
+        updateTeacherSalaryPayment,
+        deleteTeacherSalaryPayment,
         addKhurakiPayment,
         addStudentFeePayment,
         transferAccount,
@@ -1445,7 +1737,30 @@ export const AppProvider = ({ children, initialSlug }) => {
         totalStudentsCount,
         currentMonthDeposits,
         currentMonthExpenses,
-        receivers: RECEIVERS,
+        receivers,
+        setReceivers,
+        addReceiver,
+        updateReceiver,
+        deleteReceiver,
+        paymentMethods,
+        setPaymentMethods,
+        addPaymentMethod,
+        updatePaymentMethod,
+        deletePaymentMethod,
+        roles,
+        setRoles,
+        addRole,
+        updateRole,
+        deleteRole,
+        addJamat,
+        updateJamat,
+        deleteJamat,
+        addDepositCategory,
+        updateDepositCategory,
+        deleteDepositCategory,
+        addExpenseCategory,
+        updateExpenseCategory,
+        deleteExpenseCategory,
         users,
         setUsers,
         currentUser,
@@ -1455,7 +1770,9 @@ export const AppProvider = ({ children, initialSlug }) => {
         login,
         logout,
         registerUser,
-        addUser
+        addUser,
+        updateUser,
+        deleteUser
       }}
     >
       {children}

@@ -6,11 +6,13 @@ export const DonorModule = ({ defaultMode = 'list' }) => {
   const {
     donors,
     addDonor,
+    updateDonor,
     deleteDonor,
     addDonationRecord,
     transactions,
     accounts,
     receivers,
+    paymentMethods,
     setSelectedReceiptForPrint,
     setActiveTab
   } = useApp();
@@ -25,6 +27,29 @@ export const DonorModule = ({ defaultMode = 'list' }) => {
     mobile: '',
     address: 'চকরিয়া, কক্সবাজার',
     type: 'normal',
+    note: 'সাধারণ দান'
+  });
+
+  // Edit Donor State
+  const [editingDonor, setEditingDonor] = useState(null);
+  const [editingDonorForm, setEditingDonorForm] = useState({
+    name: '',
+    fatherName: '',
+    mobile: '',
+    address: '',
+    donationType: 'সাধারণ',
+    note: ''
+  });
+
+  // Single Quick Donation Collection Modal State
+  const [collectingDonor, setCollectingDonor] = useState(null);
+  const [singleDonationForm, setSingleDonationForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    amount: '2000',
+    account: accounts?.[0]?.name || 'নগদ ক্যাশ (Hand Cash)',
+    receiver: receivers?.[0]?.name || 'মাহমুদুল করিম',
+    bookNo: '02',
+    receiptNo: '201',
     note: 'সাধারণ দান'
   });
 
@@ -88,6 +113,70 @@ export const DonorModule = ({ defaultMode = 'list' }) => {
       type: 'normal',
       note: 'সাধারণ দান'
     });
+  };
+
+  const handleOpenEditDonor = (d) => {
+    setEditingDonor(d);
+    setEditingDonorForm({
+      name: d.name || '',
+      fatherName: d.fatherName || '',
+      mobile: d.mobile || d.phone || '',
+      address: d.address || 'চকরিয়া, কক্সবাজার',
+      donationType: d.donationType || 'সাধারণ',
+      note: d.note || ''
+    });
+  };
+
+  const handleUpdateDonorSubmit = (e) => {
+    e.preventDefault();
+    if (!editingDonor) return;
+    if (updateDonor) {
+      updateDonor(editingDonor.id, {
+        name: editingDonorForm.name,
+        fatherName: editingDonorForm.fatherName,
+        mobile: editingDonorForm.mobile,
+        address: editingDonorForm.address,
+        donationType: editingDonorForm.donationType,
+        note: editingDonorForm.note
+      });
+    }
+    setEditingDonor(null);
+  };
+
+  const handleOpenCollectModal = (d) => {
+    setCollectingDonor(d);
+    setSingleDonationForm({
+      date: new Date().toISOString().split('T')[0],
+      amount: '2000',
+      account: accounts?.[0]?.name || 'নগদ ক্যাশ (Hand Cash)',
+      receiver: receivers?.[0]?.name || 'মাহমুদুল করিম',
+      bookNo: '02',
+      receiptNo: Math.floor(100 + Math.random() * 900).toString(),
+      note: `দান গ্রহণ (${d.name})`
+    });
+  };
+
+  const handleSingleDonationSubmit = (e) => {
+    e.preventDefault();
+    if (!collectingDonor) return;
+    const amountNum = parseFloat(singleDonationForm.amount) || 0;
+
+    const receipt = addDonationRecord({
+      donorId: collectingDonor.id,
+      donorName: collectingDonor.name,
+      date: singleDonationForm.date,
+      account: singleDonationForm.account,
+      receiver: singleDonationForm.receiver,
+      bookNo: singleDonationForm.bookNo,
+      receiptNo: singleDonationForm.receiptNo,
+      amount: amountNum,
+      note: singleDonationForm.note || `সাধারণ দান (${collectingDonor.name})`
+    });
+
+    setCollectingDonor(null);
+    if (receipt && setSelectedReceiptForPrint) {
+      setSelectedReceiptForPrint(receipt);
+    }
   };
 
   const handleDonationAddSubmit = (e) => {
@@ -179,18 +268,36 @@ export const DonorModule = ({ defaultMode = 'list' }) => {
                       <td className="text-center">{d.donationType || 'সাধারণ'}</td>
                       <td>{d.note || '-'}</td>
                       <td className="text-center no-print">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (window.confirm('আপনি কি নিশ্চিতভাবে এই দানকারীকে মুছে ফেলতে চান?')) {
-                              if (deleteDonor) deleteDonor(d.id);
-                            }
-                          }}
-                          className="btn btn-sm btn-danger delete-btn"
-                          title="ডিলিট"
-                        >
-                          <i className="fa-solid fa-trash"></i>
-                        </button>
+                        <div className="d-flex justify-content-center align-items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenCollectModal(d)}
+                            className="btn btn-sm btn-success px-2 py-1 text-nowrap"
+                            title="দান গ্রহণ"
+                          >
+                            <i className="fa-solid fa-hand-holding-dollar me-1"></i> দান গ্রহণ
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditDonor(d)}
+                            className="btn btn-sm btn-primary"
+                            title="সম্পাদনা"
+                          >
+                            <i className="fa-solid fa-pen-to-square"></i>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (window.confirm('আপনি কি নিশ্চিতভাবে এই দানকারীকে মুছে ফেলতে চান?')) {
+                                if (deleteDonor) deleteDonor(d.id);
+                              }
+                            }}
+                            className="btn btn-sm btn-danger delete-btn"
+                            title="ডিলিট"
+                          >
+                            <i className="fa-solid fa-trash"></i>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -803,6 +910,233 @@ export const DonorModule = ({ defaultMode = 'list' }) => {
                 </button>
                 <button type="submit" className="btn btn-danger">
                   <i className="fa-solid fa-save me-1"></i>সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Donor Modal */}
+      {editingDonor && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+          <div className="modal-dialog modal-lg">
+            <form onSubmit={handleUpdateDonorSubmit} className="modal-content border-0 shadow">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="fa-solid fa-pen-to-square me-2"></i>দানকারীর তথ্য সম্পাদনা
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setEditingDonor(null)}
+                ></button>
+              </div>
+
+              <div className="modal-body p-4">
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold">দানকারীর নাম <span className="text-danger">*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editingDonorForm.name}
+                      onChange={(e) => setEditingDonorForm({ ...editingDonorForm, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold">পিতার নাম</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editingDonorForm.fatherName}
+                      onChange={(e) => setEditingDonorForm({ ...editingDonorForm, fatherName: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold">মোবাইল নম্বর <span className="text-danger">*</span></label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      value={editingDonorForm.mobile}
+                      onChange={(e) => setEditingDonorForm({ ...editingDonorForm, mobile: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold">দানের ধরন</label>
+                    <select
+                      className="form-select"
+                      value={editingDonorForm.donationType}
+                      onChange={(e) => setEditingDonorForm({ ...editingDonorForm, donationType: e.target.value })}
+                    >
+                      <option value="সাধারণ">সাধারণ</option>
+                      <option value="মাসিক">মাসিক</option>
+                      <option value="এককালীন">এককালীন</option>
+                      <option value="অন্যান্য">অন্যান্য</option>
+                    </select>
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label fw-semibold">ঠিকানা</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editingDonorForm.address}
+                      onChange={(e) => setEditingDonorForm({ ...editingDonorForm, address: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label fw-semibold">মন্তব্য</label>
+                    <textarea
+                      className="form-control"
+                      rows="2"
+                      value={editingDonorForm.note}
+                      onChange={(e) => setEditingDonorForm({ ...editingDonorForm, note: e.target.value })}
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setEditingDonor(null)}
+                >
+                  বাতিল
+                </button>
+                <button type="submit" className="btn btn-primary fw-bold">
+                  <i className="fa-solid fa-save me-1"></i> আপডেট করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Single Donation Collection Modal */}
+      {collectingDonor && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+          <div className="modal-dialog modal-lg">
+            <form onSubmit={handleSingleDonationSubmit} className="modal-content border-0 shadow">
+              <div className="modal-header bg-success text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="fa-solid fa-hand-holding-dollar me-2"></i>দান গ্রহণ
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setCollectingDonor(null)}
+                ></button>
+              </div>
+
+              <div className="modal-body p-4">
+                <div className="alert alert-light border mb-4">
+                  <div className="row g-2">
+                    <div className="col-md-6">
+                      <strong>দানকারীর নাম:</strong> <span className="fw-bold">{collectingDonor.name}</span>
+                    </div>
+                    <div className="col-md-6">
+                      <strong>মোবাইল:</strong> <span className="font-monospace">{collectingDonor.mobile || collectingDonor.phone}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">আদায়ের তারিখ <span className="text-danger">*</span></label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={singleDonationForm.date}
+                      onChange={(e) => setSingleDonationForm({ ...singleDonationForm, date: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">দানের পরিমাণ (টাকা) <span className="text-danger">*</span></label>
+                    <input
+                      type="number"
+                      className="form-control font-monospace fw-bold text-success fs-5"
+                      value={singleDonationForm.amount}
+                      onChange={(e) => setSingleDonationForm({ ...singleDonationForm, amount: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">এ্যাকাউন্ট <span className="text-danger">*</span></label>
+                    <select
+                      className="form-select"
+                      value={singleDonationForm.account}
+                      onChange={(e) => setSingleDonationForm({ ...singleDonationForm, account: e.target.value })}
+                      required
+                    >
+                      {accounts.map(acc => (
+                        <option key={acc.id} value={acc.name}>{acc.name} (৳ {acc.balance})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">গ্রহণকারী <span className="text-danger">*</span></label>
+                    <select
+                      className="form-select"
+                      value={singleDonationForm.receiver}
+                      onChange={(e) => setSingleDonationForm({ ...singleDonationForm, receiver: e.target.value })}
+                      required
+                    >
+                      {receivers.map(r => (
+                        <option key={r.id} value={r.name}>{r.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">বই নং</label>
+                    <input
+                      type="text"
+                      className="form-control font-monospace"
+                      value={singleDonationForm.bookNo}
+                      onChange={(e) => setSingleDonationForm({ ...singleDonationForm, bookNo: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label className="form-label fw-bold">রসিদ নং</label>
+                    <input
+                      type="text"
+                      className="form-control font-monospace"
+                      value={singleDonationForm.receiptNo}
+                      onChange={(e) => setSingleDonationForm({ ...singleDonationForm, receiptNo: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label fw-bold">মন্তব্য</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={singleDonationForm.note}
+                      onChange={(e) => setSingleDonationForm({ ...singleDonationForm, note: e.target.value })}
+                      placeholder="মন্তব্য (ঐচ্ছিক)"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setCollectingDonor(null)}
+                >
+                  বাতিল
+                </button>
+                <button type="submit" className="btn btn-success fw-bold">
+                  <i className="fa-solid fa-check me-1"></i> দান জমা করুন ও রসিদ দেখুন
                 </button>
               </div>
             </form>

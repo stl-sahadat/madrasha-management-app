@@ -97,10 +97,12 @@ export const StudentSalaryRegister = () => {
                       <td>{admissionNo}</td>
                       <td>৳ {fee}</td>
                       {MONTH_NAMES.map((m, mIdx) => {
-                        const isPaid = mIdx < 4 || (student.fees && student.fees[m]?.paid);
+                        const monthFee = student.fees?.[m];
+                        const isPaid = monthFee ? (monthFee.paid && (monthFee.tuition > 0 || monthFee.khuraki === undefined)) : (mIdx < 4 && fee > 0);
+                        const amountPaid = monthFee?.tuition || (isPaid ? fee : 0);
                         return (
-                          <td key={m} className={isPaid ? 'text-success fw-bold' : 'text-muted'}>
-                            {isPaid ? '✓' : '-'}
+                          <td key={m} className={isPaid ? 'fw-bold text-dark font-monospace' : 'text-muted'}>
+                            {isPaid ? `${amountPaid}৳` : <span className="text-muted">-</span>}
                           </td>
                         );
                       })}

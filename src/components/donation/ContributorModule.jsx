@@ -6,11 +6,13 @@ export const ContributorModule = ({ defaultMode = 'list' }) => {
   const {
     contributors,
     addContributor,
+    updateContributor,
     deleteContributor,
     addSubscriptionPayment,
     transactions,
     accounts,
     receivers,
+    paymentMethods,
     setSelectedReceiptForPrint,
     setActiveTab
   } = useApp();
@@ -25,6 +27,32 @@ export const ContributorModule = ({ defaultMode = 'list' }) => {
     mobile: '',
     address: 'বদরখালী, কক্সবাজার',
     type: 'monthly',
+    amount: '1000',
+    note: ''
+  });
+
+  // Edit Contributor Form State
+  const [editingContributor, setEditingContributor] = useState(null);
+  const [editingContributorForm, setEditingContributorForm] = useState({
+    name: '',
+    fatherName: '',
+    mobile: '',
+    address: '',
+    monthlyAmount: '1000',
+    note: ''
+  });
+
+  // Single Contributor Collection Modal State ("চাঁদা গ্রহণ")
+  const [collectingContributor, setCollectingContributor] = useState(null);
+  const [singleCollectForm, setSingleCollectForm] = useState({
+    received_date: new Date().toISOString().split('T')[0],
+    received_month: '10',
+    received_year: '2026',
+    account: accounts?.[0]?.name || 'নগদ ক্যাশ (Hand Cash)',
+    payment_method: 'cash',
+    receiver: receivers?.[0]?.name || 'হাফেজ আযম নূর',
+    book_no: '01',
+    receipt_no: '101',
     amount: '1000',
     note: ''
   });
@@ -91,6 +119,77 @@ export const ContributorModule = ({ defaultMode = 'list' }) => {
       amount: '1000',
       note: ''
     });
+  };
+
+  const handleOpenEditContributor = (c) => {
+    setEditingContributor(c);
+    setEditingContributorForm({
+      name: c.name || '',
+      fatherName: c.fatherName || '',
+      mobile: c.mobile || c.phone || '',
+      address: c.address || 'বদরখালী, কক্সবাজার',
+      monthlyAmount: c.monthlyAmount || c.amount || '1000',
+      note: c.note || ''
+    });
+  };
+
+  const handleUpdateContributorSubmit = (e) => {
+    e.preventDefault();
+    if (!editingContributor) return;
+    if (updateContributor) {
+      updateContributor(editingContributor.id, {
+        name: editingContributorForm.name,
+        fatherName: editingContributorForm.fatherName,
+        mobile: editingContributorForm.mobile,
+        address: editingContributorForm.address,
+        monthlyAmount: parseFloat(editingContributorForm.monthlyAmount) || 1000,
+        amount: parseFloat(editingContributorForm.monthlyAmount) || 1000,
+        note: editingContributorForm.note
+      });
+    }
+    setEditingContributor(null);
+  };
+
+  const handleOpenCollectModal = (c) => {
+    setCollectingContributor(c);
+    setSingleCollectForm({
+      received_date: new Date().toISOString().split('T')[0],
+      received_month: '10',
+      received_year: '2026',
+      account: accounts?.[0]?.name || 'নগদ ক্যাশ (Hand Cash)',
+      payment_method: 'cash',
+      receiver: receivers?.[0]?.name || 'হাফেজ আযম নূর',
+      book_no: '01',
+      receipt_no: Math.floor(100 + Math.random() * 900).toString(),
+      amount: c.monthlyAmount || c.amount || '1000',
+      note: `মাসিক চাঁদা গ্রহণ (${c.name})`
+    });
+  };
+
+  const handleSingleCollectSubmit = (e) => {
+    e.preventDefault();
+    if (!collectingContributor) return;
+    const monthBengali = MONTH_NAMES[parseInt(singleCollectForm.received_month, 10) - 1] || 'অক্টোবর';
+    const amountNum = parseFloat(singleCollectForm.amount) || 0;
+
+    const receipt = addSubscriptionPayment({
+      contributorId: collectingContributor.id,
+      contributorName: collectingContributor.name,
+      date: singleCollectForm.received_date,
+      month: monthBengali,
+      year: singleCollectForm.received_year,
+      account: singleCollectForm.account,
+      receiver: singleCollectForm.receiver,
+      bookNo: singleCollectForm.book_no,
+      receiptNo: singleCollectForm.receipt_no,
+      amount: amountNum,
+      note: singleCollectForm.note || `মাসিক চাঁদা গ্রহণ (${monthBengali} ${singleCollectForm.received_year})`
+    });
+
+    setCollectingContributor(null);
+    if (receipt && setSelectedReceiptForPrint) {
+      setSelectedReceiptForPrint(receipt);
+    }
   };
 
   const handleMonthlyAddSubmit = (e) => {
@@ -185,18 +284,36 @@ export const ContributorModule = ({ defaultMode = 'list' }) => {
                       <td className="text-center font-monospace fw-bold">৳ {parseFloat(c.monthlyAmount || c.amount || 1000).toLocaleString('en-IN')}</td>
                       <td>{c.note || '-'}</td>
                       <td className="text-center no-print">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (window.confirm('আপনি কি নিশ্চিতভাবে এই চাঁদাদাতাকে মুছে ফেলতে চান?')) {
-                              if (deleteContributor) deleteContributor(c.id);
-                            }
-                          }}
-                          className="btn btn-sm btn-danger delete-btn"
-                          title="ডিলিট"
-                        >
-                          <i className="fa-solid fa-trash"></i>
-                        </button>
+                        <div className="d-flex justify-content-center align-items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenCollectModal(c)}
+                            className="btn btn-sm btn-success px-2 py-1 text-nowrap"
+                            title="চাঁদা গ্রহণ"
+                          >
+                            <i className="fa-solid fa-hand-holding-dollar me-1"></i> চাঁদা গ্রহণ
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditContributor(c)}
+                            className="btn btn-sm btn-primary"
+                            title="সম্পাদনা"
+                          >
+                            <i className="fa-solid fa-pen-to-square"></i>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (window.confirm('আপনি কি নিশ্চিতভাবে এই চাঁদাদাতাকে মুছে ফেলতে চান?')) {
+                                if (deleteContributor) deleteContributor(c.id);
+                              }
+                            }}
+                            className="btn btn-sm btn-danger delete-btn"
+                            title="ডিলিট"
+                          >
+                            <i className="fa-solid fa-trash"></i>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -821,6 +938,284 @@ export const ContributorModule = ({ defaultMode = 'list' }) => {
                 </button>
                 <button type="submit" className="btn btn-danger">
                   <i className="fa-solid fa-save me-1"></i>সংরক্ষণ করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Contributor Modal */}
+      {editingContributor && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+          <div className="modal-dialog modal-lg">
+            <form onSubmit={handleUpdateContributorSubmit} className="modal-content border-0 shadow">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="fa-solid fa-pen-to-square me-2"></i>চাঁদাদাতার তথ্য সম্পাদনা করুন
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setEditingContributor(null)}
+                ></button>
+              </div>
+
+              <div className="modal-body p-4">
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold">চাঁদাদাতার নাম <span className="text-danger">*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editingContributorForm.name}
+                      onChange={(e) => setEditingContributorForm({ ...editingContributorForm, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold">পিতার নাম</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editingContributorForm.fatherName}
+                      onChange={(e) => setEditingContributorForm({ ...editingContributorForm, fatherName: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold">মোবাইল নম্বর <span className="text-danger">*</span></label>
+                    <input
+                      type="tel"
+                      className="form-control"
+                      value={editingContributorForm.mobile}
+                      onChange={(e) => setEditingContributorForm({ ...editingContributorForm, mobile: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label className="form-label fw-semibold">চাঁদার পরিমাণ (টাকা) <span className="text-danger">*</span></label>
+                    <input
+                      type="number"
+                      className="form-control font-monospace fw-bold"
+                      value={editingContributorForm.monthlyAmount}
+                      onChange={(e) => setEditingContributorForm({ ...editingContributorForm, monthlyAmount: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label fw-semibold">ঠিকানা <span className="text-danger">*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editingContributorForm.address}
+                      onChange={(e) => setEditingContributorForm({ ...editingContributorForm, address: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div className="col-12">
+                    <label className="form-label fw-semibold">মন্তব্য</label>
+                    <textarea
+                      className="form-control"
+                      rows="2"
+                      value={editingContributorForm.note}
+                      onChange={(e) => setEditingContributorForm({ ...editingContributorForm, note: e.target.value })}
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setEditingContributor(null)}
+                >
+                  বাতিল
+                </button>
+                <button type="submit" className="btn btn-primary fw-bold">
+                  <i className="fa-solid fa-save me-1"></i> আপডেট করুন
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Single Contributor Collection Modal ("চাঁদা গ্রহণ") */}
+      {collectingContributor && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+          <div className="modal-dialog modal-lg">
+            <form onSubmit={handleSingleCollectSubmit} className="modal-content border-0 shadow">
+              <div className="modal-header bg-success text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="fa-solid fa-hand-holding-dollar me-2"></i>মাসিক চাঁদা গ্রহণ
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setCollectingContributor(null)}
+                ></button>
+              </div>
+
+              <div className="modal-body p-4">
+                <div className="alert alert-light border mb-4">
+                  <div className="row g-2">
+                    <div className="col-md-4">
+                      <strong>চাঁদাদাতা:</strong> <span className="fw-bold">{collectingContributor.name}</span>
+                    </div>
+                    <div className="col-md-4">
+                      <strong>মোবাইল:</strong> <span className="font-monospace">{collectingContributor.mobile || collectingContributor.phone}</span>
+                    </div>
+                    <div className="col-md-4">
+                      <strong>নির্ধারিত চাঁদা:</strong> <span className="badge bg-success">৳ {parseFloat(collectingContributor.monthlyAmount || collectingContributor.amount || 1000).toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="row g-3">
+                  <div className="col-md-4">
+                    <label className="form-label fw-bold">আদায়ের তারিখ <span className="text-danger">*</span></label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={singleCollectForm.received_date}
+                      onChange={(e) => setSingleCollectForm({ ...singleCollectForm, received_date: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-4">
+                    <label className="form-label fw-bold">কোন মাসে দিচ্ছে <span className="text-danger">*</span></label>
+                    <select
+                      className="form-select"
+                      value={singleCollectForm.received_month}
+                      onChange={(e) => setSingleCollectForm({ ...singleCollectForm, received_month: e.target.value })}
+                      required
+                    >
+                      <option value="1">জানুয়ারি</option>
+                      <option value="2">ফেব্রুয়ারি</option>
+                      <option value="3">মার্চ</option>
+                      <option value="4">এপ্রিল</option>
+                      <option value="5">মে</option>
+                      <option value="6">জুন</option>
+                      <option value="7">জুলাই</option>
+                      <option value="8">অগাস্ট</option>
+                      <option value="9">সেপ্টেম্বর</option>
+                      <option value="10">অক্টোবর</option>
+                      <option value="11">নভেম্বর</option>
+                      <option value="12">ডিসেম্বর</option>
+                    </select>
+                  </div>
+
+                  <div className="col-md-4">
+                    <label className="form-label fw-bold">সাল <span className="text-danger">*</span></label>
+                    <select
+                      className="form-select"
+                      value={singleCollectForm.received_year}
+                      onChange={(e) => setSingleCollectForm({ ...singleCollectForm, received_year: e.target.value })}
+                      required
+                    >
+                      <option value="2026">2026</option>
+                      <option value="2025">2025</option>
+                      <option value="2024">2024</option>
+                    </select>
+                  </div>
+
+                  <div className="col-md-4">
+                    <label className="form-label fw-bold">চাঁদার পরিমাণ (টাকা) <span className="text-danger">*</span></label>
+                    <input
+                      type="number"
+                      className="form-control font-monospace fw-bold text-success fs-5"
+                      value={singleCollectForm.amount}
+                      onChange={(e) => setSingleCollectForm({ ...singleCollectForm, amount: e.target.value })}
+                      required
+                    />
+                  </div>
+
+                  <div className="col-md-4">
+                    <label className="form-label fw-bold">এ্যাকাউন্ট <span className="text-danger">*</span></label>
+                    <select
+                      className="form-select"
+                      value={singleCollectForm.account}
+                      onChange={(e) => setSingleCollectForm({ ...singleCollectForm, account: e.target.value })}
+                      required
+                    >
+                      {accounts.map(acc => (
+                        <option key={acc.id} value={acc.name}>{acc.name} (৳ {acc.balance})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-md-4">
+                    <label className="form-label fw-bold">পেমেন্ট মেথড</label>
+                    <select
+                      className="form-select"
+                      value={singleCollectForm.payment_method}
+                      onChange={(e) => setSingleCollectForm({ ...singleCollectForm, payment_method: e.target.value })}
+                    >
+                      <option value="cash">নগদ (Cash)</option>
+                      <option value="bkash">বিকাশ (bKash)</option>
+                      <option value="bank">ব্যাংক (Bank)</option>
+                    </select>
+                  </div>
+
+                  <div className="col-md-4">
+                    <label className="form-label fw-bold">বই নং</label>
+                    <input
+                      type="text"
+                      className="form-control font-monospace"
+                      value={singleCollectForm.book_no}
+                      onChange={(e) => setSingleCollectForm({ ...singleCollectForm, book_no: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="col-md-4">
+                    <label className="form-label fw-bold">রসিদ নং</label>
+                    <input
+                      type="text"
+                      className="form-control font-monospace"
+                      value={singleCollectForm.receipt_no}
+                      onChange={(e) => setSingleCollectForm({ ...singleCollectForm, receipt_no: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="col-md-4">
+                    <label className="form-label fw-bold">গ্রহণকারী <span className="text-danger">*</span></label>
+                    <select
+                      className="form-select"
+                      value={singleCollectForm.receiver}
+                      onChange={(e) => setSingleCollectForm({ ...singleCollectForm, receiver: e.target.value })}
+                      required
+                    >
+                      {receivers.map(r => (
+                        <option key={r.id} value={r.name}>{r.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="col-12">
+                    <label className="form-label fw-bold">মন্তব্য</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={singleCollectForm.note}
+                      onChange={(e) => setSingleCollectForm({ ...singleCollectForm, note: e.target.value })}
+                      placeholder="মন্তব্য (ঐচ্ছিক)"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setCollectingContributor(null)}
+                >
+                  বাতিল
+                </button>
+                <button type="submit" className="btn btn-success fw-bold">
+                  <i className="fa-solid fa-check me-1"></i> চাঁদা জমা করুন ও রসিদ দেখুন
                 </button>
               </div>
             </form>

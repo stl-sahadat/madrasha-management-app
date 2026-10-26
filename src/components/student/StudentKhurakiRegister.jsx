@@ -100,11 +100,12 @@ export const StudentKhurakiRegister = () => {
                       <td>৳ {rate}</td>
                       <td>{res}</td>
                       {MONTH_NAMES.map((m, mIdx) => {
-                        // Demo paid marks for previous months
-                        const isPaid = mIdx < 3 || (student.fees && student.fees[m]?.paid);
+                        const monthFee = student.fees?.[m];
+                        const isPaid = monthFee ? (monthFee.paid && (monthFee.khuraki > 0 || monthFee.tuition === undefined)) : (mIdx < 3 && rate > 0);
+                        const amountPaid = monthFee?.khuraki || (isPaid ? rate : 0);
                         return (
-                          <td key={m} className={isPaid ? 'text-success fw-bold' : 'text-muted'}>
-                            {isPaid ? '✓' : '-'}
+                          <td key={m} className={isPaid ? 'fw-bold text-dark font-monospace' : 'text-muted'}>
+                            {isPaid ? `${amountPaid}৳` : <span className="text-muted">-</span>}
                           </td>
                         );
                       })}

@@ -18796,7 +18796,8 @@ export const INITIAL_TEACHERS = [
     salary: 22000,
     joiningDate: "2008-03-01",
     status: "কর্মরত",
-    qualification: "দাওরায়ে হাদিস (মাস্টার্স)"
+    qualification: "দাওরায়ে হাদিস (মাস্টার্স)",
+    photo: "/storage/teachers/w4VIRK4VVwP31z1S0tC2ralZnX6xbXswNIgeLN8A.jpg"
   },
   {
     id: "TCH-002",
@@ -18808,7 +18809,8 @@ export const INITIAL_TEACHERS = [
     salary: 18000,
     joiningDate: "2012-05-15",
     status: "কর্মরত",
-    qualification: "হাফেজে কুরআন, কামিল"
+    qualification: "হাফেজে কুরআন, কামিল",
+    photo: "/storage/teachers/eXUAuPhreXk0tOWTeviLX2y8J6SwvMJJnSh4Mj85.jpg"
   },
   {
     id: "TCH-003",
@@ -18820,7 +18822,8 @@ export const INITIAL_TEACHERS = [
     salary: 15000,
     joiningDate: "2016-08-01",
     status: "কর্মরত",
-    qualification: "ফাযিল, ক্বারী"
+    qualification: "ফাযিল, ক্বারী",
+    photo: "/storage/teachers/w4VIRK4VVwP31z1S0tC2ralZnX6xbXswNIgeLN8A.jpg"
   },
   {
     id: "TCH-004",
@@ -18832,7 +18835,8 @@ export const INITIAL_TEACHERS = [
     salary: 13500,
     joiningDate: "2019-01-10",
     status: "কর্মরত",
-    qualification: "কামিল (হাদিস)"
+    qualification: "কামিল (হাদিস)",
+    photo: "/storage/teachers/eXUAuPhreXk0tOWTeviLX2y8J6SwvMJJnSh4Mj85.jpg"
   },
   {
     id: "TCH-005",
@@ -18844,7 +18848,8 @@ export const INITIAL_TEACHERS = [
     salary: 14000,
     joiningDate: "2021-02-01",
     status: "কর্মরত",
-    qualification: "হিফজুল কুরআন ও তাজবীদ"
+    qualification: "হিফজুল কুরআন ও তাজবীদ",
+    photo: "/storage/teachers/w4VIRK4VVwP31z1S0tC2ralZnX6xbXswNIgeLN8A.jpg"
   }
 ];
 

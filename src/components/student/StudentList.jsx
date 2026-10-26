@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 
 export const StudentList = () => {
-  const { students, jamats, deleteStudent, setActiveTab } = useApp();
+  const { students, jamats, deleteStudent, updateStudent, setActiveTab } = useApp();
 
   const [searchAdmission, setSearchAdmission] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
@@ -138,10 +138,11 @@ export const StudentList = () => {
                           <div className="d-flex justify-content-center">
                             <div className="text-center">
                               <img
-                                src={student.photo || '/students/FB_IMG_1791220812856.webp'}
+                                src={student.photo || '/storage/students/default-student.jpg'}
                                 alt={student.name}
                                 className="img-thumbnail mb-2"
                                 style={{ width: '80px', height: '80px', objectFit: 'cover' }}
+                                onError={(e) => { e.target.src = '/storage/students/default-student.jpg'; }}
                               />
                               <label
                                 htmlFor={`photo-upload-${student.id}`}
@@ -160,8 +161,7 @@ export const StudentList = () => {
                                   if (file) {
                                     const reader = new FileReader();
                                     reader.onload = (ev) => {
-                                      student.photo = ev.target.result;
-                                      alert('ছবি সফলভাবে আপডেট হয়েছে');
+                                      updateStudent(student.id, { photo: ev.target.result });
                                     };
                                     reader.readAsDataURL(file);
                                   }

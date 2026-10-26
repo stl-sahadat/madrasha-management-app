@@ -6,170 +6,164 @@ export const SettingsModule = ({ initialTab = 'institute' }) => {
     profile,
     setProfile,
     depositCategories,
-    setDepositCategories,
+    addDepositCategory,
+    updateDepositCategory,
+    deleteDepositCategory,
     expenseCategories,
-    setExpenseCategories,
+    addExpenseCategory,
+    updateExpenseCategory,
+    deleteExpenseCategory,
     jamats,
-    setJamats,
-    accounts,
+    addJamat,
+    updateJamat,
+    deleteJamat,
+    paymentMethods,
+    addPaymentMethod,
+    updatePaymentMethod,
+    deletePaymentMethod,
     receivers,
-    setReceivers,
-    showToast,
+    addReceiver,
+    updateReceiver,
+    deleteReceiver,
+    roles,
+    addRole,
+    updateRole,
+    deleteRole,
     users,
-    addUser
+    addUser,
+    updateUser,
+    deleteUser,
+    showToast
   } = useApp();
 
   const [activeTab, setActiveTab] = useState(initialTab);
   const [profileData, setProfileData] = useState({ ...profile });
 
-  // Toggle create forms
-  const [showJamatForm, setShowJamatForm] = useState(false);
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
-  const [showDepCatForm, setShowDepCatForm] = useState(false);
-  const [showExpCatForm, setShowExpCatForm] = useState(false);
-  const [showReceiverForm, setShowReceiverForm] = useState(false);
-  const [showRoleForm, setShowRoleForm] = useState(false);
-  const [showUserForm, setShowUserForm] = useState(false);
-
-  // Form Fields
+  // Creation form states
   const [newJamatName, setNewJamatName] = useState('');
   const [newPaymentName, setNewPaymentName] = useState('');
-  const [paymentMethods, setPaymentMethods] = useState(['নগদ (Cash)', 'বিকাশ (bKash)', 'ব্যাংক একাউন্ট', 'রকেট (Rocket)']);
   const [newDepCategory, setNewDepCategory] = useState('');
   const [newExpCategory, setNewExpCategory] = useState('');
-  const [newReceiverName, setNewReceiverName] = useState('');
-  const [newReceiverPhone, setNewReceiverPhone] = useState('');
-  const [newRoleName, setNewRoleName] = useState('');
-  const [newRoleDesc, setNewRoleDesc] = useState('');
-  const [roles, setRoles] = useState([
-    { id: 1, name: 'Super Admin', desc: 'মাদ্রাসার সমস্ত মডিউল, সেটিংস ও আর্থিক ডেটাতে পূর্ণ নিয়ন্ত্রণ' },
-    { id: 2, name: 'Accountant / Cashier', desc: 'ভাউচার এন্ট্রি, ফি কালেকশন ও রিপোর্ট দেখার অনুমতি' },
-    { id: 3, name: 'Teacher', desc: 'হাজিরা গ্রহণ এবং পরীক্ষা নম্বর এন্ট্রি করার অনুমতি' },
-    { id: 4, name: 'Staff', desc: 'শুধুমাত্র নির্ধারিত ডেটা এন্ট্রি করার অনুমতি' }
-  ]);
+  const [newReceiver, setNewReceiver] = useState({ name: '', phone: '' });
+  const [newRole, setNewRole] = useState({ name: '', desc: '' });
   const [newUser, setNewUser] = useState({ name: '', username: '', role: 'Teacher', phone: '' });
+
+  // Unified Edit Modal State
+  // { type: 'jamat'|'payment'|'depCat'|'expCat'|'receiver'|'role'|'user', data: {...} }
+  const [editingItem, setEditingItem] = useState(null);
+  const [editForm, setEditForm] = useState({});
 
   useEffect(() => {
     setActiveTab(initialTab);
   }, [initialTab]);
 
+  useEffect(() => {
+    setProfileData({ ...profile });
+  }, [profile]);
+
+  // Open Edit Modal
+  const handleOpenEdit = (type, data) => {
+    setEditingItem({ type, data });
+    if (type === 'jamat') {
+      setEditForm({ name: data.name || '' });
+    } else if (type === 'payment') {
+      setEditForm({ oldName: data, name: data });
+    } else if (type === 'depCat') {
+      setEditForm({ oldName: data, name: data });
+    } else if (type === 'expCat') {
+      setEditForm({ oldName: data, name: data });
+    } else if (type === 'receiver') {
+      setEditForm({ name: data.name || '', phone: data.phone || '' });
+    } else if (type === 'role') {
+      setEditForm({ name: data.name || '', desc: data.desc || '' });
+    } else if (type === 'user') {
+      setEditForm({
+        name: data.name || '',
+        username: data.username || '',
+        role: data.role || 'Teacher',
+        phone: data.phone || ''
+      });
+    }
+  };
+
+  // Submit Edit Modal
+  const handleEditSubmit = (e) => {
+    e.preventDefault();
+    if (!editingItem) return;
+
+    const { type, data } = editingItem;
+
+    if (type === 'jamat') {
+      if (updateJamat) updateJamat(data.id, editForm.name);
+    } else if (type === 'payment') {
+      if (updatePaymentMethod) updatePaymentMethod(editForm.oldName, editForm.name);
+    } else if (type === 'depCat') {
+      if (updateDepositCategory) updateDepositCategory(editForm.oldName, editForm.name);
+    } else if (type === 'expCat') {
+      if (updateExpenseCategory) updateExpenseCategory(editForm.oldName, editForm.name);
+    } else if (type === 'receiver') {
+      if (updateReceiver) updateReceiver(data.id, { name: editForm.name, phone: editForm.phone });
+    } else if (type === 'role') {
+      if (updateRole) updateRole(data.id, { name: editForm.name, desc: editForm.desc });
+    } else if (type === 'user') {
+      if (updateUser) updateUser(data.id, {
+        name: editForm.name,
+        username: editForm.username,
+        role: editForm.role,
+        phone: editForm.phone
+      });
+    }
+
+    setEditingItem(null);
+  };
+
+  // Handlers for Adding
   const handleProfileSubmit = (e) => {
     e.preventDefault();
     setProfile(profileData);
     showToast('মাদ্রাসা প্রোফাইল সফলভাবে আপডেট করা হয়েছে!');
   };
 
-  const handleAddJamat = (e) => {
+  const handleAddJamatSubmit = (e) => {
     e.preventDefault();
     if (!newJamatName.trim()) return;
-    const newJ = {
-      id: `jamat-${Date.now()}`,
-      name: newJamatName.trim(),
-      count: 0
-    };
-    setJamats([...jamats, newJ]);
+    if (addJamat) addJamat(newJamatName.trim());
     setNewJamatName('');
-    setShowJamatForm(false);
-    showToast(`নতুন জামাত "${newJ.name}" সফলভাবে যোগ করা হয়েছে!`);
   };
 
-  const handleRemoveJamat = (id) => {
-    if (confirm('আপনি কি নিশ্চিত যে এই জামাতটি মুছে ফেলতে চান?')) {
-      setJamats(jamats.filter(j => j.id !== id));
-      showToast('জামাত মুছে ফেলা হয়েছে!');
-    }
-  };
-
-  const handleAddPayment = (e) => {
+  const handleAddPaymentSubmit = (e) => {
     e.preventDefault();
     if (!newPaymentName.trim()) return;
-    setPaymentMethods([...paymentMethods, newPaymentName.trim()]);
+    if (addPaymentMethod) addPaymentMethod(newPaymentName.trim());
     setNewPaymentName('');
-    setShowPaymentForm(false);
-    showToast(`নতুন পেমেন্ট মেথড "${newPaymentName.trim()}" যোগ হয়েছে!`);
   };
 
-  const handleRemovePayment = (name) => {
-    if (confirm('আপনি কি এই পেমেন্ট মেথডটি মুছতে চান?')) {
-      setPaymentMethods(paymentMethods.filter(p => p !== name));
-      showToast('পেমেন্ট মেথড মুছে ফেলা হয়েছে!');
-    }
-  };
-
-  const handleAddDepCat = (e) => {
+  const handleAddDepCatSubmit = (e) => {
     e.preventDefault();
     if (!newDepCategory.trim()) return;
-    if (depositCategories.includes(newDepCategory.trim())) {
-      alert('এই খাতটি ইতিমধ্যে বিদ্যমান');
-      return;
-    }
-    setDepositCategories([...depositCategories, newDepCategory.trim()]);
+    if (addDepositCategory) addDepositCategory(newDepCategory.trim());
     setNewDepCategory('');
-    setShowDepCatForm(false);
-    showToast('নতুন জমা খাত যোগ করা হয়েছে');
   };
 
-  const handleRemoveDepCat = (catName) => {
-    if (confirm(`আপনি কি "${catName}" খাতটি মুছে ফেলতে চান?`)) {
-      setDepositCategories(depositCategories.filter(c => c !== catName));
-      showToast('জমার খাত মুছে ফেলা হয়েছে!');
-    }
-  };
-
-  const handleAddExpCat = (e) => {
+  const handleAddExpCatSubmit = (e) => {
     e.preventDefault();
     if (!newExpCategory.trim()) return;
-    if (expenseCategories.includes(newExpCategory.trim())) {
-      alert('এই খাতটি ইতিমধ্যে বিদ্যমান');
-      return;
-    }
-    setExpenseCategories([...expenseCategories, newExpCategory.trim()]);
+    if (addExpenseCategory) addExpenseCategory(newExpCategory.trim());
     setNewExpCategory('');
-    setShowExpCatForm(false);
-    showToast('নতুন খরচ খাত যোগ করা হয়েছে');
   };
 
-  const handleRemoveExpCat = (catName) => {
-    if (confirm(`আপনি কি "${catName}" খাতটি মুছে ফেলতে চান?`)) {
-      setExpenseCategories(expenseCategories.filter(c => c !== catName));
-      showToast('খরচের খাত মুছে ফেলা হয়েছে!');
-    }
-  };
-
-  const handleAddReceiver = (e) => {
+  const handleAddReceiverSubmit = (e) => {
     e.preventDefault();
-    if (!newReceiverName.trim()) return;
-    const newR = {
-      id: `rec-${Date.now()}`,
-      name: newReceiverName.trim(),
-      phone: newReceiverPhone.trim() || '01800-000000'
-    };
-    setReceivers([...receivers, newR]);
-    setNewReceiverName('');
-    setNewReceiverPhone('');
-    setShowReceiverForm(false);
-    showToast(`নতুন অর্থ গ্রহণকারী "${newR.name}" যুক্ত হয়েছে!`);
+    if (!newReceiver.name.trim()) return;
+    if (addReceiver) addReceiver({ name: newReceiver.name.trim(), phone: newReceiver.phone.trim() });
+    setNewReceiver({ name: '', phone: '' });
   };
 
-  const handleRemoveReceiver = (id) => {
-    if (confirm('আপনি কি এই গ্রহণকারীকে মুছে ফেলতে চান?')) {
-      setReceivers(receivers.filter(r => r.id !== id));
-      showToast('গ্রহণকারী মুছে ফেলা হয়েছে!');
-    }
-  };
-
-  const handleAddRole = (e) => {
+  const handleAddRoleSubmit = (e) => {
     e.preventDefault();
-    if (!newRoleName.trim()) return;
-    setRoles([...roles, {
-      id: Date.now(),
-      name: newRoleName.trim(),
-      desc: newRoleDesc.trim() || 'ব্যবহারকারীর অধিকার'
-    }]);
-    setNewRoleName('');
-    setNewRoleDesc('');
-    setShowRoleForm(false);
-    showToast(`নতুন রোল "${newRoleName.trim()}" তৈরি হয়েছে!`);
+    if (!newRole.name.trim()) return;
+    if (addRole) addRole({ name: newRole.name.trim(), desc: newRole.desc.trim() });
+    setNewRole({ name: '', desc: '' });
   };
 
   const handleAddUserSubmit = (e) => {
@@ -186,8 +180,6 @@ export const SettingsModule = ({ initialTab = 'institute' }) => {
       });
     }
     setNewUser({ name: '', username: '', role: 'Teacher', phone: '' });
-    setShowUserForm(false);
-    showToast(`নতুন ইউজার "${newUser.name}" সফলভাবে যুক্ত হয়েছে!`);
   };
 
   return (
@@ -252,7 +244,7 @@ export const SettingsModule = ({ initialTab = 'institute' }) => {
         </button>
       </div>
 
-      {/* 1. INSTITUTE PROFILE (Matches settings_institute.html) */}
+      {/* 1. INSTITUTE PROFILE */}
       {(activeTab === 'institute' || activeTab === 'profile') && (
         <div className="card shadow-sm border-0">
           <div className="card-header bg-primary text-white py-3">
@@ -302,26 +294,17 @@ export const SettingsModule = ({ initialTab = 'institute' }) => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label fw-bold">অফিস মোবাইল নং ১ *</label>
+                  <label className="form-label fw-bold">মোবাইল নম্বর *</label>
                   <input
                     type="text"
                     className="form-control font-monospace"
-                    value={profileData.phone1}
-                    onChange={(e) => setProfileData({ ...profileData, phone1: e.target.value })}
+                    value={profileData.phone}
+                    onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
                     required
                   />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label fw-bold">অফিস মোবাইল নং ২</label>
-                  <input
-                    type="text"
-                    className="form-control font-monospace"
-                    value={profileData.phone2 || ''}
-                    onChange={(e) => setProfileData({ ...profileData, phone2: e.target.value })}
-                  />
-                </div>
-                <div className="col-md-6">
-                  <label className="form-label fw-bold">ইমেইল ঠিকানা</label>
+                  <label className="form-label fw-bold">ইমেইল</label>
                   <input
                     type="email"
                     className="form-control"
@@ -330,19 +313,88 @@ export const SettingsModule = ({ initialTab = 'institute' }) => {
                   />
                 </div>
                 <div className="col-md-6">
-                  <label className="form-label fw-bold">ওয়েবসাইট ইউআরএল</label>
+                  <label className="form-label fw-bold">মুহতামিম / প্রধান শিক্ষকের নাম</label>
                   <input
                     type="text"
                     className="form-control"
-                    value={profileData.website || ''}
-                    onChange={(e) => setProfileData({ ...profileData, website: e.target.value })}
+                    value={profileData.principalName || ''}
+                    onChange={(e) => setProfileData({ ...profileData, principalName: e.target.value })}
                   />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label fw-bold">স্লোগান / বাণী</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={profileData.slogan || ''}
+                    onChange={(e) => setProfileData({ ...profileData, slogan: e.target.value })}
+                  />
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label fw-bold">মাদ্রাসার ব্যানার (প্রিন্ট হেড)</label>
+                  <div className="d-flex align-items-center gap-3">
+                    <img
+                      src={profileData.banner || '/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg'}
+                      alt="Banner Preview"
+                      className="img-thumbnail"
+                      style={{ maxHeight: '60px', maxWidth: '180px', objectFit: 'contain' }}
+                    />
+                    <label className="btn btn-outline-primary btn-sm mb-0">
+                      <i className="fa-solid fa-upload me-1"></i> ব্যানার পরিবর্তন
+                      <input
+                        type="file"
+                        className="d-none"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              setProfileData({ ...profileData, banner: ev.target.result });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="col-md-6">
+                  <label className="form-label fw-bold">মাদ্রাসার লোগো</label>
+                  <div className="d-flex align-items-center gap-3">
+                    <img
+                      src={profileData.logo || '/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png'}
+                      alt="Logo Preview"
+                      className="img-thumbnail"
+                      style={{ maxHeight: '60px', maxWidth: '60px', objectFit: 'contain' }}
+                    />
+                    <label className="btn btn-outline-primary btn-sm mb-0">
+                      <i className="fa-solid fa-upload me-1"></i> লোগো পরিবর্তন
+                      <input
+                        type="file"
+                        className="d-none"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                              setProfileData({ ...profileData, logo: ev.target.result });
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
 
               <div className="mt-4 text-end">
-                <button type="submit" className="btn btn-primary">
-                  <i className="fa-solid fa-save me-1"></i> তথ্য সংরক্ষণ করুন
+                <button type="submit" className="btn btn-primary px-4 fw-bold">
+                  <i className="fa-solid fa-save me-1"></i> প্রোফাইল সংরক্ষণ করুন
                 </button>
               </div>
             </form>
@@ -350,189 +402,182 @@ export const SettingsModule = ({ initialTab = 'institute' }) => {
         </div>
       )}
 
-      {/* 2. JAMAT SETTINGS (Matches settings_jamat.html) */}
+      {/* 2. JAMAT SETTINGS (2-Column Side-by-Side Layout) */}
       {activeTab === 'jamat' && (
-        <div className="card shadow-sm">
-          <div className="card-header bg-white">
-            <div className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">জামাত তালিকা</h5>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => setShowJamatForm(!showJamatForm)}
-              >
-                <i className="fas fa-plus me-1"></i> নতুন যোগ করুন
-              </button>
-            </div>
-          </div>
-
-          {showJamatForm && (
-            <div className="card-body border-bottom bg-light">
-              <form onSubmit={handleAddJamat}>
-                <div className="row g-3 align-items-end">
-                  <div className="col-md-8">
-                    <label htmlFor="jamatName" className="form-label fw-bold">নতুন জামাত</label>
+        <div className="row">
+          <div className="col-lg-4 col-md-5 mb-4">
+            <div className="card shadow-sm border-0">
+              <div className="card-header bg-primary text-white py-3">
+                <h6 className="mb-0 fw-bold"><i className="fas fa-plus me-2"></i>নতুন জামাত তৈরি</h6>
+              </div>
+              <div className="card-body p-4">
+                <form onSubmit={handleAddJamatSubmit}>
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">জামাতের নাম <span className="text-danger">*</span></label>
                     <input
                       type="text"
                       className="form-control"
-                      id="jamatName"
                       placeholder="জামাতের নাম লিখুন"
                       value={newJamatName}
                       onChange={(e) => setNewJamatName(e.target.value)}
                       required
                     />
                   </div>
-                  <div className="col-md-4">
-                    <button type="submit" className="btn btn-success me-2">
-                      <i className="fas fa-check me-1"></i> সংরক্ষণ
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setShowJamatForm(false)}
-                    >
-                      বাতিল
-                    </button>
-                  </div>
-                </div>
-              </form>
+                  <button type="submit" className="btn btn-primary w-100 fw-bold">
+                    <i className="fas fa-save me-1"></i> সংরক্ষণ করুন
+                  </button>
+                </form>
+              </div>
             </div>
-          )}
+          </div>
 
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-striped table-bordered table-hover mb-0 text-center">
-                <thead className="table bg-primary text-white">
-                  <tr>
-                    <th>জামাত</th>
-                    <th width="200">অ্যাকশন</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {jamats.map((j) => (
-                    <tr key={j.id}>
-                      <td className="align-middle fw-bold">{j.name}</td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveJamat(j.id)}
-                          className="btn btn-sm btn-danger delete-btn"
-                          title="ডিলিট"
-                        >
-                          <i className="fa-solid fa-trash"></i> মুছে ফেলুন
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="col-lg-8 col-md-7 mb-4">
+            <div className="card shadow-sm border-0">
+              <div className="card-header bg-white border-bottom py-3">
+                <h6 className="mb-0 fw-bold text-primary"><i className="fas fa-list me-2"></i>সকল জামাতের তালিকা</h6>
+              </div>
+              <div className="card-body p-0">
+                <div className="table-responsive">
+                  <table className="table table-striped table-hover align-middle mb-0 text-center">
+                    <thead className="table-light">
+                      <tr>
+                        <th style={{ width: '60px' }}>নং</th>
+                        <th>জামাতের নাম</th>
+                        <th style={{ width: '150px' }}>কার্যক্রম</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {jamats.map((j, idx) => (
+                        <tr key={j.id || idx}>
+                          <td>{idx + 1}</td>
+                          <td className="fw-bold">{j.name}</td>
+                          <td>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit('jamat', j)}
+                              className="btn btn-sm btn-primary me-1"
+                              title="এডিট"
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm('আপনি কি এই জামাতটি মুছে ফেলতে চান?')) {
+                                  deleteJamat(j.id);
+                                }
+                              }}
+                              className="btn btn-sm btn-danger delete-btn"
+                              title="ডিলিট"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* 3. PAYMENT METHOD (Matches settings_payment.html) */}
+      {/* 3. PAYMENT METHOD (2-Column Side-by-Side Layout) */}
       {activeTab === 'payment' && (
-        <div className="card shadow-sm">
-          <div className="card-header bg-white">
-            <div className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">পেমেন্ট মেথড তালিকা</h5>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => setShowPaymentForm(!showPaymentForm)}
-              >
-                <i className="fas fa-plus me-1"></i> নতুন যোগ করুন
-              </button>
-            </div>
-          </div>
-
-          {showPaymentForm && (
-            <div className="card-body border-bottom bg-light">
-              <form onSubmit={handleAddPayment}>
-                <div className="row g-3 align-items-end">
-                  <div className="col-md-8">
-                    <label className="form-label fw-bold">পেমেন্ট মেথডের নাম</label>
+        <div className="row">
+          <div className="col-lg-4 col-md-5 mb-4">
+            <div className="card shadow-sm border-0">
+              <div className="card-header bg-primary text-white py-3">
+                <h6 className="mb-0 fw-bold"><i className="fas fa-plus me-2"></i>নতুন পেমেন্ট মাধ্যম</h6>
+              </div>
+              <div className="card-body p-4">
+                <form onSubmit={handleAddPaymentSubmit}>
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">পেমেন্ট মেথডের নাম <span className="text-danger">*</span></label>
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="যেমন: নগদ, ব্যাংক"
+                      placeholder="যেমন: নগদ, ব্যাংক, বিকাশ"
                       value={newPaymentName}
                       onChange={(e) => setNewPaymentName(e.target.value)}
                       required
                     />
                   </div>
-                  <div className="col-md-4">
-                    <button type="submit" className="btn btn-success me-2">
-                      <i className="fas fa-check me-1"></i> সংরক্ষণ
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setShowPaymentForm(false)}
-                    >
-                      বাতিল
-                    </button>
-                  </div>
-                </div>
-              </form>
+                  <button type="submit" className="btn btn-primary w-100 fw-bold">
+                    <i className="fas fa-save me-1"></i> সংরক্ষণ করুন
+                  </button>
+                </form>
+              </div>
             </div>
-          )}
+          </div>
 
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-striped table-bordered table-hover mb-0 text-center">
-                <thead className="table bg-primary text-white">
-                  <tr>
-                    <th>পেমেন্ট মাধ্যম</th>
-                    <th width="200">অ্যাকশন</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paymentMethods.map((p, idx) => (
-                    <tr key={idx}>
-                      <td className="align-middle fw-bold">{p}</td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => handleRemovePayment(p)}
-                          className="btn btn-sm btn-danger delete-btn"
-                          title="ডিলিট"
-                        >
-                          <i className="fa-solid fa-trash"></i> মুছে ফেলুন
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="col-lg-8 col-md-7 mb-4">
+            <div className="card shadow-sm border-0">
+              <div className="card-header bg-white border-bottom py-3">
+                <h6 className="mb-0 fw-bold text-primary"><i className="fas fa-list me-2"></i>পেমেন্ট মাধ্যমের তালিকা</h6>
+              </div>
+              <div className="card-body p-0">
+                <div className="table-responsive">
+                  <table className="table table-striped table-hover align-middle mb-0 text-center">
+                    <thead className="table-light">
+                      <tr>
+                        <th style={{ width: '60px' }}>নং</th>
+                        <th>পেমেন্ট মাধ্যম</th>
+                        <th style={{ width: '150px' }}>কার্যক্রম</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paymentMethods.map((p, idx) => (
+                        <tr key={idx}>
+                          <td>{idx + 1}</td>
+                          <td className="fw-bold">{p}</td>
+                          <td>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit('payment', p)}
+                              className="btn btn-sm btn-primary me-1"
+                              title="এডিট"
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm('আপনি কি এই পেমেন্ট মেথডটি মুছতে চান?')) {
+                                  deletePaymentMethod(p);
+                                }
+                              }}
+                              className="btn btn-sm btn-danger delete-btn"
+                              title="ডিলিট"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* 4. DEPOSIT CATEGORY (Matches settings_deposit_category.html) */}
+      {/* 4. DEPOSIT CATEGORY (2-Column Side-by-Side Layout) */}
       {activeTab === 'deposit-cat' && (
-        <div className="card shadow-sm">
-          <div className="card-header bg-white">
-            <div className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">জমার খাতের তালিকা</h5>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => setShowDepCatForm(!showDepCatForm)}
-              >
-                <i className="fas fa-plus me-1"></i> নতুন যোগ করুন
-              </button>
-            </div>
-          </div>
-
-          {showDepCatForm && (
-            <div className="card-body border-bottom bg-light">
-              <form onSubmit={handleAddDepCat}>
-                <div className="row g-3 align-items-end">
-                  <div className="col-md-8">
-                    <label className="form-label fw-bold">জমার খাত</label>
+        <div className="row">
+          <div className="col-lg-4 col-md-5 mb-4">
+            <div className="card shadow-sm border-0">
+              <div className="card-header bg-primary text-white py-3">
+                <h6 className="mb-0 fw-bold"><i className="fas fa-plus me-2"></i>নতুন জমার খাত</h6>
+              </div>
+              <div className="card-body p-4">
+                <form onSubmit={handleAddDepCatSubmit}>
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">জমার খাতের নাম <span className="text-danger">*</span></label>
                     <input
                       type="text"
                       className="form-control"
@@ -542,79 +587,79 @@ export const SettingsModule = ({ initialTab = 'institute' }) => {
                       required
                     />
                   </div>
-                  <div className="col-md-4">
-                    <button type="submit" className="btn btn-success me-2">
-                      <i className="fas fa-check me-1"></i> সংরক্ষণ
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setShowDepCatForm(false)}
-                    >
-                      বাতিল
-                    </button>
-                  </div>
-                </div>
-              </form>
+                  <button type="submit" className="btn btn-primary w-100 fw-bold">
+                    <i className="fas fa-save me-1"></i> সংরক্ষণ করুন
+                  </button>
+                </form>
+              </div>
             </div>
-          )}
+          </div>
 
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-striped table-bordered table-hover mb-0 text-center">
-                <thead className="table bg-primary text-white">
-                  <tr>
-                    <th width="80">নং</th>
-                    <th>খাতের নাম</th>
-                    <th width="200">অ্যাকশন</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {depositCategories.map((cat, idx) => (
-                    <tr key={idx}>
-                      <td>{idx + 1}</td>
-                      <td className="align-middle fw-bold">{cat}</td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveDepCat(cat)}
-                          className="btn btn-sm btn-danger delete-btn"
-                          title="ডিলিট"
-                        >
-                          <i className="fa-solid fa-trash"></i> মুছে ফেলুন
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="col-lg-8 col-md-7 mb-4">
+            <div className="card shadow-sm border-0">
+              <div className="card-header bg-white border-bottom py-3">
+                <h6 className="mb-0 fw-bold text-primary"><i className="fas fa-list me-2"></i>জমার খাতের তালিকা</h6>
+              </div>
+              <div className="card-body p-0">
+                <div className="table-responsive">
+                  <table className="table table-striped table-hover align-middle mb-0 text-center">
+                    <thead className="table-light">
+                      <tr>
+                        <th style={{ width: '60px' }}>নং</th>
+                        <th>খাতের নাম</th>
+                        <th style={{ width: '150px' }}>কার্যক্রম</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {depositCategories.map((cat, idx) => (
+                        <tr key={idx}>
+                          <td>{idx + 1}</td>
+                          <td className="fw-bold">{cat}</td>
+                          <td>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit('depCat', cat)}
+                              className="btn btn-sm btn-primary me-1"
+                              title="এডিট"
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`আপনি কি "${cat}" খাতটি মুছে ফেলতে চান?`)) {
+                                  deleteDepositCategory(cat);
+                                }
+                              }}
+                              className="btn btn-sm btn-danger delete-btn"
+                              title="মুছে ফেলুন"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* 5. EXPENSE CATEGORY (Matches settings_expense_category.html) */}
+      {/* 5. EXPENSE CATEGORY (2-Column Side-by-Side Layout) */}
       {activeTab === 'expense-cat' && (
-        <div className="card shadow-sm">
-          <div className="card-header bg-white">
-            <div className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">খরচের খাতের তালিকা</h5>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => setShowExpCatForm(!showExpCatForm)}
-              >
-                <i className="fas fa-plus me-1"></i> নতুন যোগ করুন
-              </button>
-            </div>
-          </div>
-
-          {showExpCatForm && (
-            <div className="card-body border-bottom bg-light">
-              <form onSubmit={handleAddExpCat}>
-                <div className="row g-3 align-items-end">
-                  <div className="col-md-8">
-                    <label className="form-label fw-bold">খরচের খাত</label>
+        <div className="row">
+          <div className="col-lg-4 col-md-5 mb-4">
+            <div className="card shadow-sm border-0">
+              <div className="card-header bg-primary text-white py-3">
+                <h6 className="mb-0 fw-bold"><i className="fas fa-plus me-2"></i>নতুন খরচের খাত</h6>
+              </div>
+              <div className="card-body p-4">
+                <form onSubmit={handleAddExpCatSubmit}>
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">খরচের খাতের নাম <span className="text-danger">*</span></label>
                     <input
                       type="text"
                       className="form-control"
@@ -624,252 +669,267 @@ export const SettingsModule = ({ initialTab = 'institute' }) => {
                       required
                     />
                   </div>
-                  <div className="col-md-4">
-                    <button type="submit" className="btn btn-success me-2">
-                      <i className="fas fa-check me-1"></i> সংরক্ষণ
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setShowExpCatForm(false)}
-                    >
-                      বাতিল
-                    </button>
-                  </div>
-                </div>
-              </form>
+                  <button type="submit" className="btn btn-primary w-100 fw-bold">
+                    <i className="fas fa-save me-1"></i> সংরক্ষণ করুন
+                  </button>
+                </form>
+              </div>
             </div>
-          )}
+          </div>
 
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-striped table-bordered table-hover mb-0 text-center">
-                <thead className="table bg-primary text-white">
-                  <tr>
-                    <th width="80">নং</th>
-                    <th>খাতের নাম</th>
-                    <th width="200">অ্যাকশন</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {expenseCategories.map((cat, idx) => (
-                    <tr key={idx}>
-                      <td>{idx + 1}</td>
-                      <td className="align-middle fw-bold">{cat}</td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveExpCat(cat)}
-                          className="btn btn-sm btn-danger delete-btn"
-                          title="ডিলিট"
-                        >
-                          <i className="fa-solid fa-trash"></i> মুছে ফেলুন
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="col-lg-8 col-md-7 mb-4">
+            <div className="card shadow-sm border-0">
+              <div className="card-header bg-white border-bottom py-3">
+                <h6 className="mb-0 fw-bold text-primary"><i className="fas fa-list me-2"></i>খরচের খাতের তালিকা</h6>
+              </div>
+              <div className="card-body p-0">
+                <div className="table-responsive">
+                  <table className="table table-striped table-hover align-middle mb-0 text-center">
+                    <thead className="table-light">
+                      <tr>
+                        <th style={{ width: '60px' }}>নং</th>
+                        <th>খাতের নাম</th>
+                        <th style={{ width: '150px' }}>কার্যক্রম</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {expenseCategories.map((cat, idx) => (
+                        <tr key={idx}>
+                          <td>{idx + 1}</td>
+                          <td className="fw-bold">{cat}</td>
+                          <td>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit('expCat', cat)}
+                              className="btn btn-sm btn-primary me-1"
+                              title="এডিট"
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm(`আপনি কি "${cat}" খাতটি মুছে ফেলতে চান?`)) {
+                                  deleteExpenseCategory(cat);
+                                }
+                              }}
+                              className="btn btn-sm btn-danger delete-btn"
+                              title="মুছে ফেলুন"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* 6. RECEIVER (Matches settings_receiver.html) */}
+      {/* 6. RECEIVER (2-Column Side-by-Side Layout) */}
       {activeTab === 'receiver' && (
-        <div className="card shadow-sm">
-          <div className="card-header bg-white">
-            <div className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">গ্রহণকারীর তালিকা</h5>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => setShowReceiverForm(!showReceiverForm)}
-              >
-                <i className="fas fa-plus me-1"></i> নতুন যোগ করুন
-              </button>
-            </div>
-          </div>
-
-          {showReceiverForm && (
-            <div className="card-body border-bottom bg-light">
-              <form onSubmit={handleAddReceiver}>
-                <div className="row g-3 align-items-end">
-                  <div className="col-md-4">
-                    <label className="form-label fw-bold">গ্রহণকারীর নাম</label>
+        <div className="row">
+          <div className="col-lg-4 col-md-5 mb-4">
+            <div className="card shadow-sm border-0">
+              <div className="card-header bg-primary text-white py-3">
+                <h6 className="mb-0 fw-bold"><i className="fas fa-plus me-2"></i>নতুন গ্রহণকারী</h6>
+              </div>
+              <div className="card-body p-4">
+                <form onSubmit={handleAddReceiverSubmit}>
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">গ্রহণকারীর নাম <span className="text-danger">*</span></label>
                     <input
                       type="text"
                       className="form-control"
                       placeholder="নাম লিখুন"
-                      value={newReceiverName}
-                      onChange={(e) => setNewReceiverName(e.target.value)}
+                      value={newReceiver.name}
+                      onChange={(e) => setNewReceiver({ ...newReceiver, name: e.target.value })}
                       required
                     />
                   </div>
-                  <div className="col-md-4">
+                  <div className="mb-3">
                     <label className="form-label fw-bold">মোবাইল নম্বর</label>
                     <input
                       type="text"
                       className="form-control font-monospace"
                       placeholder="০১৮..."
-                      value={newReceiverPhone}
-                      onChange={(e) => setNewReceiverPhone(e.target.value)}
+                      value={newReceiver.phone}
+                      onChange={(e) => setNewReceiver({ ...newReceiver, phone: e.target.value })}
                     />
                   </div>
-                  <div className="col-md-4">
-                    <button type="submit" className="btn btn-success me-2">
-                      <i className="fas fa-check me-1"></i> সংরক্ষণ
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setShowReceiverForm(false)}
-                    >
-                      বাতিল
-                    </button>
-                  </div>
-                </div>
-              </form>
+                  <button type="submit" className="btn btn-primary w-100 fw-bold">
+                    <i className="fas fa-save me-1"></i> সংরক্ষণ করুন
+                  </button>
+                </form>
+              </div>
             </div>
-          )}
+          </div>
 
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-striped table-bordered table-hover mb-0 text-center">
-                <thead className="table bg-primary text-white">
-                  <tr>
-                    <th>নাম</th>
-                    <th>মোবাইল নম্বর</th>
-                    <th width="200">অ্যাকশন</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {receivers.map((r) => (
-                    <tr key={r.id}>
-                      <td className="align-middle fw-bold">{r.name}</td>
-                      <td className="align-middle font-monospace">{r.phone || '-'}</td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveReceiver(r.id)}
-                          className="btn btn-sm btn-danger delete-btn"
-                          title="ডিলিট"
-                        >
-                          <i className="fa-solid fa-trash"></i> মুছে ফেলুন
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="col-lg-8 col-md-7 mb-4">
+            <div className="card shadow-sm border-0">
+              <div className="card-header bg-white border-bottom py-3">
+                <h6 className="mb-0 fw-bold text-primary"><i className="fas fa-list me-2"></i>গ্রহণকারীর তালিকা</h6>
+              </div>
+              <div className="card-body p-0">
+                <div className="table-responsive">
+                  <table className="table table-striped table-hover align-middle mb-0 text-center">
+                    <thead className="table-light">
+                      <tr>
+                        <th style={{ width: '60px' }}>নং</th>
+                        <th>নাম</th>
+                        <th>মোবাইল নম্বর</th>
+                        <th style={{ width: '150px' }}>কার্যক্রম</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {receivers.map((r, idx) => (
+                        <tr key={r.id || idx}>
+                          <td>{idx + 1}</td>
+                          <td className="fw-bold">{r.name}</td>
+                          <td className="font-monospace">{r.phone || '-'}</td>
+                          <td>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit('receiver', r)}
+                              className="btn btn-sm btn-primary me-1"
+                              title="এডিট"
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm('আপনি কি এই গ্রহণকারীকে মুছে ফেলতে চান?')) {
+                                  deleteReceiver(r.id);
+                                }
+                              }}
+                              className="btn btn-sm btn-danger delete-btn"
+                              title="ডিলিট"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* 7. ROLE (Matches settings_role.html) */}
+      {/* 7. ROLE (2-Column Side-by-Side Layout) */}
       {activeTab === 'role' && (
-        <div className="card shadow-sm">
-          <div className="card-header bg-white">
-            <div className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">রোল (Role) তালিকা</h5>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => setShowRoleForm(!showRoleForm)}
-              >
-                <i className="fas fa-plus me-1"></i> নতুন যোগ করুন
-              </button>
-            </div>
-          </div>
-
-          {showRoleForm && (
-            <div className="card-body border-bottom bg-light">
-              <form onSubmit={handleAddRole}>
-                <div className="row g-3 align-items-end">
-                  <div className="col-md-4">
-                    <label className="form-label fw-bold">রোলের নাম</label>
+        <div className="row">
+          <div className="col-lg-4 col-md-5 mb-4">
+            <div className="card shadow-sm border-0">
+              <div className="card-header bg-primary text-white py-3">
+                <h6 className="mb-0 fw-bold"><i className="fas fa-plus me-2"></i>নতুন রোল যোগ করুন</h6>
+              </div>
+              <div className="card-body p-4">
+                <form onSubmit={handleAddRoleSubmit}>
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">রোলের নাম <span className="text-danger">*</span></label>
                     <input
                       type="text"
                       className="form-control"
                       placeholder="রোলের নাম লিখুন"
-                      value={newRoleName}
-                      onChange={(e) => setNewRoleName(e.target.value)}
+                      value={newRole.name}
+                      onChange={(e) => setNewRole({ ...newRole, name: e.target.value })}
                       required
                     />
                   </div>
-                  <div className="col-md-4">
+                  <div className="mb-3">
                     <label className="form-label fw-bold">বিবরণ</label>
-                    <input
-                      type="text"
+                    <textarea
                       className="form-control"
+                      rows="2"
                       placeholder="বিবরণ লিখুন"
-                      value={newRoleDesc}
-                      onChange={(e) => setNewRoleDesc(e.target.value)}
-                    />
+                      value={newRole.desc}
+                      onChange={(e) => setNewRole({ ...newRole, desc: e.target.value })}
+                    ></textarea>
                   </div>
-                  <div className="col-md-4">
-                    <button type="submit" className="btn btn-success me-2">
-                      <i className="fas fa-check me-1"></i> সংরক্ষণ
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setShowRoleForm(false)}
-                    >
-                      বাতিল
-                    </button>
-                  </div>
-                </div>
-              </form>
+                  <button type="submit" className="btn btn-primary w-100 fw-bold">
+                    <i className="fas fa-save me-1"></i> সংরক্ষণ করুন
+                  </button>
+                </form>
+              </div>
             </div>
-          )}
+          </div>
 
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-striped table-bordered table-hover mb-0 text-center">
-                <thead className="table bg-primary text-white">
-                  <tr>
-                    <th>রোল</th>
-                    <th>বিবরণ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {roles.map((ro) => (
-                    <tr key={ro.id}>
-                      <td className="align-middle fw-bold">{ro.name}</td>
-                      <td className="align-middle text-muted">{ro.desc}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="col-lg-8 col-md-7 mb-4">
+            <div className="card shadow-sm border-0">
+              <div className="card-header bg-white border-bottom py-3">
+                <h6 className="mb-0 fw-bold text-primary"><i className="fas fa-list me-2"></i>রোল (Role) তালিকা</h6>
+              </div>
+              <div className="card-body p-0">
+                <div className="table-responsive">
+                  <table className="table table-striped table-hover align-middle mb-0 text-center">
+                    <thead className="table-light">
+                      <tr>
+                        <th style={{ width: '60px' }}>নং</th>
+                        <th>রোল</th>
+                        <th>বিবরণ</th>
+                        <th style={{ width: '150px' }}>কার্যক্রম</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {roles.map((ro, idx) => (
+                        <tr key={ro.id || idx}>
+                          <td>{idx + 1}</td>
+                          <td className="fw-bold">{ro.name}</td>
+                          <td className="text-muted small">{ro.desc}</td>
+                          <td>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit('role', ro)}
+                              className="btn btn-sm btn-primary me-1"
+                              title="এডিট"
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm('আপনি কি এই রোলটি মুছে ফেলতে চান?')) {
+                                  deleteRole(ro.id);
+                                }
+                              }}
+                              className="btn btn-sm btn-danger delete-btn"
+                              title="ডিলিট"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* 8. USER (Matches settings_user.html) */}
+      {/* 8. USER (2-Column Side-by-Side Layout) */}
       {activeTab === 'user' && (
-        <div className="card shadow-sm">
-          <div className="card-header bg-white">
-            <div className="d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">ইউজারের তালিকা</h5>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => setShowUserForm(!showUserForm)}
-              >
-                <i className="fas fa-plus me-1"></i> নতুন যোগ করুন
-              </button>
-            </div>
-          </div>
-
-          {showUserForm && (
-            <div className="card-body border-bottom bg-light">
-              <form onSubmit={handleAddUserSubmit}>
-                <div className="row g-3 align-items-end">
-                  <div className="col-md-3">
-                    <label className="form-label fw-bold">ইউজারের নাম</label>
+        <div className="row">
+          <div className="col-lg-4 col-md-5 mb-4">
+            <div className="card shadow-sm border-0">
+              <div className="card-header bg-primary text-white py-3">
+                <h6 className="mb-0 fw-bold"><i className="fas fa-plus me-2"></i>নতুন ইউজার যোগ করুন</h6>
+              </div>
+              <div className="card-body p-4">
+                <form onSubmit={handleAddUserSubmit}>
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">ইউজারের নাম <span className="text-danger">*</span></label>
                     <input
                       type="text"
                       className="form-control"
@@ -879,8 +939,8 @@ export const SettingsModule = ({ initialTab = 'institute' }) => {
                       required
                     />
                   </div>
-                  <div className="col-md-3">
-                    <label className="form-label fw-bold">ইউজারনেম / ইমেইল</label>
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">ইউজারনেম / ইমেইল <span className="text-danger">*</span></label>
                     <input
                       type="text"
                       className="form-control font-monospace"
@@ -890,7 +950,7 @@ export const SettingsModule = ({ initialTab = 'institute' }) => {
                       required
                     />
                   </div>
-                  <div className="col-md-3">
+                  <div className="mb-3">
                     <label className="form-label fw-bold">রোল</label>
                     <select
                       className="form-select"
@@ -903,51 +963,235 @@ export const SettingsModule = ({ initialTab = 'institute' }) => {
                       <option value="Staff">Staff</option>
                     </select>
                   </div>
-                  <div className="col-md-3">
-                    <button type="submit" className="btn btn-success me-2">
-                      <i className="fas fa-check me-1"></i> সংরক্ষণ
-                    </button>
-                    <button
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setShowUserForm(false)}
-                    >
-                      বাতিল
-                    </button>
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">মোবাইল নম্বর</label>
+                    <input
+                      type="text"
+                      className="form-control font-monospace"
+                      placeholder="01..."
+                      value={newUser.phone}
+                      onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
+                    />
                   </div>
-                </div>
-              </form>
+                  <button type="submit" className="btn btn-primary w-100 fw-bold">
+                    <i className="fas fa-save me-1"></i> সংরক্ষণ করুন
+                  </button>
+                </form>
+              </div>
             </div>
-          )}
+          </div>
 
-          <div className="card-body p-0">
-            <div className="table-responsive">
-              <table className="table table-striped table-bordered table-hover mb-0 text-center">
-                <thead className="table bg-primary text-white">
-                  <tr>
-                    <th>নাম</th>
-                    <th>ইউজারনেম</th>
-                    <th>রোল</th>
-                    <th>মোবাইল</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(users || [
-                    { id: 1, name: 'Super Admin', username: 'admin@gmail.com', role: 'Super Admin', phone: '01820050095' },
-                    { id: 2, name: 'Maulana Mahmudul Karim', username: 'karim@gmail.com', role: 'Teacher', phone: '01711288382' }
-                  ]).map((u) => (
-                    <tr key={u.id}>
-                      <td className="align-middle fw-bold">{u.name}</td>
-                      <td className="align-middle font-monospace">{u.username}</td>
-                      <td className="align-middle">
-                        <span className="badge bg-primary">{u.role}</span>
-                      </td>
-                      <td className="align-middle font-monospace">{u.phone || '-'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="col-lg-8 col-md-7 mb-4">
+            <div className="card shadow-sm border-0">
+              <div className="card-header bg-white border-bottom py-3">
+                <h6 className="mb-0 fw-bold text-primary"><i className="fas fa-list me-2"></i>ইউজারের তালিকা</h6>
+              </div>
+              <div className="card-body p-0">
+                <div className="table-responsive">
+                  <table className="table table-striped table-hover align-middle mb-0 text-center">
+                    <thead className="table-light">
+                      <tr>
+                        <th style={{ width: '60px' }}>নং</th>
+                        <th>নাম</th>
+                        <th>ইউজারনেম</th>
+                        <th>রোল</th>
+                        <th>মোবাইল</th>
+                        <th style={{ width: '150px' }}>কার্যক্রম</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((u, idx) => (
+                        <tr key={u.id || idx}>
+                          <td>{idx + 1}</td>
+                          <td className="fw-bold">{u.name}</td>
+                          <td className="font-monospace">{u.username}</td>
+                          <td>
+                            <span className="badge bg-primary">{u.role}</span>
+                          </td>
+                          <td className="font-monospace">{u.phone || '-'}</td>
+                          <td>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEdit('user', u)}
+                              className="btn btn-sm btn-primary me-1"
+                              title="এডিট"
+                            >
+                              <i className="fas fa-edit"></i>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (window.confirm('আপনি কি এই ইউজারকে মুছে ফেলতে চান?')) {
+                                  deleteUser(u.id);
+                                }
+                              }}
+                              className="btn btn-sm btn-danger delete-btn"
+                              title="ডিলিট"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Universal Dynamic Edit Modal for Settings */}
+      {editingItem && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}>
+          <div className="modal-dialog">
+            <form onSubmit={handleEditSubmit} className="modal-content border-0 shadow">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title fw-bold">
+                  <i className="fa-solid fa-pen-to-square me-2"></i>
+                  {editingItem.type === 'jamat' && 'জামাতের নাম সম্পাদন'}
+                  {editingItem.type === 'payment' && 'পেমেন্ট মেথড সম্পাদন'}
+                  {editingItem.type === 'depCat' && 'জমার খাত সম্পাদন'}
+                  {editingItem.type === 'expCat' && 'খরচের খাত সম্পাদন'}
+                  {editingItem.type === 'receiver' && 'গ্রহণকারীর তথ্য সম্পাদন'}
+                  {editingItem.type === 'role' && 'রোলের বিবরণ সম্পাদন'}
+                  {editingItem.type === 'user' && 'ইউজারের তথ্য সম্পাদন'}
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setEditingItem(null)}
+                ></button>
+              </div>
+
+              <div className="modal-body p-4">
+                {/* For single-name items: jamat, payment, depCat, expCat */}
+                {(['jamat', 'payment', 'depCat', 'expCat'].includes(editingItem.type)) && (
+                  <div className="mb-3">
+                    <label className="form-label fw-bold">নাম <span className="text-danger">*</span></label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={editForm.name || ''}
+                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                )}
+
+                {/* Receiver */}
+                {editingItem.type === 'receiver' && (
+                  <>
+                    <div className="mb-3">
+                      <label className="form-label fw-bold">গ্রহণকারীর নাম <span className="text-danger">*</span></label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editForm.name || ''}
+                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label fw-bold">মোবাইল নম্বর</label>
+                      <input
+                        type="text"
+                        className="form-control font-monospace"
+                        value={editForm.phone || ''}
+                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Role */}
+                {editingItem.type === 'role' && (
+                  <>
+                    <div className="mb-3">
+                      <label className="form-label fw-bold">রোলের নাম <span className="text-danger">*</span></label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editForm.name || ''}
+                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label fw-bold">বিবরণ</label>
+                      <textarea
+                        className="form-control"
+                        rows="2"
+                        value={editForm.desc || ''}
+                        onChange={(e) => setEditForm({ ...editForm, desc: e.target.value })}
+                      ></textarea>
+                    </div>
+                  </>
+                )}
+
+                {/* User */}
+                {editingItem.type === 'user' && (
+                  <>
+                    <div className="mb-3">
+                      <label className="form-label fw-bold">ইউজারের নাম <span className="text-danger">*</span></label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={editForm.name || ''}
+                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label fw-bold">ইউজারনেম / ইমেইল <span className="text-danger">*</span></label>
+                      <input
+                        type="text"
+                        className="form-control font-monospace"
+                        value={editForm.username || ''}
+                        onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label fw-bold">রোল</label>
+                      <select
+                        className="form-select"
+                        value={editForm.role || 'Teacher'}
+                        onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                      >
+                        <option value="Super Admin">Super Admin</option>
+                        <option value="Accountant">Accountant</option>
+                        <option value="Teacher">Teacher</option>
+                        <option value="Staff">Staff</option>
+                      </select>
+                    </div>
+                    <div className="mb-3">
+                      <label className="form-label fw-bold">মোবাইল নম্বর</label>
+                      <input
+                        type="text"
+                        className="form-control font-monospace"
+                        value={editForm.phone || ''}
+                        onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setEditingItem(null)}
+                >
+                  বাতিল
+                </button>
+                <button type="submit" className="btn btn-primary fw-bold">
+                  <i className="fa-solid fa-save me-1"></i> আপডেট করুন
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
