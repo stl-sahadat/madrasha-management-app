@@ -129,7 +129,11 @@ const TAB_METADATA = {
 export const Breadcrumbs = () => {
   const { activeTab, setActiveTab } = useApp();
 
-  if (!activeTab || activeTab === 'dashboard') {
+  if (
+    !activeTab ||
+    activeTab === 'dashboard' ||
+    ['report-daily', 'report-yearly', 'report-bank'].includes(activeTab)
+  ) {
     return null;
   }
 

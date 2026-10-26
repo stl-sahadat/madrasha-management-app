@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { numberToBengaliWords, formatMoney, formatDateDDMMYYYY } from '../../utils/bengaliWords';
 
@@ -8,16 +8,50 @@ export const YearlyReport = () => {
   const { profile, transactions } = useApp();
 
   const currentYear = new Date().getFullYear().toString();
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [startDate, setStartDate] = useState(`${currentYear}-01-01`);
-  const [endDate, setEndDate] = useState(`${currentYear}-12-31`);
+  const years = [
+    '2026',
+    '2025',
+    '2024',
+    '2023',
+    '2022',
+    '2021',
+    '2020',
+    '2019',
+    '2018',
+    '2017',
+    '2016'
+  ];
 
-  const [appliedFilter, setAppliedFilter] = useState({
-    year: currentYear,
-    startDate: `${currentYear}-01-01`,
-    endDate: `${currentYear}-12-31`,
-    hasSearched: true
-  });
+  // Parse initial query params from URL if present
+  const getInitialParams = () => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const yr = params.get('year') || currentYear;
+      const sDate = params.get('start_date') || '';
+      const eDate = params.get('end_date') || '';
+      const hasSearched = Boolean(sDate && eDate);
+      return { year: yr, startDate: sDate, endDate: eDate, hasSearched };
+    }
+    return { year: currentYear, startDate: '', endDate: '', hasSearched: false };
+  };
+
+  const initial = getInitialParams();
+  const [selectedYear, setSelectedYear] = useState(initial.year);
+  const [startDate, setStartDate] = useState(initial.startDate);
+  const [endDate, setEndDate] = useState(initial.endDate);
+  const [appliedFilter, setAppliedFilter] = useState(initial);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const p = getInitialParams();
+      setSelectedYear(p.year);
+      setStartDate(p.startDate);
+      setEndDate(p.endDate);
+      setAppliedFilter(p);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const handleYearChange = (e) => {
     const yr = e.target.value;
@@ -30,12 +64,36 @@ export const YearlyReport = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setAppliedFilter({
+
+    if (!startDate || !endDate) {
+      alert('শুরুর ও শেষের তারিখ নির্বাচন করুন');
+      return;
+    }
+
+    const startD = new Date(startDate);
+    const endD = new Date(endDate);
+    if (endD < startD) {
+      alert('শেষের তারিখ শুরুর তারিখের পরে হতে হবে');
+      return;
+    }
+
+    const filterObj = {
       year: selectedYear,
       startDate,
       endDate,
-      hasSearched: Boolean(startDate && endDate)
-    });
+      hasSearched: true
+    };
+    setAppliedFilter(filterObj);
+
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.pathname = '/admin/report/yearly/deposit-expense';
+      if (selectedYear) url.searchParams.set('year', selectedYear);
+      else url.searchParams.delete('year');
+      url.searchParams.set('start_date', startDate);
+      url.searchParams.set('end_date', endDate);
+      window.history.pushState(null, '', url.toString());
+    }
   };
 
   // Filter transactions
@@ -51,7 +109,10 @@ export const YearlyReport = () => {
   const expenseMap = {};
 
   filteredTx.forEach((t) => {
-    if (t.type === 'deposit') {
+    const isDeposit = t.type === 'deposit' || t.type === 'income';
+    const isExpense = t.type === 'expense';
+
+    if (isDeposit) {
       if (Array.isArray(t.items) && t.items.length > 0) {
         t.items.forEach((item) => {
           const cat = item.category || 'সাধারণ জমা';
@@ -63,7 +124,7 @@ export const YearlyReport = () => {
         const amt = Number(t.totalAmount ?? t.amount) || 0;
         depositMap[cat] = (depositMap[cat] || 0) + amt;
       }
-    } else if (t.type === 'expense') {
+    } else if (isExpense) {
       if (Array.isArray(t.items) && t.items.length > 0) {
         t.items.forEach((item) => {
           const cat = item.category || 'সাধারণ খরচ';
@@ -78,8 +139,14 @@ export const YearlyReport = () => {
     }
   });
 
-  const depositList = Object.entries(depositMap).map(([category, amount]) => ({ category, amount }));
-  const expenseList = Object.entries(expenseMap).map(([category, amount]) => ({ category, amount }));
+  // Sort descending by amount matching live site
+  const depositList = Object.entries(depositMap)
+    .map(([category, amount]) => ({ category, amount }))
+    .sort((a, b) => b.amount - a.amount);
+
+  const expenseList = Object.entries(expenseMap)
+    .map(([category, amount]) => ({ category, amount }))
+    .sort((a, b) => b.amount - a.amount);
 
   const totalDeposit = depositList.reduce((sum, item) => sum + item.amount, 0);
   const totalExpense = expenseList.reduce((sum, item) => sum + item.amount, 0);
@@ -88,24 +155,14 @@ export const YearlyReport = () => {
   const bannerUrl =
     profile?.banner || '/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg';
 
-  const years = [
-    '2026',
-    '2025',
-    '2024',
-    '2023',
-    '2022',
-    '2021',
-    '2020',
-    '2019',
-    '2018',
-    '2017',
-    '2016'
-  ];
+  const displayYear =
+    appliedFilter.year ||
+    (appliedFilter.startDate ? appliedFilter.startDate.slice(0, 4) : currentYear);
 
   return (
-    <div className="container-fluid">
-      {/* Filter Card */}
-      <div className="card shadow-sm mb-4">
+    <div className="w-100">
+      {/* Filter Card (hidden in print) */}
+      <div className="card shadow-sm mb-4 no-print">
         <div className="card-header bg-primary">
           <h5 className="mb-0 text-white">
             <i className="fa-solid fa-calendar-check me-2"></i> বার্ষিক জমা ও খরচের প্রতিবেদন
@@ -181,7 +238,7 @@ export const YearlyReport = () => {
         </div>
       </div>
 
-      {/* Report Content or Empty State */}
+      {/* Report Content or Initial Empty State Card */}
       {!appliedFilter.hasSearched ? (
         <div className="card border-0 shadow-sm">
           <div className="card-body text-center py-5">
@@ -205,9 +262,7 @@ export const YearlyReport = () => {
                 </h6>
               </div>
               <div className="col-md-2 text-end">
-                <p className="mb-0 fw-semibold">
-                  বছরঃ {appliedFilter.year || appliedFilter.startDate.slice(0, 4)} ইং
-                </p>
+                <p className="mb-0 fw-semibold">বছরঃ {displayYear} ইং</p>
               </div>
             </div>
           </div>
@@ -228,7 +283,7 @@ export const YearlyReport = () => {
                       {depositList.length === 0 ? (
                         <tr>
                           <td colSpan="2" className="text-center text-muted">
-                            এই সময়ে কোন জমা হয়নি
+                            এই সময়কালে কোন জমা হয়নি
                           </td>
                         </tr>
                       ) : (
@@ -264,7 +319,7 @@ export const YearlyReport = () => {
                       {expenseList.length === 0 ? (
                         <tr>
                           <td colSpan="2" className="text-center text-muted">
-                            এই সময়ে কোন খরচ হয়নি
+                            এই সময়কালে কোন খরচ হয়নি
                           </td>
                         </tr>
                       ) : (
@@ -302,21 +357,15 @@ export const YearlyReport = () => {
                     <tr className="fw-bold">
                       <td className="text-center">
                         {formatMoney(totalDeposit)}
-                        <p className="mb-0 text-muted fw-normal">
-                          ({numberToBengaliWords(totalDeposit)} টাকা মাত্র)
-                        </p>
+                        <p>({numberToBengaliWords(totalDeposit)} টাকা মাত্র)</p>
                       </td>
                       <td className="text-center">
                         {formatMoney(totalExpense)}
-                        <p className="mb-0 text-muted fw-normal">
-                          ({numberToBengaliWords(totalExpense)} টাকা মাত্র)
-                        </p>
+                        <p>({numberToBengaliWords(totalExpense)} টাকা মাত্র)</p>
                       </td>
                       <td className="text-center">
                         {formatMoney(remaining)}
-                        <p className="mb-0 text-muted fw-normal">
-                          ({numberToBengaliWords(remaining)} টাকা মাত্র)
-                        </p>
+                        <p>({numberToBengaliWords(remaining)} টাকা মাত্র)</p>
                       </td>
                     </tr>
                   </tbody>

@@ -1,20 +1,45 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { numberToBengaliWords, formatMoney, formatDateDDMMYYYY } from '../../utils/bengaliWords';
 
 export const DailyReport = () => {
   const { profile, transactions } = useApp();
 
-  // Default to today's date in YYYY-MM-DD
-  const today = new Date().toISOString().split('T')[0];
-  const [selectedDate, setSelectedDate] = useState(today);
-  const [appliedDate, setAppliedDate] = useState(today);
+  // Get initial date from URL query parameter or fallback to today
+  const getInitialDate = () => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlDate = params.get('date');
+      if (urlDate) return urlDate;
+    }
+    return new Date().toISOString().split('T')[0];
+  };
+
+  const [selectedDate, setSelectedDate] = useState(getInitialDate);
+  const [appliedDate, setAppliedDate] = useState(getInitialDate);
+
+  // Sync with URL search params when changed externally
+  useEffect(() => {
+    const handlePopState = () => {
+      const initDate = getInitialDate();
+      setSelectedDate(initDate);
+      setAppliedDate(initDate);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setAppliedDate(selectedDate);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.pathname = '/admin/report/daily/deposit-expense';
+      url.searchParams.set('date', selectedDate);
+      window.history.pushState(null, '', url.toString());
+    }
   };
 
   // Filter transactions for appliedDate
@@ -28,7 +53,10 @@ export const DailyReport = () => {
   const expenseMap = {};
 
   dateTx.forEach((t) => {
-    if (t.type === 'deposit') {
+    const isDeposit = t.type === 'deposit' || t.type === 'income';
+    const isExpense = t.type === 'expense';
+
+    if (isDeposit) {
       if (Array.isArray(t.items) && t.items.length > 0) {
         t.items.forEach((item) => {
           const cat = item.category || 'সাধারণ জমা';
@@ -40,7 +68,7 @@ export const DailyReport = () => {
         const amt = Number(t.totalAmount ?? t.amount) || 0;
         depositMap[cat] = (depositMap[cat] || 0) + amt;
       }
-    } else if (t.type === 'expense') {
+    } else if (isExpense) {
       if (Array.isArray(t.items) && t.items.length > 0) {
         t.items.forEach((item) => {
           const cat = item.category || 'সাধারণ খরচ';
@@ -55,8 +83,14 @@ export const DailyReport = () => {
     }
   });
 
-  const depositList = Object.entries(depositMap).map(([category, amount]) => ({ category, amount }));
-  const expenseList = Object.entries(expenseMap).map(([category, amount]) => ({ category, amount }));
+  // Sort categories by amount descending matching live site
+  const depositList = Object.entries(depositMap)
+    .map(([category, amount]) => ({ category, amount }))
+    .sort((a, b) => b.amount - a.amount);
+
+  const expenseList = Object.entries(expenseMap)
+    .map(([category, amount]) => ({ category, amount }))
+    .sort((a, b) => b.amount - a.amount);
 
   const totalDeposit = depositList.reduce((sum, item) => sum + item.amount, 0);
   const totalExpense = expenseList.reduce((sum, item) => sum + item.amount, 0);
@@ -66,9 +100,9 @@ export const DailyReport = () => {
     profile?.banner || '/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg';
 
   return (
-    <div className="container-fluid">
-      {/* Filter Card */}
-      <div className="card shadow-sm mb-4">
+    <div className="w-100">
+      {/* Filter Card (hidden in print) */}
+      <div className="card shadow-sm mb-4 no-print">
         <div className="card-header bg-primary">
           <h5 className="mb-0 text-white">
             <i className="fa-solid fa-calendar-days me-2"></i> দৈনিক জমা ও খরচের প্রতিবেদন
@@ -213,21 +247,15 @@ export const DailyReport = () => {
                   <tr className="fw-bold">
                     <td className="text-center">
                       {formatMoney(totalDeposit)}
-                      <p className="mb-0 text-muted fw-normal">
-                        ({numberToBengaliWords(totalDeposit)} টাকা মাত্র)
-                      </p>
+                      <p>({numberToBengaliWords(totalDeposit)} টাকা মাত্র)</p>
                     </td>
                     <td className="text-center">
                       {formatMoney(totalExpense)}
-                      <p className="mb-0 text-muted fw-normal">
-                        ({numberToBengaliWords(totalExpense)} টাকা মাত্র)
-                      </p>
+                      <p>({numberToBengaliWords(totalExpense)} টাকা মাত্র)</p>
                     </td>
                     <td className="text-center">
                       {formatMoney(remaining)}
-                      <p className="mb-0 text-muted fw-normal">
-                        ({numberToBengaliWords(remaining)} টাকা মাত্র)
-                      </p>
+                      <p>({numberToBengaliWords(remaining)} টাকা মাত্র)</p>
                     </td>
                   </tr>
                 </tbody>

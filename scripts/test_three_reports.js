@@ -27,7 +27,9 @@ const liveMatches = [
   { num: 2922, expected: 'দুই হাজার নয় শত বাইশ' },
   { num: 1200, expected: 'এক হাজার দুই শত' },
   { num: 245, expected: 'দুই শত পঁয়তাল্লিশ' },
-  { num: 246, expected: 'দুই শত ছেচল্লিশ' }
+  { num: 246, expected: 'দুই শত ছেচল্লিশ' },
+  { num: -500, expected: 'ঋণাত্মক পাঁচ শত' },
+  { num: 100000000, expected: 'দশ কোটি' }
 ];
 
 liveMatches.forEach(({ num, expected }) => {
@@ -43,7 +45,8 @@ assert.strictEqual(formatMoney(0), '0.00');
 assert.strictEqual(formatMoney(646), '646.00');
 assert.strictEqual(formatMoney(35587), '35,587.00');
 assert.strictEqual(formatMoney(7145), '7,145.00');
-console.log('  ✅ Currency formatting verified (14,254.00, 0.00, 35,587.00).');
+assert.strictEqual(formatMoney(-500), '-500.00');
+console.log('  ✅ Currency formatting verified (14,254.00, 0.00, 35,587.00, -500.00).');
 
 // Test 3: Date formatting
 console.log('\nTest 3: Testing formatDateDDMMYYYY...');
@@ -80,18 +83,32 @@ assert.ok(dailyContent.includes('মুহতামিম সাহেবের 
 assert.ok(dailyContent.includes('হিসাব রক্ষকের স্বাক্ষর'), 'DailyReport must have accountant signature');
 assert.ok(dailyContent.includes('আয়ের খাত'), 'DailyReport must have income section');
 assert.ok(dailyContent.includes('ব্যয়ের খাত'), 'DailyReport must have expense section');
+assert.ok(dailyContent.includes('card shadow-sm mb-4 no-print'), 'DailyReport filter card must have no-print');
 
 const yearlyContent = fs.readFileSync(path.join(process.cwd(), 'src/components/reports/YearlyReport.jsx'), 'utf8');
 assert.ok(yearlyContent.includes('বার্ষিক জমা ও খরচের প্রতিবেদন'), 'YearlyReport must have title');
 assert.ok(yearlyContent.includes('বার্ষিক জমা ও খরচের বিবরণী'), 'YearlyReport must have subtitle');
 assert.ok(yearlyContent.includes('অবশিষ্ট তহবিল'), 'YearlyReport must have অবশিষ্ট তহবিল in summary');
 assert.ok(yearlyContent.includes('তারিখ নির্বাচন করে রিপোর্ট দেখান'), 'YearlyReport must have initial prompt');
+assert.ok(yearlyContent.includes('এই সময়কালে কোন জমা হয়নি'), 'YearlyReport must match exact live empty income text');
+assert.ok(yearlyContent.includes('এই সময়কালে কোন খরচ হয়নি'), 'YearlyReport must match exact live empty expense text');
+assert.ok(yearlyContent.includes('card shadow-sm mb-4 no-print'), 'YearlyReport filter card must have no-print');
+assert.ok(yearlyContent.includes('শেষের তারিখ শুরুর তারিখের পরে হতে হবে'), 'YearlyReport must validate date order');
 
 const bankContent = fs.readFileSync(path.join(process.cwd(), 'src/components/reports/BankReport.jsx'), 'utf8');
 assert.ok(bankContent.includes('ব্যাংক হিসাব প্রতিবেদন'), 'BankReport must have title');
 assert.ok(bankContent.includes('পেমেন্ট মেথড'), 'BankReport must have payment method column');
 assert.ok(bankContent.includes('ব্যালেন্স ( ব্যালেন্স ট্রান্সফার বাদে ):'), 'BankReport must have transfer-excluded balance row');
-console.log('  ✅ HTML markup and Bengali copy fully matched with live site.');
+assert.ok(bankContent.includes('কোন লেনদেন পাওয়া যায়নি'), 'BankReport must have empty message');
+assert.ok(bankContent.includes('accountTransactions.length > 0 &&'), 'BankReport tfoot must only render when transactions exist');
+assert.ok(bankContent.includes('card shadow-sm mb-4 no-print'), 'BankReport filter card must have no-print');
+assert.ok(bankContent.includes('শেষের তারিখ শুরুর তারিখের পরে হতে হবে'), 'BankReport must validate date order');
+
+// Test 7: Verify Breadcrumbs suppresses breadcrumbs for these 3 report pages
+console.log('\nTest 7: Verifying Breadcrumbs behavior for 3 report routes...');
+const breadcrumbsContent = fs.readFileSync(path.join(process.cwd(), 'src/components/layout/Breadcrumbs.jsx'), 'utf8');
+assert.ok(breadcrumbsContent.includes("['report-daily', 'report-yearly', 'report-bank'].includes(activeTab)"), 'Breadcrumbs must hide on the 3 report routes to match live site');
+console.log('  ✅ Breadcrumbs suppression verified.');
 
 console.log('\n========================================================');
 console.log('🎉 ALL 3 REPORT VIEWS VERIFIED WITH 100% PARITY!');

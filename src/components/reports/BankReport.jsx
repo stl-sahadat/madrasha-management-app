@@ -1,39 +1,83 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { numberToBengaliWords, formatMoney, formatDateDDMMYYYY } from '../../utils/bengaliWords';
 
 export const BankReport = () => {
   const { profile, accounts, transactions } = useApp();
 
-  const currentYear = new Date().getFullYear().toString();
-  const defaultStartDate = `${currentYear}-01-01`;
-  const defaultEndDate = `${currentYear}-12-31`;
+  // Filter only bank accounts if available, else fallback to all accounts
+  const bankAccounts = (accounts || []).filter((a) => a.isBank);
+  const accountOptions = bankAccounts.length > 0 ? bankAccounts : (accounts || []);
 
-  // Find first bank account or first account
-  const defaultAccount =
-    (accounts || []).find((a) => a.isBank) || (accounts || [])[0] || null;
+  // Parse query params from URL if present
+  const getInitialParams = () => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const accId = params.get('bank_account_id') || '';
+      const sDate = params.get('start_date') || '';
+      const eDate = params.get('end_date') || '';
+      const hasSubmitted = Boolean(accId);
+      return { accountId: accId, startDate: sDate, endDate: eDate, hasSubmitted };
+    }
+    return { accountId: '', startDate: '', endDate: '', hasSubmitted: false };
+  };
 
-  const [selectedAccountId, setSelectedAccountId] = useState(defaultAccount ? defaultAccount.id : '');
-  const [startDate, setStartDate] = useState(defaultStartDate);
-  const [endDate, setEndDate] = useState(defaultEndDate);
+  const initial = getInitialParams();
+  const [selectedAccountId, setSelectedAccountId] = useState(initial.accountId);
+  const [startDate, setStartDate] = useState(initial.startDate);
+  const [endDate, setEndDate] = useState(initial.endDate);
+  const [appliedFilter, setAppliedFilter] = useState(initial);
 
-  const [appliedFilter, setAppliedFilter] = useState({
-    accountId: defaultAccount ? defaultAccount.id : '',
-    startDate: defaultStartDate,
-    endDate: defaultEndDate,
-    hasSubmitted: true
-  });
+  useEffect(() => {
+    const handlePopState = () => {
+      const p = getInitialParams();
+      setSelectedAccountId(p.accountId);
+      setStartDate(p.startDate);
+      setEndDate(p.endDate);
+      setAppliedFilter(p);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setAppliedFilter({
+
+    if (!selectedAccountId) {
+      alert('অনুগ্রহ করে ব্যাংক অ্যাকাউন্ট নির্বাচন করুন');
+      return;
+    }
+
+    if (!startDate || !endDate) {
+      alert('শুরুর ও শেষের তারিখ নির্বাচন করুন');
+      return;
+    }
+
+    const startD = new Date(startDate);
+    const endD = new Date(endDate);
+    if (endD < startD) {
+      alert('শেষের তারিখ শুরুর তারিখের পরে হতে হবে');
+      return;
+    }
+
+    const filterObj = {
       accountId: selectedAccountId,
       startDate,
       endDate,
-      hasSubmitted: Boolean(selectedAccountId)
-    });
+      hasSubmitted: true
+    };
+    setAppliedFilter(filterObj);
+
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.pathname = '/admin/report/bank';
+      url.searchParams.set('bank_account_id', selectedAccountId);
+      url.searchParams.set('start_date', startDate);
+      url.searchParams.set('end_date', endDate);
+      window.history.pushState(null, '', url.toString());
+    }
   };
 
   const selectedAccount = (accounts || []).find(
@@ -66,22 +110,44 @@ export const BankReport = () => {
 
   // Compute total deposits and expenses for this account
   const totalDeposit = accountTransactions
-    .filter((tx) => tx.type === 'deposit')
+    .filter((tx) => tx.type === 'deposit' || tx.type === 'income')
     .reduce((sum, tx) => sum + (Number(tx.totalAmount ?? tx.amount) || 0), 0);
 
   const totalExpense = accountTransactions
     .filter((tx) => tx.type === 'expense')
     .reduce((sum, tx) => sum + (Number(tx.totalAmount ?? tx.amount) || 0), 0);
 
-  const balance = totalDeposit - totalExpense;
+  // Transactions excluding transfer
+  const depositsWithoutTransfer = accountTransactions
+    .filter(
+      (tx) =>
+        (tx.type === 'deposit' || tx.type === 'income') &&
+        tx.category !== 'ব্যালেন্স ট্রান্সফার' &&
+        tx.type !== 'transfer'
+    )
+    .reduce((sum, tx) => sum + (Number(tx.totalAmount ?? tx.amount) || 0), 0);
+
+  const expensesWithoutTransfer = accountTransactions
+    .filter(
+      (tx) =>
+        tx.type === 'expense' &&
+        tx.category !== 'ব্যালেন্স ট্রান্সফার' &&
+        tx.type !== 'transfer'
+    )
+    .reduce((sum, tx) => sum + (Number(tx.totalAmount ?? tx.amount) || 0), 0);
+
+  const balanceWithoutTransfer = depositsWithoutTransfer - expensesWithoutTransfer;
+  const totalBalance = totalDeposit - totalExpense;
 
   const bannerUrl =
     profile?.banner || '/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg';
 
+  const accNumber = selectedAccount?.accountNumber || selectedAccount?.number;
+
   return (
-    <div className="container-fluid">
-      {/* Filter Card */}
-      <div className="card shadow-sm mb-4">
+    <div className="w-100">
+      {/* Filter Card (hidden in print) */}
+      <div className="card shadow-sm mb-4 no-print">
         <div className="card-header bg-primary">
           <h5 className="mb-0 text-white">
             <i className="fa-solid fa-building-columns me-2"></i> ব্যাংক হিসাব প্রতিবেদন
@@ -105,7 +171,7 @@ export const BankReport = () => {
                   required
                 >
                   <option value="">নির্বাচন করুন</option>
-                  {(accounts || []).map((acc) => (
+                  {accountOptions.map((acc) => (
                     <option key={acc.id} value={acc.id}>
                       {acc.name}
                     </option>
@@ -158,7 +224,7 @@ export const BankReport = () => {
         </div>
       </div>
 
-      {/* Report Content when account is selected */}
+      {/* Report Content only when submitted and account selected */}
       {appliedFilter.hasSubmitted && selectedAccount ? (
         <div className="card border-0 shadow-sm mb-4" id="printContent">
           <div className="card-body py-4">
@@ -176,11 +242,7 @@ export const BankReport = () => {
               </div>
               <div className="col-md-2 text-end">
                 <p className="mb-0 fw-semibold">{selectedAccount.name}</p>
-                {selectedAccount.accountNumber || selectedAccount.number ? (
-                  <p className="mb-0 small">
-                    A/C: {selectedAccount.accountNumber || selectedAccount.number}
-                  </p>
-                ) : null}
+                {accNumber ? <p className="mb-0 small">A/C: {accNumber}</p> : null}
               </div>
             </div>
           </div>
@@ -217,7 +279,7 @@ export const BankReport = () => {
                 <tbody>
                   {accountTransactions.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="text-center text-muted">
+                      <td colSpan="7" className="text-center py-4">
                         কোন লেনদেন পাওয়া যায়নি
                       </td>
                     </tr>
@@ -227,14 +289,17 @@ export const BankReport = () => {
                       const category =
                         (tx.items && tx.items[0]?.category) ||
                         tx.category ||
-                        (tx.type === 'deposit' ? 'সাধারণ জমা' : 'সাধারণ খরচ');
+                        (tx.type === 'deposit' || tx.type === 'income'
+                          ? 'সাধারণ জমা'
+                          : 'সাধারণ খরচ');
+                      const isDeposit = tx.type === 'deposit' || tx.type === 'income';
                       return (
                         <tr key={tx.id || idx}>
                           <td className="text-center">{idx + 1}</td>
                           <td className="text-center">{tx.voucherNo || `V${idx + 1}`}</td>
                           <td className="text-center">{formatDateDDMMYYYY(tx.date)}</td>
                           <td className="text-center">
-                            {tx.type === 'deposit' ? (
+                            {isDeposit ? (
                               <span className="badge bg-success">জমা</span>
                             ) : (
                               <span className="badge bg-danger">খরচ</span>
@@ -248,40 +313,44 @@ export const BankReport = () => {
                     })
                   )}
                 </tbody>
-                <tfoot className="table-light">
-                  <tr className="fw-bold">
-                    <td colSpan="5" className="text-end">
-                      মোট জমাঃ
-                    </td>
-                    <td colSpan="2" className="text-end">
-                      {formatMoney(totalDeposit)} ({numberToBengaliWords(totalDeposit)} টাকা মাত্র)
-                    </td>
-                  </tr>
-                  <tr className="fw-bold">
-                    <td colSpan="5" className="text-end">
-                      মোট খরচঃ
-                    </td>
-                    <td colSpan="2" className="text-end">
-                      {formatMoney(totalExpense)} ({numberToBengaliWords(totalExpense)} টাকা মাত্র)
-                    </td>
-                  </tr>
-                  <tr className="fw-bold table-info">
-                    <td colSpan="5" className="text-end">
-                      ব্যালেন্স ( ব্যালেন্স ট্রান্সফার বাদে ):
-                    </td>
-                    <td colSpan="2" className="text-end">
-                      {formatMoney(balance)} ({numberToBengaliWords(balance)} টাকা মাত্র)
-                    </td>
-                  </tr>
-                  <tr className="fw-bold table-info">
-                    <td colSpan="5" className="text-end">
-                      ব্যালেন্স :
-                    </td>
-                    <td colSpan="2" className="text-end">
-                      {formatMoney(balance)} ({numberToBengaliWords(balance)} টাকা মাত্র)
-                    </td>
-                  </tr>
-                </tfoot>
+                {/* tfoot is only rendered if there are transactions, matching live site */}
+                {accountTransactions.length > 0 && (
+                  <tfoot className="table-light">
+                    <tr className="fw-bold">
+                      <td colSpan="5" className="text-end">
+                        মোট জমাঃ
+                      </td>
+                      <td colSpan="2" className="text-end">
+                        {formatMoney(totalDeposit)} ({numberToBengaliWords(totalDeposit)} টাকা মাত্র)
+                      </td>
+                    </tr>
+                    <tr className="fw-bold">
+                      <td colSpan="5" className="text-end">
+                        মোট খরচঃ
+                      </td>
+                      <td colSpan="2" className="text-end">
+                        {formatMoney(totalExpense)} ({numberToBengaliWords(totalExpense)} টাকা মাত্র)
+                      </td>
+                    </tr>
+                    <tr className="fw-bold table-info">
+                      <td colSpan="5" className="text-end">
+                        ব্যালেন্স ( ব্যালেন্স ট্রান্সফার বাদে ):
+                      </td>
+                      <td colSpan="2" className="text-end">
+                        {formatMoney(balanceWithoutTransfer)} (
+                        {numberToBengaliWords(balanceWithoutTransfer)} টাকা মাত্র)
+                      </td>
+                    </tr>
+                    <tr className="fw-bold table-info">
+                      <td colSpan="5" className="text-end">
+                        ব্যালেন্স :
+                      </td>
+                      <td colSpan="2" className="text-end">
+                        {formatMoney(totalBalance)} ({numberToBengaliWords(totalBalance)} টাকা মাত্র)
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
               </table>
             </div>
 
