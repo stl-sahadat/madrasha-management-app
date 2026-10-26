@@ -1,0 +1,328 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0f626a;
+  --color-primary-dark: #0a474d;
+  --color-primary-light: #eaf4f5;
+  --color-primary-hover: #13747d;
+  --color-madrasha-bg: #f6f7fa;
+  --color-madrasha-surface: #ffffff;
+  --color-madrasha-text: #082f32;
+  --color-madrasha-muted: #556b6d;
+  --color-madrasha-border: #e2e8f0;
+  --color-madrasha-secondary: #626262;
+  --color-madrasha-success: #0ab964;
+  --color-madrasha-danger: #e14e5a;
+  --color-madrasha-warning: #f9c123;
+  --color-madrasha-info: #4196fa;
+  --font-bangla: 'SolaimanLipi', 'Noto Sans Bengali', 'Hind Siliguri', sans-serif;
+  --font-sans: 'Inter', 'Rubik', 'SolaimanLipi', 'Noto Sans Bengali', sans-serif;
+}
+
+@font-face {
+  font-family: 'SolaimanLipi';
+  src: url('/fonts/SolaimanLipi-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SolaimanLipi';
+  src: url('/fonts/SolaimanLipi-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Noto Sans Bengali';
+  src: url('/fonts/NotoSansBengali-Variable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hind Siliguri';
+  src: url('/fonts/HindSiliguri-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Hind Siliguri';
+  src: url('/fonts/HindSiliguri-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Variable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Print optimizations */
+@media print {
+  @page {
+    margin: 8mm;
+    size: auto;
+  }
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .no-print, header, aside, footer {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .page-break {
+    page-break-after: always;
+    break-after: page;
+  }
+}
+
+/* ========================================================
+   Sidebar & Accordion Navigation Fixes (hostzonebd 1:1)
+   ======================================================== */
+
+/* 1. Prevent non-sidebar nav elements (like breadcrumbs) from inheriting fixed sidebar layout */
+nav:not(.app-sidebar),
+.app-wrapper .breadcrumb-nav,
+nav[aria-label="breadcrumb"],
+.breadcrumb-nav {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  z-index: auto !important;
+  display: block !important;
+}
+
+/* 2. Main Sidebar container */
+.app-wrapper nav.app-sidebar,
+.app-wrapper > nav {
+  width: 18rem !important;
+  height: 100vh !important;
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.05) !important;
+  border-right: 1px solid #e2e8f0 !important;
+  z-index: 1003 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  transition: width 0.25s ease, transform 0.25s ease !important;
+}
+
+/* Collapsed semi-nav on desktop */
+.app-wrapper nav.app-sidebar.semi-nav,
+.app-wrapper > nav.semi-nav {
+  width: 80px !important;
+}
+
+/* 3. Sidebar scrollable area - all categories visible and smoothly scrollable */
+.app-wrapper nav .app-nav {
+  flex: 1 1 auto !important;
+  height: calc(100vh - 90px) !important;
+  max-height: calc(100vh - 90px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding-bottom: 2.5rem !important;
+  scrollbar-width: thin;
+}
+
+/* 4. Fix Tailwind CSS conflict: Tailwind defines .collapse { visibility: collapse; }
+   which hid all submenu child items! We explicitly ensure visibility and proper expand/collapse. */
+.app-wrapper nav .app-nav .main-nav ul,
+.app-wrapper nav .app-nav .main-nav ul.collapse,
+.app-wrapper nav .app-nav .main-nav .sidebar-submenu {
+  visibility: visible !important;
+  list-style: none !important;
+}
+
+.app-wrapper nav .app-nav .main-nav ul.collapse:not(.show),
+.app-wrapper nav .app-nav .main-nav .sidebar-submenu:not(.show) {
+  display: none !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+}
+
+.app-wrapper nav .app-nav .main-nav ul.collapse.show,
+.app-wrapper nav .app-nav .main-nav .sidebar-submenu.show {
+  display: block !important;
+  visibility: visible !important;
+  height: auto !important;
+  opacity: 1 !important;
+  overflow: visible !important;
+}
+
+/* 5. Clean, dark-teal (#0f626a) sidebar category styling matching hostzonebd */
+.app-wrapper nav .app-nav .main-nav > li {
+  padding: 0 0.5rem !important;
+  margin-bottom: 2px !important;
+}
+
+.app-wrapper nav .app-nav .main-nav > li:not(.menu-title) > a {
+  padding: 0.65rem 0.9rem !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #082f32 !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.app-wrapper nav .app-nav .main-nav > li:not(.menu-title) > a:hover {
+  background-color: #f1f5f9 !important;
+  color: #0f626a !important;
+}
+
+.app-wrapper nav .app-nav .main-nav > li:not(.menu-title) > a[aria-expanded="true"] {
+  background-color: #0f626a !important;
+  color: #ffffff !important;
+  margin-bottom: 0.35rem !important;
+}
+
+.app-wrapper nav .app-nav .main-nav > li:not(.menu-title) > a[aria-expanded="true"] i,
+.app-wrapper nav .app-nav .main-nav > li:not(.menu-title) > a[aria-expanded="true"] svg {
+  color: #ffffff !important;
+}
+
+/* For direct leaf links (like ড্যাশবোর্ড, কমিটি, etc.) when active */
+.app-wrapper nav .app-nav .main-nav > li.no-sub.active > a {
+  background-color: #0f626a !important;
+  color: #ffffff !important;
+}
+
+.app-wrapper nav .app-nav .main-nav > li.no-sub.active > a i {
+  color: #ffffff !important;
+}
+
+/* 6. Submenu list container styling matching hostzonebd 1:1 */
+.app-wrapper nav .app-nav .main-nav .sidebar-submenu,
+.app-wrapper nav .app-nav .main-nav > li:not(.menu-title) ul {
+  margin: 0 1rem !important;
+  padding: 0 !important;
+  background-color: transparent !important;
+  border-left: none !important;
+  border-radius: 9.6px !important;
+}
+
+.app-wrapper nav .app-nav .main-nav .sidebar-submenu li,
+.app-wrapper nav .app-nav .main-nav > li:not(.menu-title) ul li {
+  padding: 4.8px 24px !important;
+  margin: 0 !important;
+  line-height: 28px !important;
+  list-style: none !important;
+  position: relative !important;
+}
+
+.app-wrapper nav .app-nav .main-nav .sidebar-submenu li a,
+.app-wrapper nav .app-nav .main-nav > li:not(.menu-title) ul li a {
+  display: inline-block !important;
+  padding: 0 !important;
+  font-size: 15px !important;
+  color: #28232d !important;
+  text-decoration: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  transition: all 0.15s ease !important;
+  white-space: normal !important;
+  font-weight: 400 !important;
+  line-height: 28px !important;
+}
+
+.app-wrapper nav .app-nav .main-nav .sidebar-submenu li a:hover,
+.app-wrapper nav .app-nav .main-nav > li:not(.menu-title) ul li a:hover {
+  background-color: transparent !important;
+  color: #0f626a !important;
+  font-weight: 600 !important;
+  padding-left: 0 !important;
+}
+
+/* Active submenu item: teal text, transparent background, hostzonebd 4px vertical teal indicator */
+.app-wrapper nav .app-nav .main-nav .sidebar-submenu li.active a,
+.app-wrapper nav .app-nav .main-nav > li:not(.menu-title) ul li.active a {
+  background-color: transparent !important;
+  color: #0f626a !important;
+  font-weight: 600 !important;
+}
+
+.app-wrapper nav .app-nav .main-nav .sidebar-submenu li.active a::before,
+.app-wrapper nav .app-nav .main-nav > li:not(.menu-title) ul li.active a::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 8px !important;
+  top: 6px !important;
+  width: 4px !important;
+  height: 24px !important;
+  background-color: #0f626a !important;
+  border-radius: 4px !important;
+  display: block !important;
+}
+
+.app-wrapper nav .app-nav .main-nav .sidebar-submenu li:not(.active) a::before,
+.app-wrapper nav .app-nav .main-nav > li:not(.menu-title) ul li:not(.active) a::before {
+  display: none !important;
+}
+
+/* 7. Responsive handling for mobile/tablet */
+@media screen and (max-width: 1199px) {
+  .app-wrapper nav.app-sidebar,
+  .app-wrapper > nav {
+    transform: translateX(-100%) !important;
+    width: 18rem !important;
+    z-index: 1050 !important;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  .app-wrapper nav.app-sidebar.sidebar-mobile-open,
+  .app-wrapper nav.app-sidebar:not(.semi-nav) {
+    transform: translateX(0) !important;
+  }
+
+  .app-wrapper .app-content {
+    padding-left: 0 !important;
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  .app-wrapper .app-content {
+    padding-left: 18rem !important;
+    transition: padding-left 0.25s ease !important;
+  }
+
+  .app-wrapper nav.semi-nav ~ .app-content {
+    padding-left: 80px !important;
+  }
+}
