@@ -89,23 +89,23 @@ export const StudentKhurakiRegister = () => {
               ) : (
                 filteredStudents.map((student, idx) => {
                   const admissionNo = student.admissionNumber || student.admission_number || student.roll || idx + 101;
-                  const rate = student.khurakiFee || student.food_bill || 2000;
-                  const res = (student.khurakiFee || student.food_bill || 0) > 0 || student.residential === 'আবাসিক' ? 'আবাসিক' : 'অনাবাসিক';
+                  const rate = student.khurakiFee !== undefined ? student.khurakiFee : (student.food_bill !== undefined ? student.food_bill : (student.khuraki !== undefined ? student.khuraki : 2000));
+                  const res = rate > 0 || student.residential === 'আবাসিক' ? 'আবাসিক' : 'অনাবাসিক';
 
                   return (
                     <tr key={student.id}>
                       <td>{idx + 1}</td>
                       <td className="text-start ps-2 fw-semibold">{student.name}</td>
                       <td>{admissionNo}</td>
-                      <td>৳ {rate}</td>
+                      <td>{rate}৳</td>
                       <td>{res}</td>
                       {MONTH_NAMES.map((m, mIdx) => {
                         const monthFee = student.fees?.[m];
                         const isPaid = monthFee ? (monthFee.paid && (monthFee.khuraki > 0 || monthFee.tuition === undefined)) : (mIdx < 3 && rate > 0);
                         const amountPaid = monthFee?.khuraki || (isPaid ? rate : 0);
                         return (
-                          <td key={m} className={isPaid ? 'fw-bold text-dark font-monospace' : 'text-muted'}>
-                            {isPaid ? `${amountPaid}৳` : <span className="text-muted">-</span>}
+                          <td key={m} className={isPaid && amountPaid > 0 ? 'fw-bold text-dark font-monospace' : 'text-muted'}>
+                            {isPaid && amountPaid > 0 ? `${amountPaid.toLocaleString('en-IN')}` : <span className="text-muted">-</span>}
                           </td>
                         );
                       })}

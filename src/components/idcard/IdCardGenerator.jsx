@@ -320,12 +320,12 @@ export const IdCardGenerator = ({ defaultType = 'student' }) => {
               <div className="photo-section">
                 <div className="photo">
                   <img
-                    src={activeStudent.photo || '/students/FB_IMG_1791220812856.webp'}
+                    src={activeStudent.photo || '/storage/students/default-student.jpg'}
                     alt="Student Photo"
                     style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = "https://madrasha.hostzonebd.com/storage/students/default-student.jpg";
+                      e.target.src = "/storage/students/default-student.jpg";
                     }}
                   />
                 </div>
@@ -380,12 +380,12 @@ export const IdCardGenerator = ({ defaultType = 'student' }) => {
               <div className="photo-section">
                 <div className="photo">
                   <img
-                    src={activeTeacher.photo || 'https://madrasha.hostzonebd.com/storage/teachers/w4VIRK4VVwP31z1S0tC2ralZnX6xbXswNIgeLN8A.jpg'}
+                    src={activeTeacher.photo || '/storage/teachers/w4VIRK4VVwP31z1S0tC2ralZnX6xbXswNIgeLN8A.jpg'}
                     alt="Teacher Photo"
                     style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = "https://images.unsplash.com/photo-1544717305-2782549b5136?w=200&h=200&fit=crop";
+                      e.target.src = "/storage/teachers/eXUAuPhreXk0tOWTeviLX2y8J6SwvMJJnSh4Mj85.jpg";
                     }}
                   />
                 </div>

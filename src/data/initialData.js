@@ -117,7 +117,7 @@ export const INITIAL_STUDENTS = [
     "address": "বদরখালী, মাতামুহুরী, চকরিয়া, কক্সবাজার",
     "monthlyFee": 800,
     "khurakiFee": 2200,
-    "photo": "/students/FB_IMG_1791220812856.webp",
+    "photo": "/storage/students/photos/qL3O80DX3hm1RoGUFMq3Xu9O9BNao7w4ReYNyPFQ.jpg",
     "status": "সক্রিয়",
     "admissionDate": "2024-01-15",
     "fees": {
@@ -875,7 +875,7 @@ export const INITIAL_STUDENTS = [
     "address": "বদরখালী, মাতামুহুরী, চকরিয়া, কক্সবাজার",
     "monthlyFee": 800,
     "khurakiFee": 2200,
-    "photo": "/students/IMG_20261014_124949.webp",
+    "photo": "/storage/students/photos/mQMPuKNY8Iqgv52mAAOU9pLIt8Q6OJMubjwuf3y3.jpg",
     "status": "সক্রিয়",
     "admissionDate": "2024-01-15",
     "fees": {

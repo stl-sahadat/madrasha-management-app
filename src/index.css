@@ -103,6 +103,32 @@
     page-break-after: always;
     break-after: page;
   }
+  /* When print receipt modal is open, hide the rest of the application so only the receipt prints */
+  body:has(.modal.show) .app-content,
+  .app-wrapper:has(.modal.show) > .app-content,
+  .app-wrapper:has(.modal.show) > .app-sidebar,
+  .app-wrapper:has(.modal.show) > nav {
+    display: none !important;
+  }
+  .modal {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  .modal-dialog {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .modal-content {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+  .modal-body {
+    padding: 0 !important;
+  }
 }
 
 /* ========================================================

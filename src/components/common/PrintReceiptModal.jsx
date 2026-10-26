@@ -58,6 +58,18 @@ export const PrintReceiptModal = () => {
         if (e.target === e.currentTarget) setSelectedReceiptForPrint(null);
       }}
     >
+      {/* Floating Top-Right Close Cross Button */}
+      <button
+        type="button"
+        onClick={() => setSelectedReceiptForPrint(null)}
+        className="btn btn-danger position-fixed rounded-circle shadow-lg no-print d-flex align-items-center justify-content-center text-white"
+        style={{ top: '16px', right: '24px', zIndex: 1070, width: '42px', height: '42px', fontSize: '22px', fontWeight: 'bold', border: '2px solid #ffffff' }}
+        title="বন্ধ করুন (✕ / Esc)"
+        aria-label="Close"
+      >
+        ✕
+      </button>
+
       <div className="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
         <div className="modal-content shadow-lg border-0 rounded-3">
           {/* Header Controls - Hidden during print */}
@@ -78,12 +90,12 @@ export const PrintReceiptModal = () => {
               <button
                 type="button"
                 onClick={() => setSelectedReceiptForPrint(null)}
-                className="btn btn-danger btn-sm fw-bold px-2 py-1 rounded-circle d-flex align-items-center justify-content-center"
-                style={{ width: '32px', height: '32px', lineHeight: 1 }}
+                className="btn btn-danger btn-sm fw-bold px-2 py-0 d-flex align-items-center justify-content-center text-white rounded-2 shadow-sm"
+                style={{ minWidth: '34px', height: '30px', fontSize: '18px', fontWeight: '900', lineHeight: 1 }}
                 title="বন্ধ করুন"
                 aria-label="Close"
               >
-                <i className="fa-solid fa-xmark fs-5"></i>
+                ✕
               </button>
             </div>
           </div>

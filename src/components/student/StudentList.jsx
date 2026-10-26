@@ -242,6 +242,12 @@ export const StudentList = () => {
               </tbody>
             </table>
           </div>
+
+          <div className="m-3 d-flex justify-content-end no-print">
+            <button className="btn btn-primary fw-bold" onClick={() => window.print()}>
+              <i className="fa-solid fa-print me-2"></i> প্রিন্ট করুন
+            </button>
+          </div>
         </div>
       </div>
 

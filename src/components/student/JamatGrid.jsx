@@ -114,12 +114,13 @@ export const JamatGrid = () => {
                     {/* Photo */}
                     <div className="mb-2">
                       <img
-                        src={student.photo || '/students/FB_IMG_1791220812856.webp'}
+                        src={student.photo || '/storage/students/default-student.jpg'}
                         alt={student.name}
                         className="rounded-circle border border-2 border-primary"
                         width="80"
                         height="80"
                         style={{ objectFit: 'cover' }}
+                        onError={(e) => { e.target.src = '/storage/students/default-student.jpg'; }}
                       />
                     </div>
 
@@ -165,6 +166,15 @@ export const JamatGrid = () => {
             );
           })
         )}
+      </div>
+
+      {/* Print Button */}
+      <div className="row mt-4 mb-3 no-print">
+        <div className="col-12 d-flex justify-content-center">
+          <button onClick={() => window.print()} className="btn btn-primary px-4 py-2 fw-bold">
+            <i className="fa-solid fa-print me-2"></i> প্রিন্ট করুন
+          </button>
+        </div>
       </div>
 
       {/* View Student Modal */}

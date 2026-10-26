@@ -842,7 +842,8 @@ export const TeacherModule = ({ defaultTab = 'list' }) => {
                     {teachers.map((t, idx) => {
                       const payment = teacherSalaryPayments.find(p =>
                         (p.teacherId === t.id || p.teacherName === t.name) &&
-                        (p.month === salaryMonth || (p.date && p.date.includes(salaryMonth)))
+                        (p.month === salaryMonth || (p.date && p.date.includes(salaryMonth))) &&
+                        (!p.year || p.year === salaryYear || (p.date && p.date.startsWith(salaryYear)))
                       );
                       const isPaid = !!payment;
                       return (
@@ -1200,6 +1201,12 @@ export const TeacherModule = ({ defaultTab = 'list' }) => {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            <div className="m-3 d-flex justify-content-end no-print">
+              <button className="btn btn-primary fw-bold" onClick={() => window.print()}>
+                <i className="fa-solid fa-print me-2"></i> প্রিন্ট করুন
+              </button>
             </div>
           </div>
         </div>
