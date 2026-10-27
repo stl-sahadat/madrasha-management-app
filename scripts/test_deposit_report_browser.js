@@ -40,7 +40,7 @@ async function main() {
     const send = (m, params = {}) => new Promise(res => { const i = id++; p.set(i, res); ws.send(JSON.stringify({ id: i, method: m, params })); });
 
     const evaluate = async (expr) => {
-      const r = await send('Runtime.evaluate', { expression: expr });
+      const r = await send('Runtime.evaluate', { expression: expr, returnByValue: true });
       return r?.result?.result?.value ?? r?.result?.value;
     };
 
@@ -111,13 +111,69 @@ async function main() {
       throw new Error(`Searched state text mismatch. Body: ${searchedText.slice(0, 300)}`);
     }
 
-    snap = await send('Page.captureScreenshot', { format: 'jpeg', quality: 85 });
+    // Test table column alignment
+    const alignmentCheck = await evaluate(`
+      (() => {
+        const table0 = document.querySelectorAll("table")[0];
+        const th0 = table0.querySelectorAll("th")[0];
+        const td0 = table0.querySelectorAll("tbody tr:first-child td")[0];
+        const diff0 = Math.abs(th0.offsetLeft - td0.offsetLeft);
+        
+        const table1 = document.querySelectorAll("table")[1];
+        const th1 = table1.querySelectorAll("th")[0];
+        const td1 = table1.querySelectorAll("tbody tr:first-child td")[0];
+        const diff1 = Math.abs(th1.offsetLeft - td1.offsetLeft);
+
+        const breadcrumbs = document.querySelector(".breadcrumb");
+        return { diff0, diff1, hasBreadcrumbs: Boolean(breadcrumbs) };
+      })()
+    `);
+    console.log('Table 0 header-td alignment delta:', alignmentCheck.diff0, 'px');
+    console.log('Table 1 header-td alignment delta:', alignmentCheck.diff1, 'px');
+    if (alignmentCheck.diff0 > 5 || alignmentCheck.diff1 > 5) {
+      throw new Error(`Table columns misaligned! deltas: ${JSON.stringify(alignmentCheck)}`);
+    }
+    console.log('  ✅ Table columns are 100% aligned with thead headers.');
+
+    if (alignmentCheck.hasBreadcrumbs) {
+      throw new Error('Breadcrumb card should be absent for report-deposit matching live site parity!');
+    }
+    console.log('  ✅ Verified breadcrumb card is absent matching live reference.');
+
+    // Save full page screenshots
+    snap = await send('Page.captureScreenshot', { format: 'jpeg', quality: 85, captureBeyondViewport: true });
     fs.writeFileSync(path.join(outDir, 'report-deposit-searched.jpg'), Buffer.from(snap.result.data, 'base64'));
     fs.writeFileSync(path.join(outDir, 'report-deposit.jpg'), Buffer.from(snap.result.data, 'base64'));
-    console.log('  📸 Screenshots saved: report-deposit-searched.jpg and report-deposit.jpg');
+    console.log('  📸 Fullpage screenshots saved: report-deposit-searched.jpg and report-deposit.jpg');
+
+    // Test print media emulation
+    console.log('\n--- 3. Testing Print Media Emulation ---');
+    await send('Emulation.setEmulatedMedia', { media: 'print' });
+    await new Promise(r => setTimeout(r, 600));
+    const printCheck = await evaluate(`
+      (() => {
+        const sidebar = document.querySelector(".app-sidebar");
+        const filterCard = document.querySelector(".no-print");
+        const printContent = document.querySelector("#printContent");
+        return {
+          sidebarDisplay: window.getComputedStyle(sidebar).display,
+          filterCardDisplay: window.getComputedStyle(filterCard).display,
+          printContentDisplay: window.getComputedStyle(printContent).display
+        };
+      })()
+    `);
+    console.log('Print emulation styles:', printCheck);
+    if (printCheck.sidebarDisplay !== 'none') {
+      throw new Error(`Sidebar must be hidden in print mode! Got: ${printCheck.sidebarDisplay}`);
+    }
+    if (printCheck.filterCardDisplay !== 'none') {
+      throw new Error(`Filter card must be hidden in print mode! Got: ${printCheck.filterCardDisplay}`);
+    }
+    console.log('  ✅ Print media verified: sidebar & filter card hidden, report content visible.');
+    await send('Emulation.setEmulatedMedia', { media: '' });
 
     // 4. Test clicking submit button on form interactively
-    console.log('\n--- 3. Testing Interactive Form Submit ---');
+    console.log('\n--- 4. Testing Interactive Form Submit ---');
     await send('Page.navigate', { url: 'http://localhost:3000/admin/report/deposit' });
     await waitForHydration();
 

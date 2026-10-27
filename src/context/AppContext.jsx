@@ -583,17 +583,19 @@ export const AppProvider = ({ children, initialSlug }) => {
   // Add Deposit Voucher
   const addDepositVoucher = (voucherData) => {
     const newVoucher = {
-      id: `DEP-${Date.now()}`,
+      id: voucherData.id || `DEP-${Date.now()}`,
       type: 'deposit',
-      voucherNo: `JV-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
+      voucherNo: voucherData.voucherNo || `JV-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
       date: voucherData.date || new Date().toISOString().split('T')[0],
       receiver: voucherData.receiver || 'মাহমুদুল করিম',
       account: voucherData.account || accounts[0]?.name,
       donorOrStudent: voucherData.donorOrStudent,
+      bookNo: voucherData.bookNo || '-',
+      receiptNo: voucherData.receiptNo || '-',
       items: voucherData.items || [],
       totalAmount: parseFloat(voucherData.totalAmount) || 0,
       note: voucherData.note || '',
-      status: 'অনুমোদিত'
+      status: voucherData.status || 'অনুমোদিত'
     };
 
     setTransactions(prev => [newVoucher, ...prev]);

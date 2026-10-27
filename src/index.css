@@ -93,8 +93,14 @@
     background: #ffffff !important;
     color: #000000 !important;
   }
-  .no-print, header, aside, footer {
+  .no-print, header, aside, footer, .app-sidebar, nav.app-sidebar, .sidebar-backdrop {
     display: none !important;
+  }
+  .app-content {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
   .print-only {
     display: block !important;
@@ -352,3 +358,26 @@ nav[aria-label="breadcrumb"],
     padding-left: 80px !important;
   }
 }
+
+/* Definitive Print Overrides - must appear after all layout rules */
+@media print {
+  .app-wrapper nav.app-sidebar,
+  .app-wrapper > nav,
+  nav.app-sidebar,
+  .app-sidebar,
+  .sidebar-backdrop,
+  header,
+  .header-main,
+  aside,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+  .app-wrapper .app-content {
+    padding-left: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+

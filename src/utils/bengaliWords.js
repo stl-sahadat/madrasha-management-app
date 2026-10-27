@@ -64,3 +64,25 @@ export function formatDateDDMMYYYY(dateStr) {
   }
   return dateStr;
 }
+
+/**
+ * Normalizes any date string (DD/MM/YYYY, YYYY-MM-DD, DD-MM-YYYY, YYYY/MM/DD, ISO) to standard YYYY-MM-DD
+ */
+export function toStandardDateStr(dStr) {
+  if (!dStr) return '';
+  const s = String(dStr).trim().split('T')[0].split(' ')[0];
+  const sep = s.includes('/') ? '/' : s.includes('-') ? '-' : null;
+  if (sep) {
+    const parts = s.split(sep);
+    if (parts.length === 3) {
+      const [p1, p2, p3] = parts;
+      if (p1.length === 4) {
+        return `${p1}-${p2.padStart(2, '0')}-${p3.padStart(2, '0')}`;
+      } else if (p3.length === 4) {
+        return `${p3.padStart(4, '20')}-${p2.padStart(2, '0')}-${p1.padStart(2, '0')}`;
+      }
+    }
+  }
+  return s;
+}
+

@@ -132,7 +132,8 @@ export const Breadcrumbs = () => {
   if (
     !activeTab ||
     activeTab === 'dashboard' ||
-    ['report-daily', 'report-yearly', 'report-bank'].includes(activeTab)
+    ['report-daily', 'report-yearly', 'report-bank'].includes(activeTab) ||
+    activeTab === 'report-deposit'
   ) {
     return null;
   }

@@ -2,28 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { numberToBengaliWords, formatMoney, formatDateDDMMYYYY } from '../../utils/bengaliWords';
-
-/**
- * Normalizes a date string to YYYY-MM-DD
- * Handles both "DD/MM/YYYY" and "YYYY-MM-DD"
- */
-function toStandardDateStr(dStr) {
-  if (!dStr) return '';
-  const s = String(dStr).trim().split('T')[0];
-  if (s.includes('/')) {
-    const parts = s.split('/');
-    if (parts.length === 3) {
-      // Assuming DD/MM/YYYY
-      const [day, month, year] = parts;
-      return `${year.padStart(4, '20')}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    }
-  }
-  return s;
-}
+import {
+  numberToBengaliWords,
+  formatMoney,
+  formatDateDDMMYYYY,
+  toStandardDateStr
+} from '../../utils/bengaliWords';
 
 export const DepositReport = () => {
-  const { profile, transactions } = useApp();
+  const { profile, transactions, activeTab } = useApp();
 
   const todayStr = new Date().toISOString().split('T')[0];
 
@@ -66,6 +53,14 @@ export const DepositReport = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
+  // Re-sync when activeTab changes (e.g. clicking sidebar menu item resets search)
+  useEffect(() => {
+    const p = getInitialParams();
+    setStartDate(p.startDate);
+    setEndDate(p.endDate);
+    setAppliedFilter(p);
+  }, [activeTab]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -74,28 +69,28 @@ export const DepositReport = () => {
       return;
     }
 
-    const startD = new Date(startDate);
-    const endD = new Date(endDate);
-    if (endD < startD) {
+    const normStart = toStandardDateStr(startDate);
+    const normEnd = toStandardDateStr(endDate);
+    if (normEnd < normStart) {
       alert('শেষের তারিখ শুরুর তারিখের পরে হতে হবে');
       return;
     }
 
-    const filterObj = { startDate, endDate, hasSearched: true };
+    const filterObj = { startDate: normStart, endDate: normEnd, hasSearched: true };
     setAppliedFilter(filterObj);
 
     if (typeof window !== 'undefined') {
       const url = new URL(window.location.href);
       url.pathname = '/admin/report/deposit';
-      url.searchParams.set('start_date', startDate);
-      url.searchParams.set('end_date', endDate);
+      url.searchParams.set('start_date', normStart);
+      url.searchParams.set('end_date', normEnd);
       window.history.pushState(null, '', url.toString());
     }
   };
 
-  // Filter deposit transactions within selected date range
-  const startD = appliedFilter.hasSearched && appliedFilter.startDate ? new Date(appliedFilter.startDate) : null;
-  const endD = appliedFilter.hasSearched && appliedFilter.endDate ? new Date(appliedFilter.endDate) : null;
+  // Filter deposit transactions within selected date range (normalized YYYY-MM-DD comparison)
+  const normFilterStart = appliedFilter.hasSearched ? toStandardDateStr(appliedFilter.startDate) : '';
+  const normFilterEnd = appliedFilter.hasSearched ? toStandardDateStr(appliedFilter.endDate) : '';
 
   const depositTransactions = (transactions || []).filter((t) => {
     const isDep = t.type === 'deposit' || t.type === 'income';
@@ -103,13 +98,11 @@ export const DepositReport = () => {
 
     if (!appliedFilter.hasSearched) return false;
 
-    const tDateStr = toStandardDateStr(t.date);
-    if (!tDateStr) return false;
-    const tD = new Date(tDateStr);
-    if (isNaN(tD.getTime())) return false;
+    const tDate = toStandardDateStr(t.date);
+    if (!tDate) return false;
 
-    if (startD && tD < startD) return false;
-    if (endD && tD > endD) return false;
+    if (normFilterStart && tDate < normFilterStart) return false;
+    if (normFilterEnd && tDate > normFilterEnd) return false;
 
     return true;
   });
@@ -307,7 +300,7 @@ export const DepositReport = () => {
               </div>
               <div className="table-responsive">
                 <table className="table table-bordered table-striped align-middle mb-0">
-                  <thead className="table bg-primary text-white">
+                  <thead className="bg-primary text-white">
                     <tr>
                       <th className="text-white text-center" style={{ width: '60px' }}>
                         ক্র নং
@@ -322,7 +315,7 @@ export const DepositReport = () => {
                     {depositCategorySummary.length === 0 ? (
                       <tr>
                         <td colSpan="5" className="text-center text-muted py-3">
-                          এই সময়কালে কোনো জমা হয়নি
+                          এই সময়কালে কোন জমা হয়নি
                         </td>
                       </tr>
                     ) : (
@@ -362,7 +355,7 @@ export const DepositReport = () => {
               </div>
               <div className="table-responsive">
                 <table className="table table-bordered table-hover align-middle mb-0">
-                  <thead className="table bg-primary text-white">
+                  <thead className="bg-primary text-white">
                     <tr>
                       <th className="text-white text-center" style={{ width: '50px' }}>
                         ক্র নং
@@ -380,7 +373,7 @@ export const DepositReport = () => {
                     {detailedDepositList.length === 0 ? (
                       <tr>
                         <td colSpan="8" className="text-center text-muted py-4">
-                          এই সময়কালে কোনো জমা ভাউচার নেই
+                          এই সময়কালে কোন জমা ভাউচার নেই
                         </td>
                       </tr>
                     ) : (

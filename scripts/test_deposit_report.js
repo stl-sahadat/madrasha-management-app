@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
-import { numberToBengaliWords, formatMoney, formatDateDDMMYYYY } from '../src/utils/bengaliWords.js';
+import { numberToBengaliWords, formatMoney, formatDateDDMMYYYY, toStandardDateStr } from '../src/utils/bengaliWords.js';
 
 console.log('========================================================');
 console.log('🧪 VERIFICATION SUITE: DEPOSIT REPORT (1:1 LIVE PARITY)');
@@ -62,7 +62,30 @@ assert.ok(depositContent.includes('card shadow-sm mb-4 no-print'), 'DepositRepor
 assert.ok(depositContent.includes('printContent'), 'DepositReport must have printContent container');
 assert.ok(depositContent.includes('window.print()'), 'DepositReport must have print trigger');
 assert.ok(depositContent.includes('টাকা মাত্র'), 'DepositReport must have Bengali words suffix');
+assert.ok(!depositContent.includes('<thead className="table '), 'thead must not have table class to prevent detached display:table layout glitch');
 console.log('  ✅ DepositReport.jsx structure verified matching live reference 100%.');
+
+// Test 7: Verify date normalization edge cases in toStandardDateStr
+console.log('\nTest 7: Testing date normalization edge cases...');
+assert.strictEqual(toStandardDateStr('2026-10-26'), '2026-10-26');
+assert.strictEqual(toStandardDateStr('26/10/2026'), '2026-10-26');
+assert.strictEqual(toStandardDateStr('26-10-2026'), '2026-10-26');
+assert.strictEqual(toStandardDateStr('2026/10/26'), '2026-10-26');
+assert.strictEqual(toStandardDateStr('2026-10-26 14:30:00'), '2026-10-26');
+assert.strictEqual(toStandardDateStr('2026-10-26T14:30:00Z'), '2026-10-26');
+console.log('  ✅ toStandardDateStr passed all format and timestamp edge cases.');
+
+// Test 8: Verify Breadcrumbs exclusion for clean live report parity
+console.log('\nTest 8: Verifying Breadcrumbs exclusion for report-deposit...');
+const breadcrumbsContent = fs.readFileSync(path.join(process.cwd(), 'src/components/layout/Breadcrumbs.jsx'), 'utf8');
+assert.ok(breadcrumbsContent.includes("'report-deposit'"), 'Breadcrumbs.jsx must exclude report-deposit from redundant breadcrumbs banner');
+console.log('  ✅ Breadcrumbs exclusion verified.');
+
+// Test 9: Verify Print CSS rules
+console.log('\nTest 9: Verifying print CSS rules for clean print view...');
+const indexCssContent = fs.readFileSync(path.join(process.cwd(), 'src/index.css'), 'utf8');
+assert.ok(indexCssContent.includes('.app-sidebar'), 'index.css @media print must hide .app-sidebar');
+console.log('  ✅ Print CSS verified.');
 
 console.log('\n========================================================');
 console.log('🎉 DEPOSIT REPORT VERIFIED WITH 100% PARITY!');
