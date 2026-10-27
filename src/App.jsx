@@ -46,6 +46,7 @@ import { IdCardGenerator } from './components/idcard/IdCardGenerator';
 import { SmsModule } from './components/sms/SmsModule';
 import { AccountsModule } from './components/accounts/AccountsModule';
 import { ReportsModule } from './components/reports/ReportsModule';
+import { DepositReport } from './components/reports/DepositReport';
 import { DailyReport } from './components/reports/DailyReport';
 import { YearlyReport } from './components/reports/YearlyReport';
 import { BankReport } from './components/reports/BankReport';
@@ -266,7 +267,7 @@ export const App = () => {
 
       // রিপোর্ট সাব-মেনু
       case 'report-deposit':
-        return <ReportsModule key="report-deposit" initialReportId="1" />;
+        return <DepositReport key="report-deposit" />;
       case 'report-student-deposit':
         return <ReportsModule key="report-student-deposit" initialReportId="4" />;
       case 'report-student-salary':
