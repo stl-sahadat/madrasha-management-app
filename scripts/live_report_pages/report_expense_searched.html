@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <title>Login | Madrasa Management Software</title>
+
+    <meta name="description"
+        content="মাদ্রাসা ম্যানেজমেন্ট সফটওয়্যারে লগইন করুন এবং ছাত্র-ছাত্রী, শিক্ষক, হাজিরা, রেজাল্ট, হিসাব ও অন্যান্য কার্যক্রম পরিচালনা করুন।">
+
+    <meta name="robots" content="noindex, nofollow">
+
+    <meta name="author" content="Madrasa Management Software">
+
+    <meta name="csrf-token" content="gSQKgdruITpo77QcVKiwm8tYGD47CB038fFPCqqX">
+
+    
+    <link rel="icon" type="image/png"
+        href="https://madrasha.hostzonebd.com/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png">
+
+
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            background: linear-gradient(135deg, #0c153d 0%, #403892 50%, #2c757c 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            position: relative;
+            overflow: hidden;
+            animation: gradientShift 15s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes gradientShift {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255, 255, 255, .02) 35px, rgba(255, 255, 255, .02) 70px);
+            pointer-events: none;
+        }
+
+        .login-left {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            position: relative;
+        }
+
+        .login-right {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-left: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .brand-content {
+            text-align: center;
+            color: white;
+            max-width: 500px;
+            animation: fadeInLeft 1s ease-out;
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .brand-logo-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .brand-logo {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            animation: scaleIn 0.8s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .logo-icon-wrapper {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #2c757c, #3a9099);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .logo-icon-wrapper i {
+            font-size: 32px;
+            color: white;
+        }
+
+        .logo-text h1 {
+            font-size: 24px;
+            color: #2c757c;
+            margin: 0;
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .logo-text p {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+            text-align: left;
+        }
+
+        .brand-content .subtitle {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 40px;
+            line-height: 1.7;
+            font-weight: 400;
+        }
+
+        .madrasa-image-wrapper {
+            margin-top: 50px;
+            text-align: center;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .madrasa-image {
+            width: 100%;
+            max-width: 450px;
+            height: auto;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .madrasa-image:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+        }
+
+        .login-form-wrapper {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .form-card {
+            background: white;
+            padding: 50px 45px;
+            border-radius: 20px;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.25);
+            animation: fadeInRight 1s ease-out;
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .form-header h2 {
+            font-size: 32px;
+            color: #2c757c;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .form-header p {
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 16px;
+            z-index: 2;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 16px 18px 16px 50px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #2c757c;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(44, 117, 124, 0.1);
+            animation: inputFocus 0.3s ease;
+        }
+
+        @keyframes inputFocus {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .form-input:focus~.input-icon {
+            color: #2c757c;
+            animation: iconBounce 0.5s ease;
+        }
+
+        @keyframes iconBounce {
+
+            0%,
+            100% {
+                transform: translateY(-50%) scale(1);
+            }
+
+            50% {
+                transform: translateY(-50%) scale(1.2);
+            }
+        }
+
+        .form-input.is-invalid {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .invalid-feedback {
+            color: #ef4444;
+            font-size: 13px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .invalid-feedback::before {
+            content: '⚠';
+            margin-right: 5px;
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+        }
+
+        .remember-me input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            cursor: pointer;
+            accent-color: #2c757c;
+        }
+
+        .remember-me label {
+            margin: 0;
+            font-size: 14px;
+            color: #475569;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .forgot-password {
+            color: #2c757c;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .forgot-password:hover {
+            color: #1f5459;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #2c757c, #3a9099);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(44, 117, 124, 0.3);
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-submit::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-submit:hover::before {
+            left: 100%;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(44, 117, 124, 0.4);
+            background: linear-gradient(135deg, #3a9099, #2c757c);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 30px 0 20px;
+            color: #94a3b8;
+            font-size: 13px;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 43%;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .divider::before {
+            left: 0;
+        }
+
+        .divider::after {
+            right: 0;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .register-link a {
+            color: #2c757c;
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 5px;
+            transition: color 0.2s;
+        }
+
+        .register-link a:hover {
+            color: #1f5459;
+            text-decoration: underline;
+        }
+
+        .secure-badge {
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .secure-badge i {
+            color: #2c757c;
+            font-size: 16px;
+        }
+
+        @media (max-width: 1024px) {
+            .login-left {
+                display: none;
+            }
+
+            .login-right {
+                flex: 1;
+                border-left: none;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .form-card {
+                padding: 40px 30px;
+            }
+
+            .form-header h2 {
+                font-size: 26px;
+            }
+
+            .login-right {
+                padding: 20px;
+            }
+        }
+
+        /* bubble */
+        .bubbles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .bubble {
+            position: absolute;
+            bottom: -100px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            opacity: 0.5;
+            animation: rise 15s infinite ease-in;
+        }
+
+        .bubble:nth-child(1) {
+            width: 50px;
+            height: 50px;
+            left: 10%;
+            animation-duration: 12s;
+            animation-delay: 0s;
+        }
+
+        .bubble:nth-child(2) {
+            width: 30px;
+            height: 30px;
+            left: 20%;
+            animation-duration: 10s;
+            animation-delay: 2s;
+        }
+
+        .bubble:nth-child(3) {
+            width: 50px;
+            height: 50px;
+            left: 35%;
+            animation-duration: 14s;
+            animation-delay: 4s;
+        }
+
+        .bubble:nth-child(4) {
+            width: 80px;
+            height: 80px;
+            left: 50%;
+            animation-duration: 16s;
+            animation-delay: 0s;
+        }
+
+        .bubble:nth-child(5) {
+            width: 45px;
+            height: 45px;
+            left: 55%;
+            animation-duration: 11s;
+            animation-delay: 3s;
+        }
+
+        .bubble:nth-child(6) {
+            width: 55px;
+            height: 55px;
+            left: 65%;
+            animation-duration: 13s;
+            animation-delay: 1s;
+        }
+
+        .bubble:nth-child(7) {
+            width: 35px;
+            height: 35px;
+            left: 75%;
+            animation-duration: 9s;
+            animation-delay: 5s;
+        }
+
+        .bubble:nth-child(8) {
+            width: 60px;
+            height: 60px;
+            left: 80%;
+            animation-duration: 15s;
+            animation-delay: 2s;
+        }
+
+        .bubble:nth-child(9) {
+            width: 40px;
+            height: 40px;
+            left: 90%;
+            animation-duration: 11s;
+            animation-delay: 6s;
+        }
+
+        .bubble:nth-child(10) {
+            width: 55px;
+            height: 55px;
+            left: 5%;
+            animation-duration: 13s;
+            animation-delay: 4s;
+        }
+
+        @keyframes rise {
+            0% {
+                bottom: 0px;
+                transform: translateX(0);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 0.5;
+            }
+
+            90% {
+                opacity: 0.5;
+            }
+
+            100% {
+                bottom: 110%;
+                transform: translateX(100px);
+                opacity: 0;
+            }
+        }
+    </style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="bubbles">
+            <span class="bubble"></span>
+            <span class="bubble"></span>
+            <span class="bubble"></span>
+            <span class="bubble"></span>
+            <span class="bubble"></span>
+            <span class="bubble"></span>
+            <span class="bubble"></span>
+            <span class="bubble"></span>
+            <span class="bubble"></span>
+            <span class="bubble"></span>
+        </div>
+
+        <div class="login-left">
+            <div class="brand-content">
+                <div class="brand-logo-wrapper">
+                    <div class="brand-logo">
+                        <div class="logo-icon-wrapper">
+                            <i class="fas fa-mosque"></i>
+                        </div>
+                        <div class="logo-text">
+                            <h1>Madrasa Hisab</h1>
+                            <p>Madrasa Management Software</p>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="madrasa-image-wrapper">
+                    <img src="https://madrasha.hostzonebd.com/assets/images/logo/madrasha-login.jpeg" alt="Madrasa Building"
+                        class="madrasa-image">
+                </div>
+            </div>
+        </div>
+
+        <div class="login-right">
+            <div class="login-form-wrapper">
+                <div class="form-card">
+                    <div class="form-header">
+                        <h2>Admin Login</h2>
+                        <p>Please login to your account</p>
+                    </div>
+
+                    <form method="POST" action="https://madrasha.hostzonebd.com/admin/login">
+                        <input type="hidden" name="_token" value="gSQKgdruITpo77QcVKiwm8tYGD47CB038fFPCqqX" autocomplete="off">
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <input id="email" type="email" class="form-input" name="email" required
+                                    value="admin@gmail.com" autocomplete="email" autofocus
+                                    placeholder="Enter your email address">
+                                <i class="fas fa-envelope input-icon"></i>
+                            </div>
+                        </div>
+
+                        <div class="input-group">
+                            <div class="input-wrapper">
+                                <input id="password" type="password" class="form-input" name="password" required
+                                    value="admin1234" autocomplete="current-password" placeholder="Enter your password">
+                                <i class="fas fa-lock input-icon"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-options">
+                            <div class="remember-me">
+                                <input type="checkbox" name="remember" id="remember">
+                                <label for="remember">Remember me</label>
+                            </div>
+
+                            <a class="forgot-password" href="#">
+                                Forgot Password?
+                            </a>
+                        </div>
+
+                        
+                        <div class="form-options mt-3 p-3 bg-white border rounded-4 shadow-sm">
+                            <div
+                                class="mb-3 p-2 bg-light rounded-3 border d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-user text-primary me-2"></i>
+                                    <span style="font-weight: bold">Username</span>
+                                </div>
+                                <span class="text-secondary user-select-all">admin@gmail.com</span>
+                            </div>
+
+                            <div
+                                class="p-2 bg-light rounded-3 border d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-key text-warning me-2"></i>
+                                    <span style="font-weight: bold">Password</span>
+                                </div>
+                                <span class="text-secondary user-select-all">admin1234</span>
+                            </div>
+                        </div>
+
+
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-sign-in-alt" style="margin-right: 8px;"></i>
+                            Login to Dashboard
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

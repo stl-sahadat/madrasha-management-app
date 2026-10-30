@@ -47,6 +47,16 @@ import { SmsModule } from './components/sms/SmsModule';
 import { AccountsModule } from './components/accounts/AccountsModule';
 import { ReportsModule } from './components/reports/ReportsModule';
 import { DepositReport } from './components/reports/DepositReport';
+import { ExpenseReport } from './components/reports/ExpenseReport';
+import { DepositAccountReport } from './components/reports/DepositAccountReport';
+import { ExpenseAccountReport } from './components/reports/ExpenseAccountReport';
+import { MonthlyDonorsReport } from './components/reports/MonthlyDonorsReport';
+import { AccountDepositReport } from './components/reports/AccountDepositReport';
+import { AccountExpenseReport } from './components/reports/AccountExpenseReport';
+import { AccountDetailsReport } from './components/reports/AccountDetailsReport';
+import { DepositExpenseStatementReport } from './components/reports/DepositExpenseStatementReport';
+import { StudentDepositReport } from './components/reports/StudentDepositReport';
+import { StudentSalaryDepositReport } from './components/reports/StudentSalaryDepositReport';
 import { DailyReport } from './components/reports/DailyReport';
 import { YearlyReport } from './components/reports/YearlyReport';
 import { BankReport } from './components/reports/BankReport';
@@ -268,25 +278,26 @@ export const App = () => {
       // রিপোর্ট সাব-মেনু
       case 'report-deposit':
         return <DepositReport key="report-deposit" />;
-      case 'report-student-deposit':
-        return <ReportsModule key="report-student-deposit" initialReportId="4" />;
-      case 'report-student-salary':
-        return <ReportsModule key="report-student-salary" initialReportId="3" />;
-      case 'report-deposit-account':
-        return <ReportsModule key="report-deposit-account" initialReportId="6" />;
-      case 'report-monthly-donors':
-        return <ReportsModule key="report-monthly-donors" initialReportId="11" />;
-      case 'report-account-deposit':
-        return <ReportsModule key="report-account-deposit" initialReportId="12" />;
       case 'report-expense':
+        return <ExpenseReport key="report-expense" />;
+      case 'report-student-deposit':
+        return <StudentDepositReport key="report-student-deposit" />;
+      case 'report-student-salary':
+        return <StudentSalaryDepositReport key="report-student-salary" />;
+      case 'report-deposit-account':
+        return <DepositAccountReport key="report-deposit-account" />;
       case 'report-expense-account':
-        return <ReportsModule key="report-expense" initialReportId="13" />;
+        return <ExpenseAccountReport key="report-expense-account" />;
+      case 'report-monthly-donors':
+        return <MonthlyDonorsReport key="report-monthly-donors" />;
+      case 'report-account-deposit':
+        return <AccountDepositReport key="report-account-deposit" />;
       case 'report-account-expense':
-        return <ReportsModule key="report-account-expense" initialReportId="12" />;
+        return <AccountExpenseReport key="report-account-expense" />;
       case 'report-deposit-expense':
-        return <ReportsModule key="report-deposit-expense" initialReportId="2" />;
+        return <DepositExpenseStatementReport key="report-deposit-expense" />;
       case 'report-account-details':
-        return <ReportsModule key="report-account-details" initialReportId="12" />;
+        return <AccountDetailsReport key="report-account-details" />;
       case 'report-daily':
         return <DailyReport key="report-daily" />;
       case 'report-yearly':

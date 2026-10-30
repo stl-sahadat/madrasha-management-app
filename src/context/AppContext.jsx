@@ -88,6 +88,16 @@ export function pathnameToTab(pathname) {
   if (clean === 'admin/report/yearly/deposit-expense' || clean === 'report/yearly/deposit-expense') return 'report-yearly';
   if (clean === 'admin/report/bank' || clean === 'report/bank') return 'report-bank';
   if (clean === 'admin/report/deposit' || clean === 'report/deposit' || clean === 'admin/report' || clean === 'report') return 'report-deposit';
+  if (clean === 'admin/report/expense' || clean === 'report/expense') return 'report-expense';
+  if (clean === 'admin/report/student/deposit' || clean === 'report/student/deposit') return 'report-student-deposit';
+  if (clean === 'admin/report/student/salary/deposit' || clean === 'report/student/salary/deposit' || clean === 'admin/report/student/salary') return 'report-student-salary';
+  if (clean === 'admin/report/deposit/account' || clean === 'report/deposit/account') return 'report-deposit-account';
+  if (clean === 'admin/report/expense/account' || clean === 'report/expense/account') return 'report-expense-account';
+  if (clean === 'admin/report/monthly/donors' || clean === 'report/monthly/donors') return 'report-monthly-donors';
+  if (clean === 'admin/report/account/deposit' || clean === 'report/account/deposit') return 'report-account-deposit';
+  if (clean === 'admin/report/account/expense' || clean === 'report/account/expense') return 'report-account-expense';
+  if (clean === 'admin/report/deposit-expense' || clean === 'report/deposit-expense') return 'report-deposit-expense';
+  if (clean === 'admin/report/account/details' || clean === 'report/account/details') return 'report-account-details';
   if (clean === 'admin/login' || clean === 'login') return 'login';
   if (clean === 'admin/register' || clean === 'register' || clean === 'signup') return 'register';
 
@@ -392,6 +402,26 @@ export const AppProvider = ({ children, initialSlug }) => {
           ? '/admin/report/bank'
           : tab === 'report-deposit'
           ? '/admin/report/deposit'
+          : tab === 'report-expense'
+          ? '/admin/report/expense'
+          : tab === 'report-student-deposit'
+          ? '/admin/report/student/deposit'
+          : tab === 'report-student-salary'
+          ? '/admin/report/student/salary/deposit'
+          : tab === 'report-deposit-account'
+          ? '/admin/report/deposit/account'
+          : tab === 'report-expense-account'
+          ? '/admin/report/expense/account'
+          : tab === 'report-monthly-donors'
+          ? '/admin/report/monthly/donors'
+          : tab === 'report-account-deposit'
+          ? '/admin/report/account/deposit'
+          : tab === 'report-account-expense'
+          ? '/admin/report/account/expense'
+          : tab === 'report-deposit-expense'
+          ? '/admin/report/deposit-expense'
+          : tab === 'report-account-details'
+          ? '/admin/report/account/details'
           : '/' + tab;
       if (window.location.pathname !== targetPath) {
         window.history.pushState({ tab }, '', targetPath);

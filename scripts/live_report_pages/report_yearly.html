@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="bn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Madrasa Management Software</title>
+
+    <meta name="description"
+        content="আধুনিক মাদ্রাসা ম্যানেজমেন্ট সফটওয়্যার। ছাত্র-ছাত্রী, শিক্ষক, হাজিরা, ভর্তি, বেতন, খোরাকী, রেজাল্ট, দান, যাকাত, হিসাব-নিকাশ, রিপোর্ট ও SMS ব্যবস্থাপনা সহজে পরিচালনা করুন।">
+
+    <meta name="keywords"
+        content="Madrasa Management Software, Madrasa Software, Madrasah Management System, মাদ্রাসা সফটওয়্যার, মাদ্রাসা ম্যানেজমেন্ট, ছাত্র ব্যবস্থাপনা, শিক্ষক ব্যবস্থাপনা, মাদ্রাসা হিসাব, হাজিরা, রেজাল্ট, ভর্তি, বেতন, দান, যাকাত">
+
+    <meta name="author" content="Madrasa Management Software">
+
+
+    <meta name="csrf-token" content="5u91gsCYMkpUkC9FwkTd0Uqv3xeKBBV03NTtBV3e">
+
+    
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Madrasa Management Software">
+    <meta property="og:description"
+        content="ছাত্র-ছাত্রী, শিক্ষক, হাজিরা, ভর্তি, বেতন, রেজাল্ট, দান, যাকাত, হিসাব ও রিপোর্টসহ সম্পূর্ণ মাদ্রাসা ব্যবস্থাপনা সফটওয়্যার।">
+    <meta property="og:url" content="https://madrasha.hostzonebd.com/admin/report/yearly/deposit-expense">
+    <meta property="og:site_name" content="Madrasa Management Software">
+    <meta property="og:image"
+        content="https://madrasha.hostzonebd.com/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png">
+
+    
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Madrasa Management Software">
+    <meta name="twitter:description"
+        content="সম্পূর্ণ মাদ্রাসা ম্যানেজমেন্ট, ছাত্র-শিক্ষক, হাজিরা, রেজাল্ট, হিসাব ও রিপোর্ট ব্যবস্থাপনা সফটওয়্যার।">
+    <meta name="twitter:image"
+        content="https://madrasha.hostzonebd.com/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png">
+
+    
+    <link rel="icon" type="image/png"
+        href="https://madrasha.hostzonebd.com/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png">
+
+    <!-- Animation css -->
+    <link rel="stylesheet" href="https://madrasha.hostzonebd.com/assets/vendor/animation/animate.min.css">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap"
+        rel="stylesheet">
+
+    <!-- Flag Icon css -->
+    <link rel="stylesheet" type="text/css" href="https://madrasha.hostzonebd.com/assets/vendor/flag-icons-master/flag-icon.css">
+
+    <!-- Tabler Icons -->
+    <link rel="stylesheet" type="text/css" href="https://madrasha.hostzonebd.com/assets/vendor/tabler-icons/tabler-icons.css">
+
+    <!-- Apexcharts css -->
+    <link rel="stylesheet" type="text/css" href="https://madrasha.hostzonebd.com/assets/vendor/apexcharts/apexcharts.css">
+
+    <!-- Glight css -->
+    <link rel="stylesheet" href="https://madrasha.hostzonebd.com/assets/vendor/glightbox/glightbox.min.css">
+
+    <!-- Bootstrap css -->
+    <link rel="stylesheet" type="text/css" href="https://madrasha.hostzonebd.com/assets/vendor/bootstrap/bootstrap.min.css">
+
+    <!-- Data Table css-->
+    <link href="../assets/vendor/datatable/jquery.dataTables.min.css" rel="stylesheet" type="text/css">
+
+    <!-- Simplebar css -->
+    <link rel="stylesheet" type="text/css" href="https://madrasha.hostzonebd.com/assets/vendor/simplebar/simplebar.css">
+
+    <!-- App css -->
+    <link rel="stylesheet" type="text/css" href="https://madrasha.hostzonebd.com/assets/css/style.css">
+
+    <!-- Responsive css -->
+    <link rel="stylesheet" type="text/css" href="https://madrasha.hostzonebd.com/assets/css/responsive.css">
+
+    <!--font-awesome-css-->
+    <link href="../assets/vendor/fontawesome/css/all.css" rel="stylesheet">
+
+    <!-- iconoir icon css  -->
+    <link href="../assets/vendor/ionio-icon/css/iconoir.css" rel="stylesheet">
+
+    <!-- Font Awesome JS Core -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/js/all.min.js" integrity="sha512-..."
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- jQuery UI CDN -->
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
+        rel="stylesheet" />
+
+
+    
+                                    
+            
+    
+            <link rel="stylesheet" href="https://madrasha.hostzonebd.com/assets/css/admin/contributors/index.css">
+                
+    
+                                    
+    
+
+
+
+    <style>
+        @font-face {
+            font-family: 'SolaimanLipi';
+            src: url('/fonts/SolaimanLipi.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            font-family: 'SolaimanLipi', 'Noto Sans Bengali', sans-serif;
+        }
+    </style>
+
+    <!-- Specific Styles  -->
+    
+</head>
+
+<body>
+    <div class="app-wrapper " style="box-shadow: none">
+
+
+        
+        
+
+        
+        <nav>
+      <div class="app-logo">
+          <a class="logo d-flex justify-content-center" href="/dashboard">
+              <img style="width: 85%" alt="#"
+                  src="https://madrasha.hostzonebd.com/storage/institute/sidelogo/kZvKJCWGaUTdn3y6ZSjepGWQoM2vD9wRM6iBLrRl.png">
+          </a>
+          <span class="bg-light-primary toggle-semi-nav d-flex-center">
+              <i class="ti ti-chevron-right"></i>
+          </span>
+      </div>
+
+      <hr class="m-0 p-0">
+      <div class="app-nav" id="app-simple-bar">
+          <ul class="main-nav p-0 mt-2">
+              <div class="text-center">
+                  SMS Balance: <span id="sms-balance">0 ৳</span>
+                  
+              </div>
+              <!-- ড্যাশবোর্ড -->
+              <li class="no-sub">
+                  <a href="/dashboard" class="d-flex align-items-center fw-bold">
+                      <i class="fa-regular fa-house"></i> ড্যাশবোর্ড
+                  </a>
+              </li>
+              <!-- ছাত্র/ছাত্রী -->
+              
+                  <li>
+                      <a aria-expanded="false" data-bs-toggle="collapse" href="#students"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-users me-2"></i>
+                          ছাত্র/ছাত্রী
+                      </a>
+                      <ul class="collapse" id="students">
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/student/create">ছাত্র/ছাত্রী তৈরি</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/student">ছাত্র/ছাত্রী লিস্ট</a></li>
+                              <li><a href="https://madrasha.hostzonebd.com/admin/student/by/jamat">জামাত অনুসারে ছাত্র/ছাত্রী </a></li>
+                              <li><a href="https://madrasha.hostzonebd.com/admin/student/admission/report/by/jamat">জামাত অনুসারে ভর্তি
+                                      প্রতিবেদন</a></li>
+
+                              <li><a href="https://madrasha.hostzonebd.com/admin/student/admission/register/by/jamat">জামাত অনুসারে ভর্তি
+                                      রেজিষ্টার</a></li>
+                              <li><a href="https://madrasha.hostzonebd.com/admin/student/bloodgroup">রক্তের গ্রুপ অনুসারে ছাত্র/ছাত্রী</a>
+                              </li>
+
+                              <li><a href="https://madrasha.hostzonebd.com/admin/student/parents/number/by/jamat">জামাত অনুযায়ী অভিভাবকের মোবাঃ
+                                      নাম্বার</a>
+                              </li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/student/deposit/entry">খানার টাকা জমার এন্ট্রি সিস্টেম</a>
+                              </li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/student/deposit/list">খানার টাকা জমার তালিকা</a></li>
+                              <li><a href="https://madrasha.hostzonebd.com/admin/student/deposit/register">খোরাকীর টাকা আদায়ের
+                                      রেজিস্টার</a> </li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/student/salary/payment">বেতন জমার এন্ট্রি সিস্টেম
+                                  </a></li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/student/salary/payment/list">বেতনের টাকা জমার তালিকা
+                                  </a></li>
+                              <li><a href="https://madrasha.hostzonebd.com/admin/student/salary/payment/register">বেতনের টাকা আদায়ের রেজিস্টার
+                                  </a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/student/admission/form">ভর্তি ফর্ম</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/student/prottoyon/potro">প্রত্যয়ন পত্র</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/student/certificate">সার্টিফিকেট</a></li>
+                                                </ul>
+                  </li>
+              
+              <!-- শিক্ষক -->
+                                <li>
+                      <a aria-expanded="false" data-bs-toggle="collapse" href="#teachers"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-chalkboard-user me-2"></i>
+                          শিক্ষক
+                      </a>
+                      <ul class="collapse" id="teachers">
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/teacher/create">শিক্ষক তৈরি</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/teacher">শিক্ষক তালিকা</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/teacher/number">শিক্ষকগণের মোবাইল নম্বর </a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/teacher/salary/sheet">শিক্ষকগণের বেতন তালিকা</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/teacher/salary/day">শিক্ষকগণের বেতন দিন</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/teacher/salary/list">শিক্ষকের বেতন প্রদানের লিস্ট</a></li>
+                                                </ul>
+                  </li>
+                            <!-- মাসিক চাঁদাদাতা -->
+                                <li>
+                      <a aria-expanded="false" data-bs-toggle="collapse" href="#monthly-donors"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-calendar-check me-2"></i>
+                          মাসিক চাঁদাদাতা
+                      </a>
+                      <ul class="collapse" id="monthly-donors">
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/contributor">মাসিক চাঁদাদাতার তালিকা</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/contributor/monthly/subscription/add">মাসিক চাঁদা গ্রহণ</a>
+                              </li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/contributor/monthly/individual/contributor/list">মাসিক
+                                      চাঁদাদাতার তালিকা (একক ভাবে) </a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/contributor/monthly/contributors/list">মাসিক চাঁদাদাতাদের
+                                      তালিকা (সকল)</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/contributor/monthly/contribution/list">মাসিক চাঁদা গ্রহণের
+                                      লিস্ট</a>
+                              </li>
+                                                </ul>
+                  </li>
+                            <!-- দানকারী -->
+                                <li>
+                      <a aria-expanded="false" data-bs-toggle="collapse" href="#donors"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-hand-holding-heart me-2"></i>
+                          দানকারী
+                      </a>
+                      <ul class="collapse" id="donors">
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/doner">দানকারীর তালিকা</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/donation/create">দান গ্রহণ</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/doner/individual/list">দানকারীর তালিকা (একক ভাবে)</a>
+                              </li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/doner/list">দানকারীর তালিকা (সকল)</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/donation">দান গ্রহণের
+                                      লিস্ট</a></li>
+                          
+                      </ul>
+                  </li>
+                            <!-- যাকাত দাতা -->
+                                <li>
+                      <a aria-expanded="false" data-bs-toggle="collapse" href="#zakat-donors"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-gem me-2"></i>
+                          যাকাত দাতা
+                      </a>
+                      <ul class="collapse" id="zakat-donors">
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/zakatdoner">যাকাত দাতার তালিকা</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/zakatdonation/create">যাকাত গ্রহণ</a></li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/zakatdoner/individual/list">যাকাত দাতার তালিকা (একক
+                                      ভাবে)</a></li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/zakatdoner/list">যাকাত দাতার তালিকা (সকল)</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/zakatdonation">যাকাত গ্রহণের
+                                      লিস্ট</a></li>
+                          
+                      </ul>
+                  </li>
+                            <!-- বাজার -->
+                                <li>
+                      <a aria-expanded="false" data-bs-toggle="collapse" href="#market"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-shopping-cart me-2"></i>
+                          বাজার
+                      </a>
+                      <ul class="collapse" id="market">
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/weeklymarket/create">সাপ্তাহিক বাজার এন্ট্রি</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/weeklymarket">সাপ্তাহিক বাজার রিপোর্ট</a></li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/monthlymarket/create">মাসিক বাজার এন্ট্রি</a></li>
+                          
+
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/monthlymarket">মাসিক বাজার রিপোর্ট</a></li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/weeklymarket/list">সাপ্তাহিক বাজার লিস্ট</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/monthlymarket/list">মাসিক বাজার লিস্ট</a></li>
+                          
+                      </ul>
+                  </li>
+                            <!-- কমিটির সদস্যগণের তালিকা -->
+                                <li class="no-sub">
+                      <a href="https://madrasha.hostzonebd.com/admin/committee-member" class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-users-gear"></i> কমিটির সদস্যগণ
+                      </a>
+                  </li>
+                            <!-- হাজিরা -->
+                                <li>
+                      <a aria-expanded="false" data-bs-toggle="collapse" href="#attendance"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-user-check me-2"></i>
+                          হাজিরা
+                      </a>
+
+                      <ul class="collapse" id="attendance">
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/attendance/student">ছাত্র-ছাত্রী হাজিরা</a></li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/attendance/student/report">ছাত্র-ছাত্রী হাজিরা প্রতিবেদন</a>
+                              </li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/attendance/teacher">শিক্ষক হাজিরা</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/attendance/teacher/report">শিক্ষক হাজিরা রিপোর্ট</a></li>
+                          
+                      </ul>
+                  </li>
+                            <!-- রেজাল্ট -->
+                                <li>
+                      <a aria-expanded="false" data-bs-toggle="collapse" href="#results"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-chart-line me-2"></i>
+                          রেজাল্ট
+                      </a>
+                      <ul class="collapse" id="results">
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/result/create">মার্কস এনট্রি/আপডেট</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/result/result/sheet">রেজাল্ট শীট</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/result/result/student">ছাত্র-ছাত্রী ভিত্তিক রেজাল্ট</a></li>
+                          
+                      </ul>
+                  </li>
+                            <!-- জমা/খরচ হিসাব সমূহ -->
+                                <li>
+                      <a aria-expanded="false" data-bs-toggle="collapse" href="#income-expense"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-wallet me-2"></i>
+                          জমা/খরচ হিসাব সমূহ
+                      </a>
+                      <ul class="collapse" id="income-expense">
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/cash/add/deposit">নতুন অর্থ জমা করুন</a></li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/cash/deposit/list">জমার লিস্ট</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/cash/add/expense">নতুন খরচ</a></li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/cash/expense/list">খরচের লিস্ট</a></li>
+                          
+                      </ul>
+                  </li>
+                            <!-- এস এম এস -->
+              
+              <!-- ভাউচার -->
+              
+              <!-- আইডি কার্ড -->
+                                <li>
+                      <a aria-expanded="false" data-bs-toggle="collapse" href="#id-cards"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-id-card me-2"></i>
+                          আইডি কার্ড
+                      </a>
+
+                      <ul class="collapse" id="id-cards">
+                          <li><a href="https://madrasha.hostzonebd.com/admin/id-card">ছাএ-ছাএীর আইডি কার্ড</a></li>
+                          <li><a href="https://madrasha.hostzonebd.com/admin/id-card/teacher">শিক্ষকদের আইডি কার্ড</a></li>
+                      </ul>
+                  </li>
+              
+                                <li>
+                      <a aria-expanded="false" data-bs-toggle="collapse" href="#sms"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-envelope me-2"></i>
+                          এসএমএস
+                      </a>
+                      <ul class="collapse" id="sms">
+                          <li><a href="https://madrasha.hostzonebd.com/admin/sms/send-to-client">ছাত্র/ছাত্রী</a></li>
+                          <li><a href="https://madrasha.hostzonebd.com/admin/sms/send-to-teacher">শিক্ষক</a></li>
+
+                          
+                      </ul>
+                  </li>
+              
+              <!-- অ্যাকাউন্ট -->
+                                <li>
+                      <a aria-expanded="false" data-bs-toggle="collapse" href="#accounts"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-wallet me-2"></i>
+                          অ্যাকাউন্ট
+                      </a>
+                      <ul class="collapse" id="accounts">
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/account/create">নতুন অ্যাকাউন্ট তৈরি</a></li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/account">অ্যাকাউন্ট তালিকা</a></li>
+                          
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/account/account/report">অ্যাকাউন্ট বিবরণী</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/account/balance/transfer">ব্যলেন্স ট্রান্সফার</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/account/balancesheet">ব্যলেন্স সিট</a></li>
+                          
+                      </ul>
+                  </li>
+                            <!-- ব্যাংক অ্যাকাউন্ট -->
+              
+              <!-- রিপোর্ট -->
+                                <li>
+                      <a aria-expanded="false" data-bs-toggle="collapse" href="#reports"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-file-alt me-2"></i>
+                          রিপোর্ট
+                      </a>
+                      <ul class="collapse" id="reports">
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/report/deposit">জমার রিপোর্ট</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/report/student/deposit">ছাত্র/ছাত্রী জমার রিপোর্ট</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/report/student/salary/deposit">ছাত্র/ছাত্রীর মাসিক বেতন জমার
+                                      রিপোর্ট</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/report/deposit/account">জমার খাতের রিপোর্ট</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/report/monthly/donors">মাসিক চাদাদাতার রিপোর্ট</a></li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/report/account/deposit">এ্যাকাউন্টে জমার রিপোর্ট</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/report/expense">খরচের রিপোর্ট</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/report/expense/account">খরচের খাতের রিপোর্ট</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/report/account/expense">এ্যাকাউন্টে খরচের রিপোর্ট</a></li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/report/deposit-expense">জমা ও খরচের রিপোর্ট</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/report/account/details">এ্যাকাউন্টে বিবরণ</a></li>
+                          
+                      </ul>
+                  </li>
+              
+              <!-- দৈনিক আয়-ব্যয়ের প্রতিবেদন -->
+                                <li class="no-sub">
+                      <a href="https://madrasha.hostzonebd.com/admin/report/daily/deposit-expense"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-calendar-day me-2"></i> দৈনিক আয়-ব্যয়ের প্রতিবেদন
+                      </a>
+                  </li>
+              
+              <!-- বার্ষিক আয়-ব্যয়ের প্রতিবেদন -->
+                                <li class="no-sub">
+                      <a href="https://madrasha.hostzonebd.com/admin/report/yearly/deposit-expense"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-calendar-week me-2"></i> বার্ষিক আয়-ব্যয়ের প্রতিবেদন
+                      </a>
+                  </li>
+              
+
+              <!-- ব্যাংক প্রতিবেদন -->
+                                <li class="no-sub">
+                      <a href="https://madrasha.hostzonebd.com/admin/report/bank" class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-university me-2"></i> ব্যাংক প্রতিবেদন
+                      </a>
+                  </li>
+              
+              <!-- সেটিং -->
+
+                                <li>
+                      <a aria-expanded="false" data-bs-toggle="collapse" href="#settings"
+                          class="d-flex align-items-center fw-bold">
+                          <i class="fa-solid fa-gear me-2"></i>
+                          সেটিং
+                      </a>
+                      <ul class="collapse" id="settings">
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/settings/institute/info">প্রতিষ্ঠানের তথ্য</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/settings/jamat/create"> জামাত তৈরি</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/settings/payment/create">পেমেন্ট মাধ্যম তৈরি</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/settings/deposit/category/create"> জমার খাত</a></li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/settings/expense/category/create"> খরচের খাত</a></li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/settings/receiver"> গ্রহণকারী</a></li>
+                                                                                  <li><a href="https://madrasha.hostzonebd.com/admin/settings/role">রোল (Role)</a></li>
+                          
+                                                        <li><a href="https://madrasha.hostzonebd.com/admin/settings/user">ইউজার</a></li>
+                          
+                          
+                      </ul>
+                  </li>
+                        </ul>
+      </div>
+
+      <div class="menu-navs">
+          <span class="menu-previous"><i class="ti ti-chevron-left"></i></span>
+          <span class="menu-next"><i class="ti ti-chevron-right"></i></span>
+      </div>
+
+  </nav>
+
+        
+        <div class="app-content " style="box-shadow: none">
+            <div class="">
+
+                
+                <header class="header-main">
+    <div class="container-fluid me-0 pe-0">
+        <div class="row">
+            <div class="col-8 col-sm-6 d-flex align-items-center header-left p-0">
+                <span class="header-toggle ">
+                    <i class="ph ph-squares-four"></i>
+                </span>
+                
+            </div>
+
+            <div class="col-4 col-sm-6 d-flex align-items-center justify-content-end header-right p-0">
+
+                <ul class="d-flex align-items-center">
+
+                    
+                    <li class="header-profile-settings">
+
+                        <div class="d-flex align-items-center nav-profile pe-3 ps-2">
+
+                            <div class="dropdown profile-menu-dropdown">
+
+                                <span aria-expanded="false" data-bs-auto-close="true" data-bs-placement="top"
+                                    data-bs-toggle="dropdown" role="button"
+                                    class="h-45 w-45 d-flex-center b-r-10 position-relative bg-danger m-auto">
+
+                                    <img class="img-fluid b-r-10"
+                                        src="https://ui-avatars.com/api/?name=Mohtamjir&amp;background=28a745&amp;color=fff&amp;bold=true">
+                                    <span
+                                        class="position-absolute top-0 end-0 p-1 bg-success border border-light rounded-circle"></span>
+                                </span>
+                                <ul class="dropdown-menu">
+                                    <div class="px-3 pb-2 border-bottom mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <div>
+                                                <span class="fw-semibold text-success small d-block">
+                                                    Super Admin
+                                                </span>
+                                                <span class="text-muted" style="font-size: 12px;">
+                                                    admin@gmail.com
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <li class="dropdown-item d-none">
+                                        <a class="mb-0 text-primary" href="https://madrasha.hostzonebd.com/admin/password/change">
+                                            <i class="ph-duotone ph-lock-key pe-1 f-s-20"></i> Change Password
+                                        </a>
+                                    </li>
+
+                                    <li class="dropdown-item">
+                                        <a class="mb-0 text-danger" href="https://madrasha.hostzonebd.com/logout"
+                                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                            <i class="ph-duotone ph-sign-out pe-1 f-s-20"></i> Log Out
+                                        </a>
+                                        <form id="logout-form" action="https://madrasha.hostzonebd.com/admin/logout" method="POST"
+                                            class="d-none">
+                                            <input type="hidden" name="_token" value="5u91gsCYMkpUkC9FwkTd0Uqv3xeKBBV03NTtBV3e" autocomplete="off">                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</header>
+                <main>
+                    <div class="container-fluid ">
+                            <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary">
+            <h5 class="mb-0 text-white">
+                <i class="fa-solid fa-calendar-check me-2"></i> বার্ষিক জমা ও খরচের প্রতিবেদন
+            </h5>
+        </div>
+
+        <div class="card-body mb-3">
+            <form method="GET" id="yearlyReportForm">
+                <div class="row g-3 align-items-end">
+
+                    <!-- Year Selector -->
+                    <div class="col-md-3 mb-3">
+                        <label for="year_select" class="form-label fw-bold">বছর</label>
+                        <select name="year" id="year_select" class="form-select">
+                            <option value="">বছর নির্বাচন করুন</option>
+                                                            <option value="2026" selected>
+                                    2026
+                                </option>
+                                                            <option value="2025" >
+                                    2025
+                                </option>
+                                                            <option value="2024" >
+                                    2024
+                                </option>
+                                                            <option value="2023" >
+                                    2023
+                                </option>
+                                                            <option value="2022" >
+                                    2022
+                                </option>
+                                                            <option value="2021" >
+                                    2021
+                                </option>
+                                                            <option value="2020" >
+                                    2020
+                                </option>
+                                                            <option value="2019" >
+                                    2019
+                                </option>
+                                                            <option value="2018" >
+                                    2018
+                                </option>
+                                                            <option value="2017" >
+                                    2017
+                                </option>
+                                                            <option value="2016" >
+                                    2016
+                                </option>
+                                                    </select>
+                    </div>
+
+                    <!-- Start Date -->
+                    <div class="col-md-3 mb-3">
+                        <label for="start_date" class="form-label fw-bold">শুরুর তারিখ</label>
+                        <input type="text" name="start_date" class="form-control custom-datepicker"
+                            value="" placeholder="yyyy-mm-dd" required readonly>
+                    </div>
+
+                    <!-- End Date -->
+                    <div class="col-md-3 mb-3">
+                        <label for="end_date" class="form-label fw-bold">শেষের তারিখ</label>
+                        <input type="text" name="end_date" class="form-control custom-datepicker"
+                            value="" placeholder="yyyy-mm-dd" required readonly>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="col-md-3 mb-3">
+                        <button type="submit" class="btn btn-success fw-bold w-100">
+                            <i class="fas fa-search me-1"></i> রিপোর্ট দেখান
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+            <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="fa-solid fa-calendar-days fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">তারিখ নির্বাচন করে রিপোর্ট দেখান</h5>
+            </div>
+        </div>
+    
+                    </div>
+                </main>
+            </div>
+        </div>
+        <!-- Body main section ends -->
+
+        <!-- tap on top -->
+        <div class="go-top">
+            <span class="progress-value">
+                <i class="ti ti-chevron-up"></i>
+            </span>
+        </div>
+
+        <!-- Footer Section -->
+            </div>
+
+    <!-- welecome modal start-->
+    
+    <!-- modal end -->
+
+    <!-- customizer -->
+    <div id="customizer"></div>
+
+    <!-- latest jquery -->
+    <script src="https://madrasha.hostzonebd.com/assets/js/jquery-3.6.3.min.js"></script>
+
+
+    <!-- Bootstrap JS  -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Simple bar js -->
+    <script src="https://madrasha.hostzonebd.com/assets/vendor/simplebar/simplebar.js"></script>
+
+    <!-- phosphor js -->
+    <script src="https://madrasha.hostzonebd.com/assets/vendor/phosphor/phosphor.js"></script>
+
+    <!-- Glight js -->
+    <script src="https://madrasha.hostzonebd.com/assets/vendor/glightbox/glightbox.min.js"></script>
+
+    <!-- apexcharts -->
+    <script src="https://madrasha.hostzonebd.com/assets/vendor/apexcharts/apexcharts.min.js"></script>
+
+    <!-- Customizer js -->
+    <script src="https://madrasha.hostzonebd.com/assets/js/customizer.js"></script>
+
+    <!-- Ecommerce js -->
+    <script src="https://madrasha.hostzonebd.com/assets/js/ecommerce_dashboard.js"></script>
+
+    <!-- App js -->
+    <script src="https://madrasha.hostzonebd.com/assets/js/script.js"></script>
+    <!-- jQuery UI CDN -->
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <!-- data table js-->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+
+    
+
+
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
+    <script src="https://madrasha.hostzonebd.com/vendor/datatables/buttons.server-side.js"></script>
+
+    <!-- table-js -->
+    
+
+    <!-- chartjs js -->
+    <script src="https://madrasha.hostzonebd.com/assets/vendor/chartjs/chart.js"></script>
+
+    <!-- Customizer js -->
+    <script src="https://madrasha.hostzonebd.com/assets/js/customizer.js"></script>
+
+    <!-- chart js -->
+    <script src="https://madrasha.hostzonebd.com/assets/js/chart.js"></script>
+
+    <!-- js -->
+    <script src="https://madrasha.hostzonebd.com/assets/js/widget.js"></script>
+
+    <!-- pie chart js -->
+    <script src="https://madrasha.hostzonebd.com/assets/js/pie_charts.js"></script>
+
+    
+    <script src="https://madrasha.hostzonebd.com/assets/js/area_charts.js"></script>
+
+    <!-- js-->
+    <script src="https://madrasha.hostzonebd.com/assets/js/mixed.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    
+    <script src="https://madrasha.hostzonebd.com/assets/js/app.js"></script>
+
+                
+    
+    
+        
+    
+    
+        
+    
+            
+    
+                                        
+
+
+
+    <script>
+        
+
+        
+            </script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2 for all elements with class 'custom-select'
+            $('.custom-select').select2({
+                placeholder: "নির্বাচন করুন",
+                width: '100%'
+            });
+            $('.custom-select2').select2({
+                placeholder: "ভর্তি নং নির্বাচন করুন",
+                width: '100%'
+            });
+
+            //custom-datepicker
+            $('.custom-datepicker').datepicker({
+                dateFormat: 'yy-mm-dd',
+                changeMonth: true,
+                changeYear: true,
+                yearRange: '-100:+0',
+            });
+        });
+    </script>
+
+    <Script>
+        $(document).ready(function() {
+            $.ajax({
+                type: "GET",
+                dataType: "json",
+                url: "https://madrasha.hostzonebd.com/admin/settings/check-sms-balance",
+                success: function(balance) {
+                    $("#sms-balance").text(balance + ' ৳');
+                }
+            });
+        });
+    </Script>
+    <script src="https://madrasha.hostzonebd.com/assets/js/admin/select2fetch.js"></script>
+
+
+    <!--Specific Scripts  -->
+        <script>
+        $(document).ready(function() {
+            // Year select করলে automatic start এবং end date set করা
+            $('#year_select').on('change', function() {
+                const year = $(this).val();
+                if (year) {
+                    $('input[name="start_date"]').val(year + '-01-01');
+                    $('input[name="end_date"]').val(year + '-12-31');
+                }
+            });
+
+            // Validation: End date must be after start date
+            $('#yearlyReportForm').on('submit', function(e) {
+                const startDate = new Date($('input[name="start_date"]').val());
+                const endDate = new Date($('input[name="end_date"]').val());
+
+                if (endDate < startDate) {
+                    e.preventDefault();
+                    alert('শেষের তারিখ শুরুর তারিখের পরে হতে হবে');
+                    return false;
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>
