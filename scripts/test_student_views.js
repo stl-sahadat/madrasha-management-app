@@ -45,7 +45,19 @@ async function main() {
   await send('Page.enable');
   await send('Runtime.enable');
   await send('Page.navigate', { url: 'http://localhost:3000/' });
-  await new Promise(r => setTimeout(r, 2500));
+  await new Promise(r => setTimeout(r, 1500));
+
+  // Set authentication
+  await send('Runtime.evaluate', {
+    expression: `
+      localStorage.setItem("madrasha_auth_user", JSON.stringify({
+        id: "usr_superadmin", name: "মুহতামিম সাহেব", email: "admin@gmail.com", role: "superadmin"
+      }));
+      localStorage.setItem("madrasha_is_authenticated", "true");
+    `
+  });
+  await send('Page.navigate', { url: 'http://localhost:3000/dashboard' });
+  await new Promise(r => setTimeout(r, 1500));
 
   const studentTabs = [
     { id: 'student-create', name: 'ছাত্র/ছাত্রী তৈরি', checkSelector: 'input[name="full_name"], input[placeholder*="পূর্ণ নাম"]' },
