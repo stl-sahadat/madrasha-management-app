@@ -2,20 +2,20 @@
 // Target: https://madrasha.hostzonebd.com
 
 export const MADRASHA_PROFILE = {
-  name: "জব্বর নগর স্বতন্ত্র ইবতেদায়ী মাদ্রাসা",
-  nameEn: "Jobbor Nogor Swatontro Ebtedayee Madrasha",
-  location: "বদরখালী, মাতামুহুরী, চকরিয়া, কক্সবাজার",
-  address: "বদরখালী, মাতামুহুরী, চকরিয়া, কক্সবাজার।",
+  name: "ইকরা ইসলামিয়া মাদ্রাসা",
+  nameEn: "Iqra Islamia Madrasha",
+  location: "বরুড়া, কুমিল্লা",
+  address: "বরুড়া, কুমিল্লা।",
   phone1: "01820050095",
   phone2: "01847657580",
   email: "hafezazamnur@gmail.com",
-  website: "www.abrar.com",
-  established: "১৯৮৩",
-  principal: "মাহমুদুল করিম",
+  website: "www.iqramadrasha.com",
+  established: "১৯৯০",
+  principal: "মুহতামিম / প্রধান শিক্ষক",
   principalRole: "মুহতামিম / প্রধান পরীক্ষক",
   smsBalance: 0.00,
-  logoText: "JNSEM",
-  banner: "/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg",
+  logoText: "মাদ্রাসা ৩৬০",
+  banner: "/storage/institute/banners/madrasha_cover_banner.jpg",
 };
 
 export const JAMATS = [

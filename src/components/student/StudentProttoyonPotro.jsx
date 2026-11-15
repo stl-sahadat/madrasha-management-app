@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 
 export const StudentProttoyonPotro = () => {
-  const { students, jamats } = useApp();
+  const { students, jamats, profile } = useApp();
   const [selectedJamat, setSelectedJamat] = useState('all');
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || '');
 
@@ -247,14 +247,14 @@ export const StudentProttoyonPotro = () => {
             {/* Header */}
             <div className="certificate-header text-center">
               <img
-                src="/storage/institute/logos/madrasha_360_logo.png"
-                alt="Logo"
-                className="institute-logo"
+                src={profile?.banner || "/storage/institute/banners/madrasha_cover_banner.jpg"}
+                alt="Banner"
+                className="img-fluid mb-2"
+                style={{ maxHeight: '110px', width: '100%', objectFit: 'contain' }}
               />
-              <h2 className="institute-name">জব্বর নগর স্বতন্ত্র ইবতেদায়ী মাদ্রাসা</h2>
-              <p className="institute-address">বদরখালী, মাতামুহুরী, কক্সবাজার।</p>
-              <p className="institute-contact">মোবাইল: 01847657580</p>
-              <p className="institute-email">ইমেইল: hafezazamnur@gmail.com</p>
+              <h2 className="institute-name">{profile?.name || 'ইকরা ইসলামিয়া মাদ্রাসা'}</h2>
+              <p className="institute-address">{profile?.address || 'বরুড়া, কুমিল্লা।'}</p>
+              <p className="institute-contact">মোবাইল: {profile?.phone1 || '01XXXX XXXX'} {profile?.email ? `| ইমেইল: ${profile.email}` : ''}</p>
             </div>
 
             <div className="divider"></div>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 
 export const StudentCertificate = () => {
-  const { students, jamats } = useApp();
+  const { students, jamats, profile } = useApp();
   const [selectedJamat, setSelectedJamat] = useState('all');
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || '');
 
@@ -342,13 +342,14 @@ export const StudentCertificate = () => {
           {/* Header */}
           <div className="cert-header">
             <img
-              src="/storage/institute/logos/madrasha_360_logo.png"
-              alt="Logo"
-              className="image-logo"
+              src={profile?.banner || "/storage/institute/banners/madrasha_cover_banner.jpg"}
+              alt="Banner"
+              className="img-fluid mb-2"
+              style={{ maxHeight: '100px', width: '100%', objectFit: 'contain' }}
             />
-            <h1>জব্বর নগর স্বতন্ত্র ইবতেদায়ী মাদ্রাসা</h1>
-            <p>বদরখালী, মাতামুহুরী, কক্সবাজার।</p>
-            <p className="cert-contact">মোবাইল: 01847657580 | ইমেইল: hafezazamnur@gmail.com</p>
+            <h1>{profile?.name || 'ইকরা ইসলামিয়া মাদ্রাসা'}</h1>
+            <p>{profile?.address || 'বরুড়া, কুমিল্লা।'}</p>
+            <p className="cert-contact">মোবাইল: {profile?.phone1 || '01XXXX XXXX'} | ইমেইল: {profile?.email || 'xxxxxxxx@gmail.com'}</p>
           </div>
 
           <div className="cert-hr"></div>
