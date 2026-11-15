@@ -132,7 +132,7 @@ export const Sidebar = () => {
           }}
         />
       )}
-      <nav className={`app-sidebar ${sidebarOpen ? "sidebar-mobile-open" : "semi-nav"}`}>
+      <nav className={`app-sidebar ${sidebarOpen ? "sidebar-open sidebar-mobile-open" : "semi-nav sidebar-closed"}`}>
       <div
         className="app-logo d-flex align-items-center"
         style={{
@@ -236,7 +236,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-users me-2"></i>
               ছাত্র/ছাত্রী
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'students' ? 'show' : ''}`} id="students">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'students' ? 'show' : ''}`} id="students" style={!sidebarOpen ? { display: 'none' } : undefined}>
               <li className={activeTab === 'student-create' ? 'active' : ''}>
                 <a href="#student-create" onClick={(e) => handleNavClick('student-create', e)}>ছাত্র/ছাত্রী তৈরি</a>
               </li>
@@ -303,7 +303,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-chalkboard-user me-2"></i>
               শিক্ষক
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'teachers' ? 'show' : ''}`} id="teachers">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'teachers' ? 'show' : ''}`} id="teachers" style={!sidebarOpen ? { display: 'none' } : undefined}>
               <li className={activeTab === 'teacher-create' ? 'active' : ''}>
                 <a href="#teacher-create" onClick={(e) => handleNavClick('teacher-create', e)}>শিক্ষক তৈরি</a>
               </li>
@@ -337,7 +337,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-calendar-check me-2"></i>
               মাসিক চাঁদাদাতা
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'monthly-donors' ? 'show' : ''}`} id="monthly-donors">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'monthly-donors' ? 'show' : ''}`} id="monthly-donors" style={!sidebarOpen ? { display: 'none' } : undefined}>
               <li className={activeTab === 'contributor-list' ? 'active' : ''}>
                 <a href="#contributor-list" onClick={(e) => handleNavClick('contributor-list', e)}>মাসিক চাঁদাদাতার তালিকা</a>
               </li>
@@ -368,7 +368,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-hand-holding-heart me-2"></i>
               দানকারী
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'donors' ? 'show' : ''}`} id="donors">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'donors' ? 'show' : ''}`} id="donors" style={!sidebarOpen ? { display: 'none' } : undefined}>
               <li className={activeTab === 'donor-create' ? 'active' : ''}>
                 <a href="#donor-create" onClick={(e) => handleNavClick('donor-create', e)}>নতুন দানকারী তৈরি</a>
               </li>
@@ -402,7 +402,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-gem me-2"></i>
               যাকাত দাতা
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'zakat-donors' ? 'show' : ''}`} id="zakat-donors">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'zakat-donors' ? 'show' : ''}`} id="zakat-donors" style={!sidebarOpen ? { display: 'none' } : undefined}>
               <li className={activeTab === 'zakat-donor-create' ? 'active' : ''}>
                 <a href="#zakat-donor-create" onClick={(e) => handleNavClick('zakat-donor-create', e)}>নতুন যাকাত দাতা তৈরি</a>
               </li>
@@ -436,7 +436,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-shopping-cart me-2"></i>
               বাজার
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'market' ? 'show' : ''}`} id="market">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'market' ? 'show' : ''}`} id="market" style={!sidebarOpen ? { display: 'none' } : undefined}>
               <li className={activeTab === 'bazar-weekly-create' ? 'active' : ''}>
                 <a href="#bazar-weekly-create" onClick={(e) => handleNavClick('bazar-weekly-create', e)}>সাপ্তাহিক বাজার এন্ট্রি</a>
               </li>
@@ -481,7 +481,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-user-check me-2"></i>
               হাজিরা
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'attendance' ? 'show' : ''}`} id="attendance">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'attendance' ? 'show' : ''}`} id="attendance" style={!sidebarOpen ? { display: 'none' } : undefined}>
               <li className={activeTab === 'attendance-student' ? 'active' : ''}>
                 <a href="#attendance-student" onClick={(e) => handleNavClick('attendance-student', e)}>ছাত্র-ছাত্রী হাজিরা</a>
               </li>
@@ -509,7 +509,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-chart-line me-2"></i>
               রেজাল্ট
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'results' ? 'show' : ''}`} id="results">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'results' ? 'show' : ''}`} id="results" style={!sidebarOpen ? { display: 'none' } : undefined}>
               <li className={activeTab === 'result-create' ? 'active' : ''}>
                 <a href="#result-create" onClick={(e) => handleNavClick('result-create', e)}>মার্কস এনট্রি/আপডেট</a>
               </li>
@@ -534,7 +534,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-wallet me-2"></i>
               জমা/খরচ হিসাব সমূহ
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'income-expense' ? 'show' : ''}`} id="income-expense">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'income-expense' ? 'show' : ''}`} id="income-expense" style={!sidebarOpen ? { display: 'none' } : undefined}>
               <li className={activeTab === 'voucher-deposit' ? 'active' : ''}>
                 <a href="#voucher-deposit" onClick={(e) => handleNavClick('voucher-deposit', e)}>নতুন অর্থ জমা করুন</a>
               </li>
@@ -562,7 +562,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-id-card me-2"></i>
               আইডি কার্ড
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'id-cards' ? 'show' : ''}`} id="id-cards">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'id-cards' ? 'show' : ''}`} id="id-cards" style={!sidebarOpen ? { display: 'none' } : undefined}>
               <li className={activeTab === 'idcard-student' ? 'active' : ''}>
                 <a href="#idcard-student" onClick={(e) => handleNavClick('idcard-student', e)}>ছাএ-ছাএীর আইডি কার্ড</a>
               </li>
@@ -584,7 +584,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-envelope me-2"></i>
               এসএমএস
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'sms' ? 'show' : ''}`} id="sms">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'sms' ? 'show' : ''}`} id="sms" style={!sidebarOpen ? { display: 'none' } : undefined}>
               <li className={activeTab === 'sms-student' || activeTab === 'sms-client' || activeTab === 'sms-send' ? 'active' : ''}>
                 <a href="/admin/sms/send-to-client" onClick={(e) => handleNavClick('sms-student', e)}>ছাত্র/ছাত্রী</a>
               </li>
@@ -606,7 +606,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-wallet me-2"></i>
               অ্যাকাউন্ট
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'accounts' ? 'show' : ''}`} id="accounts">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'accounts' ? 'show' : ''}`} id="accounts" style={!sidebarOpen ? { display: 'none' } : undefined}>
               <li className={activeTab === 'account-create' ? 'active' : ''}>
                 <a href="/admin/account/create" onClick={(e) => handleNavClick('account-create', e)}>নতুন অ্যাকাউন্ট তৈরি</a>
               </li>
@@ -637,7 +637,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-file-alt me-2"></i>
               রিপোর্ট
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'reports' ? 'show' : ''}`} id="reports">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'reports' ? 'show' : ''}`} id="reports" style={!sidebarOpen ? { display: 'none' } : undefined}>
               <li className={activeTab === 'report-deposit' ? 'active' : ''}>
                 <a href="#report-deposit" onClick={(e) => handleNavClick('report-deposit', e)}>জমার রিপোর্ট</a>
               </li>
@@ -719,7 +719,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-gear me-2"></i>
               সেটিং
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'settings' ? 'show' : ''}`} id="settings">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'settings' ? 'show' : ''}`} id="settings" style={!sidebarOpen ? { display: 'none' } : undefined}>
               <li className={activeTab === 'settings-institute' ? 'active' : ''}>
                 <a href="#settings-institute" onClick={(e) => handleNavClick('settings-institute', e)}>প্রতিষ্ঠানের তথ্য</a>
               </li>

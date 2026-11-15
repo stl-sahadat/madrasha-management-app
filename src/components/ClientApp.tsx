@@ -4,8 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { AppProvider } from '../context/AppContext';
 import { App } from '../App';
 
-export default function ClientApp({ initialSlug, initialSearchParams }) {
-  const [mounted, setMounted] = useState(false);
+interface ClientAppProps {
+  initialSlug?: string[];
+  initialSearchParams?: Record<string, string | string[]>;
+}
+
+export default function ClientApp({ initialSlug, initialSearchParams }: ClientAppProps) {
+  const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
     setMounted(true);

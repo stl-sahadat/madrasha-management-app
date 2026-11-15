@@ -446,7 +446,14 @@ header.header-main .header-right {
 .app-wrapper nav.semi-nav .app-nav .main-nav .sidebar-submenu,
 .app-wrapper nav.semi-nav .app-nav .main-nav .collapse.show,
 .app-wrapper nav.semi-nav .app-nav .main-nav ul.collapse.show,
-.app-wrapper nav.semi-nav .app-nav .main-nav .sidebar-submenu.show {
+.app-wrapper nav.semi-nav .app-nav .main-nav .sidebar-submenu.show,
+.app-wrapper nav.semi-nav .app-nav .main-nav > li:not(.menu-title) ul,
+.app-wrapper nav.semi-nav:hover .app-nav .main-nav ul.collapse,
+.app-wrapper nav.semi-nav:hover .app-nav .main-nav .sidebar-submenu,
+.app-wrapper nav.semi-nav:hover .app-nav .main-nav .collapse.show,
+.app-wrapper nav.semi-nav:hover .app-nav .main-nav ul.collapse.show,
+.app-wrapper nav.semi-nav:hover .app-nav .main-nav .sidebar-submenu.show,
+.app-wrapper nav.semi-nav:hover .app-nav .main-nav > li:not(.menu-title) ul {
   display: none !important;
   visibility: hidden !important;
   height: 0 !important;
@@ -570,21 +577,63 @@ header.header-main .header-right {
 
 /* 7. Responsive handling for mobile/tablet */
 @media screen and (max-width: 1199px) {
+  /* Closed sidebar on mobile: fully hidden offscreen, takes 0 space */
   .app-wrapper nav.app-sidebar,
-  .app-wrapper > nav {
+  .app-wrapper > nav,
+  .app-wrapper nav.app-sidebar.semi-nav,
+  .app-wrapper nav.semi-nav,
+  .app-wrapper nav.sidebar-closed {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: min(18rem, 85vw) !important;
+    max-width: 85vw !important;
     transform: translateX(-100%) !important;
-    width: 18rem !important;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
     z-index: 1050 !important;
-    box-shadow: 0 0 25px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    display: none !important;
+    pointer-events: none !important;
   }
 
+  /* Open sidebar drawer on mobile */
   .app-wrapper nav.app-sidebar.sidebar-mobile-open,
-  .app-wrapper nav.app-sidebar:not(.semi-nav) {
+  .app-wrapper nav.app-sidebar.sidebar-open {
+    display: block !important;
     transform: translateX(0) !important;
+    pointer-events: auto !important;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.25) !important;
   }
 
-  .app-wrapper .app-content {
+  .sidebar-backdrop {
+    backdrop-filter: blur(2px) !important;
+    animation: fadeInBackdrop 0.25s ease-out !important;
+  }
+
+  @keyframes fadeInBackdrop {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Mobile Content Padding: 100% clean full width */
+  .app-wrapper .app-content,
+  .app-wrapper .semi-nav ~ .app-content,
+  .app-wrapper nav.semi-nav ~ .app-content {
     padding-left: 0 !important;
+    margin-left: 0 !important;
+    padding-top: 10px !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  .app-wrapper .app-content header.header-main,
+  .app-wrapper .semi-nav ~ .app-content header.header-main,
+  header.header-main {
+    padding-left: 12px !important;
+    width: 100% !important;
   }
 }
 
@@ -606,47 +655,6 @@ html, body {
   -webkit-tap-highlight-color: transparent;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-}
-
-@media screen and (max-width: 1199px) {
-  /* Mobile Sidebar Drawer Smooth Transitions */
-  .app-wrapper nav.app-sidebar,
-  .app-wrapper > nav {
-    position: fixed !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    width: min(18rem, 85vw) !important;
-    max-width: 85vw !important;
-    transform: translateX(-100%) !important;
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    z-index: 1050 !important;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.25) !important;
-    background: #ffffff !important;
-  }
-
-  .app-wrapper nav.app-sidebar.sidebar-mobile-open {
-    transform: translateX(0) !important;
-  }
-
-  .sidebar-backdrop {
-    backdrop-filter: blur(2px) !important;
-    animation: fadeInBackdrop 0.25s ease-out !important;
-  }
-
-  @keyframes fadeInBackdrop {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  /* Mobile Content Padding */
-  .app-wrapper .app-content {
-    padding-left: 0 !important;
-    padding-top: 10px !important;
-    width: 100% !important;
-    max-width: 100vw !important;
-    overflow-x: hidden !important;
-  }
 }
 
 @media screen and (max-width: 991px) {

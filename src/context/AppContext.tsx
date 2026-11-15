@@ -265,42 +265,42 @@ export const AppProvider = ({ children, initialSlug, initialSearchParams }) => {
 
   const [currentUser, setCurrentUser] = useState(() => {
     try {
-      const savedSession = sessionStorage.getItem('madrasha_current_user');
-      if (savedSession) {
-        const { password, passwordHash, ...u } = JSON.parse(savedSession);
-        return u;
-      }
-      const savedLocal = localStorage.getItem('madrasha_current_user');
-      if (savedLocal) {
-        const { password, passwordHash, ...u } = JSON.parse(savedLocal);
-        return u;
-      }
-
       const sessionAuth = sessionStorage.getItem('madrasha_is_authenticated');
       const localAuth = localStorage.getItem('madrasha_is_authenticated');
-      if (sessionAuth === 'false' || localAuth === 'false') return null;
-
-      const { password, passwordHash, ...safeSeed } = INITIAL_USERS[0];
-      return safeSeed;
+      if (sessionAuth === 'true') {
+        const savedSession = sessionStorage.getItem('madrasha_current_user');
+        if (savedSession) {
+          const { password, passwordHash, ...u } = JSON.parse(savedSession);
+          return u;
+        }
+      }
+      if (localAuth === 'true') {
+        const savedLocal = localStorage.getItem('madrasha_current_user');
+        if (savedLocal) {
+          const { password, passwordHash, ...u } = JSON.parse(savedLocal);
+          return u;
+        }
+      }
+      return null;
     } catch {
-      const { password, passwordHash, ...safeSeed } = INITIAL_USERS[0];
-      return safeSeed;
+      return null;
     }
   });
 
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     try {
       const sessionAuth = sessionStorage.getItem('madrasha_is_authenticated');
-      if (sessionAuth === 'false') return false;
       if (sessionAuth === 'true') return true;
+      if (sessionAuth === 'false') return false;
 
       const localAuth = localStorage.getItem('madrasha_is_authenticated');
-      if (localAuth === 'false') return false;
       if (localAuth === 'true') return true;
+      if (localAuth === 'false') return false;
 
-      return true; // Default demo authenticated session
+      // Default to false on first visit so the authentic Login Interface appears first per requirements
+      return false;
     } catch {
-      return true;
+      return false;
     }
   });
 
@@ -1481,19 +1481,23 @@ export const AppProvider = ({ children, initialSlug, initialSearchParams }) => {
 
   // Login handler with Next.js secure backend verification & rate-limiting protection
   const login = async (emailOrUsername, password, remember = true) => {
-    const trimmedInput = (emailOrUsername || 'admin@gmail.com').trim().toLowerCase();
-    const inputPassword = password || 'admin1234';
+    const trimmedInput = (emailOrUsername || 'admin@gmail.com').toString().trim().toLowerCase();
+    const inputPassword = (password || 'admin1234').toString().trim();
 
     let authenticatedUser = null;
 
     // 1. Try Next.js server API if available and returns valid JSON response
     if (typeof window !== 'undefined' && window.fetch) {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1500);
         const res = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ emailOrUsername: trimmedInput, password: inputPassword, remember })
+          body: JSON.stringify({ emailOrUsername: trimmedInput, password: inputPassword, remember }),
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
         const contentType = res.headers.get('content-type') || '';
         if (contentType.includes('application/json')) {
           const data = await res.json();
@@ -1510,7 +1514,7 @@ export const AppProvider = ({ children, initialSlug, initialSearchParams }) => {
           }
         }
       } catch (err) {
-        console.warn('[Auth] Server login failed, fallback to client verification:', err.message);
+        // Fallback to client verification immediately
       }
     }
 
@@ -1519,23 +1523,27 @@ export const AppProvider = ({ children, initialSlug, initialSearchParams }) => {
       const isDefaultAdmin = !trimmedInput || trimmedInput === 'admin@gmail.com' || trimmedInput === 'admin';
 
       if (isDefaultAdmin) {
-        authenticatedUser = {
-          id: "USR-001",
-          name: "মুহতামিম / সুপার এডমিন",
-          email: "admin@gmail.com",
-          username: "admin",
-          phone: "01820050095",
-          role: "Super Admin",
-          status: "Active"
-        };
-      } else {
+        if (!inputPassword || inputPassword === 'admin1234' || inputPassword === 'admin') {
+          authenticatedUser = {
+            id: "USR-001",
+            name: "মুহতামিম / সুপার এডমিন",
+            email: "admin@gmail.com",
+            username: "admin",
+            phone: "01820050095",
+            role: "Super Admin",
+            status: "Active"
+          };
+        }
+      }
+
+      if (!authenticatedUser) {
         const allUsers = [...(users || []), ...INITIAL_USERS];
         const foundUser = allUsers.find(u =>
           (u.email?.toLowerCase() === trimmedInput || u.username?.toLowerCase() === trimmedInput)
         );
 
         if (foundUser) {
-          const userPass = foundUser.password || 'admin1234';
+          const userPass = (foundUser.password || 'admin1234').toString().trim();
           if (!inputPassword || inputPassword === userPass || inputPassword === 'admin1234') {
             const { password: _, passwordHash: __, ...safeUser } = foundUser;
             authenticatedUser = safeUser;

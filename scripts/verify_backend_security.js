@@ -9,7 +9,7 @@ import {
   sanitizeString,
   sanitizeUserOutput,
   MAX_PASSWORD_LENGTH
-} from '../src/lib/security.js';
+} from '../src/lib/security.ts';
 import {
   checkRateLimit,
   recordFailedAttempt,
@@ -17,13 +17,13 @@ import {
   resetRateLimit,
   getClientIp,
   isValidIp
-} from '../src/lib/rateLimit.js';
+} from '../src/lib/rateLimit.ts';
 import {
   authenticateCredentials,
   registerNewUser,
   findUserByIdentifier,
   findUserById
-} from '../src/lib/users.js';
+} from '../src/lib/users.ts';
 
 console.log('========================================================');
 console.log('🛡️  ENTERPRISE BACKEND SECURITY VERIFICATION TEST SUITE');

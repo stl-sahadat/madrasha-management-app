@@ -67,7 +67,7 @@ export const AuthPage = ({ initialMode = 'login' }) => {
     setLoginError('');
 
     const emailToUse = (loginForm.emailOrUsername || 'admin@gmail.com').trim();
-    const passToUse = loginForm.password || 'admin1234';
+    const passToUse = (loginForm.password || 'admin1234').trim();
 
     setLoginLoading(true);
 

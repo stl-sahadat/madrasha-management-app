@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { INITIAL_USERS } from '../data/initialData.js';
-import { getDb } from './db/database.js';
+import { INITIAL_USERS } from '../data/initialData';
+import { getDb } from './db/database';
 import {
   hashPassword,
   verifyPassword,
@@ -9,7 +9,7 @@ import {
   sanitizeString,
   MAX_PASSWORD_LENGTH,
   MAX_INPUT_LENGTH
-} from './security.js';
+} from './security';
 
 // Pre-computed bcrypt hash for seed users' password "admin1234"
 const SEED_BCRYPT_HASH = '$2b$10$6RkoWl8A3gG5pBonHOiBk.wAXpE1ui.ZR/H8S9en4TvnMXppCTpru';

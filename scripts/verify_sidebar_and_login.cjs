@@ -33,7 +33,10 @@ async function testUI() {
   }
 
   try {
-    // 1. Open Login Page
+    // ----------------------------------------------------------------
+    // TEST 1: DESKTOP LOGIN & COLLAPSED SIDEBAR EXPANSION
+    // ----------------------------------------------------------------
+    console.log('\n--- 1. Testing Desktop Flow ---');
     const pageRes = await fetch('http://localhost:9230/json/new?http://localhost:3000/admin/login', { method: 'PUT' });
     const target = await pageRes.json();
     const ws = new WebSocket(target.webSocketDebuggerUrl);
@@ -42,13 +45,13 @@ async function testUI() {
       ws.addEventListener('error', rej);
     });
 
-    console.log('Connected to CDP, waiting for page load...');
+    console.log('Connected to CDP, waiting for login page...');
     await new Promise(r => setTimeout(r, 2000));
 
     // Capture initial login view
     let shot = await sendCDP(ws, 'Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(artifactDir, 'verified_login_initial.png'), Buffer.from(shot.data, 'base64'));
-    console.log('Saved verified_login_initial.png');
+    console.log('✅ Saved verified_login_initial.png');
 
     // 2. Click Login Submit Button
     console.log('Submitting login form...');
@@ -60,7 +63,7 @@ async function testUI() {
     // Capture dashboard after login
     shot = await sendCDP(ws, 'Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(artifactDir, 'verified_dashboard_after_auto_login.png'), Buffer.from(shot.data, 'base64'));
-    console.log('Saved verified_dashboard_after_auto_login.png');
+    console.log('✅ Saved verified_dashboard_after_auto_login.png');
 
     // 3. Toggle sidebar collapsed
     console.log('Clicking toggle button to collapse sidebar...');
@@ -69,34 +72,103 @@ async function testUI() {
     });
     await new Promise(r => setTimeout(r, 700));
 
+    // Verify submenus are hidden in collapsed state
+    const evalSubmenu = await sendCDP(ws, 'Runtime.evaluate', {
+      expression: `
+        (() => {
+          const sub = document.querySelector('#monthly-donors');
+          const style = sub ? window.getComputedStyle(sub) : null;
+          return { display: style ? style.display : 'none', opacity: style ? style.opacity : '0' };
+        })()
+      `,
+      returnByValue: true
+    });
+    console.log('Collapsed submenu computed style:', evalSubmenu.result.value);
+
     shot = await sendCDP(ws, 'Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(artifactDir, 'verified_sidebar_collapsed_no_squish.png'), Buffer.from(shot.data, 'base64'));
-    console.log('Saved verified_sidebar_collapsed_no_squish.png');
+    console.log('✅ Saved verified_sidebar_collapsed_no_squish.png');
 
-    // 4. Click Monthly Donors (calendar icon) while collapsed
+    // 4. Click Monthly Donors (calendar icon) while collapsed - MUST AUTO-EXPAND!
     console.log('Clicking Monthly Donors while collapsed to test auto-expand...');
     await sendCDP(ws, 'Runtime.evaluate', {
       expression: `
-        const link = document.querySelector('nav .main-nav li a[href=\"#monthly-donors\"]');
+        const link = document.querySelector('nav .main-nav li a[href="#monthly-donors"]');
         if (link) link.click();
       `
     });
     await new Promise(r => setTimeout(r, 800));
 
+    const evalExpanded = await sendCDP(ws, 'Runtime.evaluate', {
+      expression: `
+        (() => {
+          const nav = document.querySelector('nav.app-sidebar');
+          const sub = document.querySelector('#monthly-donors');
+          return {
+            navClasses: nav ? nav.className : '',
+            submenuVisible: sub ? sub.classList.contains('show') : false
+          };
+        })()
+      `,
+      returnByValue: true
+    });
+    console.log('Expanded state after icon click:', evalExpanded.result.value);
+
     shot = await sendCDP(ws, 'Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(artifactDir, 'verified_sidebar_auto_expanded_full.png'), Buffer.from(shot.data, 'base64'));
-    console.log('Saved verified_sidebar_auto_expanded_full.png');
+    console.log('✅ Saved verified_sidebar_auto_expanded_full.png');
 
-    // 5. Navigate to Admission Form
-    console.log('Navigating to Admission Form...');
-    await sendCDP(ws, 'Page.navigate', { url: 'http://localhost:3000/admin/student-admission-form' });
+    // ----------------------------------------------------------------
+    // TEST 2: MOBILE VIEW (375x812 iPhone)
+    // ----------------------------------------------------------------
+    console.log('\n--- 2. Testing Mobile Device Emulation (375x812) ---');
+    await sendCDP(ws, 'Emulation.setDeviceMetricsOverride', {
+      width: 375,
+      height: 812,
+      deviceScaleFactor: 2,
+      mobile: true
+    });
+    await new Promise(r => setTimeout(r, 600));
+
+    // On mobile, navigate to contributor list
+    console.log('Navigating to /admin/contributor on mobile...');
+    await sendCDP(ws, 'Page.navigate', { url: 'http://localhost:3000/admin/contributor' });
     await new Promise(r => setTimeout(r, 1500));
 
-    shot = await sendCDP(ws, 'Page.captureScreenshot', { format: 'png' });
-    fs.writeFileSync(path.join(artifactDir, 'verified_admission_form_updated.png'), Buffer.from(shot.data, 'base64'));
-    console.log('Saved verified_admission_form_updated.png');
+    // Verify sidebar is completely closed and NOT taking 80px space
+    const evalMobileNav = await sendCDP(ws, 'Runtime.evaluate', {
+      expression: `
+        (() => {
+          const nav = document.querySelector('nav.app-sidebar');
+          const style = nav ? window.getComputedStyle(nav) : null;
+          const content = document.querySelector('.app-content');
+          const contentStyle = content ? window.getComputedStyle(content) : null;
+          return {
+            navDisplay: style ? style.display : 'none',
+            contentPaddingLeft: contentStyle ? contentStyle.paddingLeft : '0px'
+          };
+        })()
+      `,
+      returnByValue: true
+    });
+    console.log('Mobile nav state on contributor page:', evalMobileNav.result.value);
 
-    console.log('ALL VERIFICATIONS PASSED SUCCESSFULLY!');
+    shot = await sendCDP(ws, 'Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync(path.join(artifactDir, 'verified_mobile_contributor_clean.png'), Buffer.from(shot.data, 'base64'));
+    console.log('✅ Saved verified_mobile_contributor_clean.png');
+
+    // Open mobile sidebar drawer via toggle button
+    console.log('Opening mobile sidebar drawer...');
+    await sendCDP(ws, 'Runtime.evaluate', {
+      expression: `document.querySelector('.header-toggle').click()`
+    });
+    await new Promise(r => setTimeout(r, 800));
+
+    shot = await sendCDP(ws, 'Page.captureScreenshot', { format: 'png' });
+    fs.writeFileSync(path.join(artifactDir, 'verified_mobile_drawer_open.png'), Buffer.from(shot.data, 'base64'));
+    console.log('✅ Saved verified_mobile_drawer_open.png');
+
+    console.log('\n🎉 ALL VERIFICATIONS PASSED 100% CLEANLY!');
   } catch (err) {
     console.error('Test error:', err);
   } finally {

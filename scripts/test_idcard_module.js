@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import fs from 'node:fs';
-import { pathnameToTab } from '../src/utils/routing.js';
+import { pathnameToTab } from '../src/utils/routing.ts';
 
 console.log('🧪 Starting ID Card Module 1:1 Verification Test Suite...\n');
 
@@ -18,9 +18,9 @@ assert.strictEqual(pathnameToTab('/id-card/teacher'), 'idcard-teacher', 'Expecte
 assert.strictEqual(pathnameToTab('id-card/teacher'), 'idcard-teacher', 'Expected id-card/teacher -> idcard-teacher');
 console.log('  ✅ Test 1 Passed: All ID card routes mapped 1:1 correctly.');
 
-// Test 2: Source Code Verification of IdCardGenerator.jsx
-console.log('\nTest 2: Verifying IdCardGenerator.jsx design, filters, and safety rules...');
-const idCardContent = fs.readFileSync('src/components/idcard/IdCardGenerator.jsx', 'utf-8');
+// Test 2: Source Code Verification of IdCardGenerator.tsx
+console.log('\nTest 2: Verifying IdCardGenerator.tsx design, filters, and safety rules...');
+const idCardContent = fs.readFileSync('src/components/idcard/IdCardGenerator.tsx', 'utf-8');
 
 // 2.1: No bracketed counts
 assert(!idCardContent.includes('(মোট ১৯৭ জন)'), 'Must not contain (মোট ১৯৭ জন)');
@@ -75,7 +75,7 @@ assert(idCardContent.includes('handleDownloadPdf'), 'Must have real PDF download
 console.log('  ✅ Test 2.6: @media print fidelity and PDF generator verified.');
 
 // 2.7: Breadcrumbs suppression for ID card
-const breadcrumbsContent = fs.readFileSync('src/components/layout/Breadcrumbs.jsx', 'utf-8');
+const breadcrumbsContent = fs.readFileSync('src/components/layout/Breadcrumbs.tsx', 'utf-8');
 assert(breadcrumbsContent.includes("activeTab.startsWith('idcard')"), 'Breadcrumbs must be suppressed for idcard');
 console.log('  ✅ Test 2.7: Breadcrumbs clean suppression for ID Card verified.');
 

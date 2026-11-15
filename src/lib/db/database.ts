@@ -10,7 +10,7 @@ import {
   INITIAL_ZAKAT_DONORS,
   INITIAL_TRANSACTIONS,
   ACCOUNTS
-} from '../../data/initialData.js';
+} from '../../data/initialData';
 
 const DATA_DIR = path.join(process.cwd(), '.data');
 const DB_PATH = path.join(DATA_DIR, 'madrasha.db');

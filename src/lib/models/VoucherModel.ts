@@ -1,5 +1,5 @@
-import { getDb } from '../db/database.js';
-import { sanitizeString } from '../security.js';
+import { getDb } from '../db/database';
+import { sanitizeString } from '../security';
 
 export class VoucherModel {
   static getAll({ type, category, date, account } = {}) {

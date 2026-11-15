@@ -1,0 +1,13 @@
+# GitHub Linguist language overrides: ensure only TypeScript, JavaScript, HTML, CSS show up
+*.ts linguist-detectable=true
+*.tsx linguist-detectable=true
+*.js linguist-detectable=true
+*.jsx linguist-detectable=true
+*.html linguist-detectable=true
+*.css linguist-detectable=true
+
+# Ignore scripts, documentation, and external utilities from repository language statistics
+scripts/* linguist-documentation
+docs/* linguist-documentation
+*.py linguist-vendored
+*.sh linguist-vendored

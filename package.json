@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "preview": "next start",
-    "test": "node scripts/verify.js && node scripts/verify_backend_security.js && node scripts/test_accounts_module.js && node scripts/test_sms_module.js && node scripts/test_idcard_module.js && node scripts/test_attendance_module.cjs"
+    "test": "npx tsx scripts/verify.js && npx tsx scripts/verify_backend_security.js && npx tsx scripts/test_accounts_module.js && npx tsx scripts/test_sms_module.js && npx tsx scripts/test_idcard_module.js && node scripts/test_attendance_module.cjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -23,10 +23,15 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.5.1",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
     "vite": "^6.1.0"
   }
 }

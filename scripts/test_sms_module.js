@@ -1,6 +1,6 @@
 import assert from 'node:assert';
-import { countBengaliCharacters } from '../src/utils/smsUtils.js';
-import { pathnameToTab } from '../src/utils/routing.js';
+import { countBengaliCharacters } from '../src/utils/smsUtils.ts';
+import { pathnameToTab } from '../src/utils/routing.ts';
 
 console.log('🧪 Starting SMS Module 1:1 Verification Test Suite...\n');
 
@@ -101,19 +101,19 @@ async function testEndpoints() {
   console.log('\nTest 4: Verifying NO "(মোট ১৯৭ জন)" or bracketed counts in Student selection components...');
   const fs = await import('node:fs');
   const filesToCheck = [
-    'src/components/sms/SmsModule.jsx',
-    'src/components/student/StudentSalaryEntry.jsx',
-    'src/components/student/StudentKhurakiEntry.jsx',
-    'src/components/student/StudentSalaryList.jsx',
-    'src/components/student/StudentKhurakiList.jsx',
-    'src/components/student/StudentFeeMatrix.jsx',
-    'src/components/reports/StudentDepositReport.jsx',
-    'src/components/reports/StudentSalaryDepositReport.jsx',
-    'src/components/idcard/IdCardGenerator.jsx',
-    'src/components/attendance/AttendanceModule.jsx',
-    'src/components/student/StudentCertificate.jsx',
-    'src/components/student/StudentProttoyonPotro.jsx',
-    'src/components/student/StudentAdmissionForm.jsx'
+    'src/components/sms/SmsModule.tsx',
+    'src/components/student/StudentSalaryEntry.tsx',
+    'src/components/student/StudentKhurakiEntry.tsx',
+    'src/components/student/StudentSalaryList.tsx',
+    'src/components/student/StudentKhurakiList.tsx',
+    'src/components/student/StudentFeeMatrix.tsx',
+    'src/components/reports/StudentDepositReport.tsx',
+    'src/components/reports/StudentSalaryDepositReport.tsx',
+    'src/components/idcard/IdCardGenerator.tsx',
+    'src/components/attendance/AttendanceModule.tsx',
+    'src/components/student/StudentCertificate.tsx',
+    'src/components/student/StudentProttoyonPotro.tsx',
+    'src/components/student/StudentAdmissionForm.tsx'
   ];
 
   for (const file of filesToCheck) {

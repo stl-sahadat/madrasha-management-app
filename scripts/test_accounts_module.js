@@ -1,6 +1,6 @@
 import assert from 'node:assert';
-import { pathnameToTab } from '../src/utils/routing.js';
-import { numberToBengaliWords, formatMoney, formatDateDDMMYYYY, toStandardDateStr } from '../src/utils/bengaliWords.js';
+import { pathnameToTab } from '../src/utils/routing.ts';
+import { numberToBengaliWords, formatMoney, formatDateDDMMYYYY, toStandardDateStr } from '../src/utils/bengaliWords.ts';
 import fs from 'node:fs';
 
 console.log('====================================================');
@@ -24,8 +24,8 @@ assert.strictEqual(pathnameToTab('/admin/balance/sheet'), 'balancesheet', 'Faile
 console.log('  ✅ All live target account URLs & deep edit routes map to their exact respective tabs.');
 
 // 2. Component Source Verification
-console.log('\nTest 2: Verifying AccountsModule.jsx fields and UI elements...');
-const moduleSource = fs.readFileSync(new URL('../src/components/accounts/AccountsModule.jsx', import.meta.url), 'utf-8');
+console.log('\nTest 2: Verifying AccountsModule.tsx fields and UI elements...');
+const moduleSource = fs.readFileSync(new URL('../src/components/accounts/AccountsModule.tsx', import.meta.url), 'utf-8');
 
 // Check Create/Edit form fields
 assert.ok(moduleSource.includes('name="name"'), 'Missing name input');
@@ -167,7 +167,7 @@ assert.ok(cssSource.includes('.print-table'), 'Missing .print-table print stylin
 assert.ok(cssSource.includes('.print-thead'), 'Missing .print-thead print styling');
 // 9. Dashboard Card Routing Check
 console.log('\nTest 9: Verifying Dashboard Card 5 & 6 Account Links...');
-const dashboardSource = fs.readFileSync(new URL('../src/components/dashboard/Dashboard.jsx', import.meta.url), 'utf-8');
+const dashboardSource = fs.readFileSync(new URL('../src/components/dashboard/Dashboard.tsx', import.meta.url), 'utf-8');
 assert.ok(dashboardSource.includes("setActiveTab('account-create')"), 'Dashboard Card 5 must route to account-create');
 assert.ok(dashboardSource.includes("setActiveTab('account-report')"), 'Dashboard Card 6 must route to account-report');
 console.log('  ✅ Dashboard Card 5 ("একাউন্ট যুক্ত") and Card 6 ("অ্যাকাউন্ট বিবরণ") correctly route to account-create and account-report.');

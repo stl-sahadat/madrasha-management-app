@@ -13,7 +13,7 @@ import {
   INITIAL_NOTICES,
   MONTH_NAMES,
   INITIAL_USERS
-} from '../src/data/initialData.js';
+} from '../src/data/initialData.ts';
 
 
 console.log('====================================================');
