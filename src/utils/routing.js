@@ -23,7 +23,7 @@ export function pathnameToTab(pathname) {
   if (clean === 'admin/salary-deposit-entry' || clean === 'admin/student/salary/payment') return 'student-salary-entry';
   if (clean === 'admin/salary-deposit-list' || clean === 'admin/student/salary/payment/list') return 'student-salary-list';
   if (clean === 'admin/salary-collection-register' || clean === 'admin/student/salary/payment/register') return 'student-salary-register';
-  if (clean === 'admin/student/admission/form') return 'student-admission-form';
+  if (clean === 'admin/student/admission/form' || clean === 'student-admission-form' || clean === 'admin/student-admission-form') return 'student-admission-form';
   if (clean === 'admin/student/prottoyon/potro') return 'student-prottoyon';
   if (clean === 'admin/student/certificate') return 'student-certificate';
 
