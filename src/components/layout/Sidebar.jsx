@@ -169,7 +169,7 @@ export const Sidebar = () => {
                 className="fw-bold"
                 style={{
                   fontSize: '1.05rem',
-                  color: '#0f626a',
+                  color: '#0F172A',
                   lineHeight: '1.25',
                   letterSpacing: '-0.2px',
                   fontFamily: "'SolaimanLipi', sans-serif"

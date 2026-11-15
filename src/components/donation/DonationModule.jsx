@@ -82,8 +82,8 @@ export const DonationModule = ({ defaultMode = 'zakat' }) => {
       {/* Header */}
       <div className="bg-white rounded-2xl p-5 border border-[#e2e8f0] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-[#082f32] flex items-center space-x-2">
-            <HeartHandshake className="w-6 h-6 text-[#0f626a]" />
+          <h2 className="text-xl font-bold text-[#0F172A] flex items-center space-x-2">
+            <HeartHandshake className="w-6 h-6 text-[#15803D]" />
             <span>দান, অনুদান ও যাকাত তহবিল ব্যবস্থাপনা</span>
           </h2>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -98,7 +98,7 @@ export const DonationModule = ({ defaultMode = 'zakat' }) => {
               setCategory('যাকাত তহবিল');
             }}
             className={`px-4 py-1.5 text-xs font-bold rounded-lg transition ${
-              mode === 'zakat' ? 'bg-[#0f626a] text-white shadow' : 'text-gray-600'
+              mode === 'zakat' ? 'bg-[#15803D] text-white shadow' : 'text-gray-600'
             }`}
           >
             যাকাত ও ফিতরা
@@ -109,7 +109,7 @@ export const DonationModule = ({ defaultMode = 'zakat' }) => {
               setCategory('সাধারণ দান');
             }}
             className={`px-4 py-1.5 text-xs font-bold rounded-lg transition ${
-              mode === 'general' ? 'bg-[#0f626a] text-white shadow' : 'text-gray-600'
+              mode === 'general' ? 'bg-[#15803D] text-white shadow' : 'text-gray-600'
             }`}
           >
             সাধারণ দান ও আজীবন চাঁদা
@@ -121,8 +121,8 @@ export const DonationModule = ({ defaultMode = 'zakat' }) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Form */}
         <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-[#e2e8f0] shadow-sm">
-          <h3 className="font-bold text-sm text-[#082f32] pb-3 border-b border-gray-100 flex items-center space-x-2">
-            <DollarSign className="w-4 h-4 text-[#0f626a]" />
+          <h3 className="font-bold text-sm text-[#0F172A] pb-3 border-b border-gray-100 flex items-center space-x-2">
+            <DollarSign className="w-4 h-4 text-[#15803D]" />
             <span>নতুন অনুদান গ্রহণ ও মানি রশিদ তৈরি</span>
           </h3>
 
@@ -136,7 +136,7 @@ export const DonationModule = ({ defaultMode = 'zakat' }) => {
                   onChange={(e) => setDonorName(e.target.value)}
                   placeholder="যেমন: আলহাজ্ব রফিকুল ইসলাম"
                   required
-                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
+                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#15803D] focus:outline-none"
                 />
               </div>
 
@@ -147,7 +147,7 @@ export const DonationModule = ({ defaultMode = 'zakat' }) => {
                   value={donorPhone}
                   onChange={(e) => setDonorPhone(e.target.value)}
                   placeholder="018XXXXXXXX"
-                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#0f626a] focus:outline-none font-mono"
+                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#15803D] focus:outline-none font-mono"
                 />
               </div>
 
@@ -158,7 +158,7 @@ export const DonationModule = ({ defaultMode = 'zakat' }) => {
                   value={donorAddress}
                   onChange={(e) => setDonorAddress(e.target.value)}
                   placeholder="চকরিয়া, কক্সবাজার"
-                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
+                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#15803D] focus:outline-none"
                 />
               </div>
 
@@ -167,7 +167,7 @@ export const DonationModule = ({ defaultMode = 'zakat' }) => {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#0f626a] focus:outline-none bg-white font-medium"
+                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#15803D] focus:outline-none bg-white font-medium"
                 >
                   <option value="যাকাত তহবিল">যাকাত তহবিল (Zakat Fund)</option>
                   <option value="ফিতরা">ফিতরা (Fitra)</option>
@@ -188,7 +188,7 @@ export const DonationModule = ({ defaultMode = 'zakat' }) => {
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.00"
                   required
-                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#0f626a] focus:outline-none font-mono font-bold text-sm text-[#0f626a]"
+                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#15803D] focus:outline-none font-mono font-bold text-sm text-[#15803D]"
                 />
               </div>
 
@@ -197,7 +197,7 @@ export const DonationModule = ({ defaultMode = 'zakat' }) => {
                 <select
                   value={account}
                   onChange={(e) => setAccount(e.target.value)}
-                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#0f626a] focus:outline-none bg-white font-medium"
+                  className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#15803D] focus:outline-none bg-white font-medium"
                 >
                   {accounts.map(acc => (
                     <option key={acc.id} value={acc.name}>{acc.name}</option>
@@ -213,14 +213,14 @@ export const DonationModule = ({ defaultMode = 'zakat' }) => {
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 placeholder="যেমন: পিতা-মাতার ইসালে সাওয়াবের নিয়তে"
-                className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#0f626a] focus:outline-none"
+                className="w-full px-3 py-2 border rounded-xl focus:ring-2 focus:ring-[#15803D] focus:outline-none"
               ></textarea>
             </div>
 
             <div className="flex justify-end pt-2">
               <button
                 type="submit"
-                className="px-6 py-2.5 bg-[#0f626a] hover:bg-[#0c5259] text-white font-bold rounded-xl shadow-md transition flex items-center space-x-2"
+                className="px-6 py-2.5 bg-[#15803D] hover:bg-[#166534] text-white font-bold rounded-xl shadow-md transition flex items-center space-x-2"
               >
                 <Printer className="w-4 h-4" />
                 <span>অনুদান জমা নিন ও রশিদ প্রিন্ট করুন</span>
@@ -231,9 +231,9 @@ export const DonationModule = ({ defaultMode = 'zakat' }) => {
 
         {/* Informational Guidelines Card */}
         <div className="space-y-4">
-          <div className="bg-[#f0f9fa] rounded-2xl p-5 border border-[#0f626a]/30">
-            <h4 className="font-bold text-sm text-[#082f32] flex items-center space-x-1.5 pb-2 border-b border-[#0f626a]/20">
-              <Award className="w-4 h-4 text-[#0f626a]" />
+          <div className="bg-[#f0fdf4] rounded-2xl p-5 border border-[#15803D]/30">
+            <h4 className="font-bold text-sm text-[#0F172A] flex items-center space-x-1.5 pb-2 border-b border-[#15803D]/20">
+              <Award className="w-4 h-4 text-[#15803D]" />
               <span>যাকাত ও দান তহবিলের মূলনীতি</span>
             </h4>
             <div className="text-xs text-gray-700 mt-3 space-y-2 leading-relaxed">
@@ -248,13 +248,13 @@ export const DonationModule = ({ defaultMode = 'zakat' }) => {
       {/* Recent Donations Table */}
       <div className="bg-white rounded-2xl border border-[#e2e8f0] shadow-sm overflow-hidden">
         <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-          <h3 className="font-bold text-sm text-[#082f32]">সাম্প্রতিক অনুদান রেজিস্টার</h3>
+          <h3 className="font-bold text-sm text-[#0F172A]">সাম্প্রতিক অনুদান রেজিস্টার</h3>
           <span className="text-xs text-gray-500 font-mono">সর্বমোট {donationTxs.length} টি</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#f0f9fa] text-gray-800 font-semibold border-b">
+            <thead className="bg-[#f0fdf4] text-gray-800 font-semibold border-b">
               <tr>
                 <th className="py-2.5 px-3">রশিদ নং</th>
                 <th className="py-2.5 px-3">তারিখ</th>
@@ -278,7 +278,7 @@ export const DonationModule = ({ defaultMode = 'zakat' }) => {
                     <td className="py-2.5 px-3 font-mono font-bold text-gray-700">{tx.voucherNo}</td>
                     <td className="py-2.5 px-3 font-mono text-gray-500">{tx.date}</td>
                     <td className="py-2.5 px-3 font-bold text-gray-800">{tx.donorOrStudent}</td>
-                    <td className="py-2.5 px-3 text-teal-700 font-semibold">{tx.items[0]?.category}</td>
+                    <td className="py-2.5 px-3 text-emerald-700 font-semibold">{tx.items[0]?.category}</td>
                     <td className="py-2.5 px-3 text-gray-600">{tx.account}</td>
                     <td className="py-2.5 px-3 text-right font-mono font-bold text-emerald-700">
                       ৳ {tx.totalAmount.toFixed(2)}
@@ -286,7 +286,7 @@ export const DonationModule = ({ defaultMode = 'zakat' }) => {
                     <td className="py-2.5 px-3 text-center">
                       <button
                         onClick={() => setSelectedReceiptForPrint(tx)}
-                        className="p-1 text-[#0f626a] hover:bg-[#eaf4f5] rounded"
+                        className="p-1 text-[#15803D] hover:bg-[#dcfce7] rounded"
                       >
                         <Eye className="w-4 h-4" />
                       </button>

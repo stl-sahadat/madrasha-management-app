@@ -243,10 +243,10 @@ export const AuthPage = ({ initialMode = 'login' }) => {
             {/* When in Register Mode: Clean Header with Back to Login */}
             {mode === 'register' && (
               <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
-                <span className="text-xs font-semibold uppercase tracking-wider text-teal-700">অ্যাকাউন্ট রেজিস্ট্রেশন</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-[#15803D]">অ্যাকাউন্ট রেজিস্ট্রেশন</span>
                 <button
                   type="button"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-700 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#15803D] hover:text-[#166534] bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg transition-colors"
                   onClick={() => {
                     setMode('login');
                     setRegisterError('');
@@ -612,8 +612,8 @@ export const AuthPage = ({ initialMode = 'login' }) => {
           <div className="auth-modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <div className="flex items-center space-x-2">
-                <HelpCircle className="w-5 h-5 text-[#0f626a]" />
-                <h3 className="font-bold text-[#082f32] text-base">পাসওয়ার্ড পুনরুদ্ধার</h3>
+                <HelpCircle className="w-5 h-5 text-[#15803D]" />
+                <h3 className="font-bold text-[#0F172A] text-base">পাসওয়ার্ড পুনরুদ্ধার</h3>
               </div>
               <button
                 type="button"
@@ -636,7 +636,7 @@ export const AuthPage = ({ initialMode = 'login' }) => {
               </div>
 
               <div className="text-gray-500 pt-1">
-                মাদ্রাসা অফিস হটলাইন: <span className="font-semibold text-[#0f626a]">{profile?.phone1 || '01820050095'}</span>, <span className="font-semibold text-[#0f626a]">{profile?.phone2 || '01847657580'}</span>
+                মাদ্রাসা অফিস হটলাইন: <span className="font-semibold text-[#15803D]">{profile?.phone1 || '01820050095'}</span>, <span className="font-semibold text-[#15803D]">{profile?.phone2 || '01847657580'}</span>
               </div>
             </div>
 
@@ -647,7 +647,7 @@ export const AuthPage = ({ initialMode = 'login' }) => {
                   fillDemoCredentials();
                   setShowForgotModal(false);
                 }}
-                className="flex-1 py-2 px-3 bg-[#0f626a] text-white rounded-xl font-bold text-xs hover:bg-[#082f32] transition"
+                className="flex-1 py-2 px-3 bg-[#15803D] text-white rounded-xl font-bold text-xs hover:bg-[#166534] transition"
               >
                 ডেমো তথ্য দিয়ে স্বয়ংক্রিয় পূরণ করুন
               </button>

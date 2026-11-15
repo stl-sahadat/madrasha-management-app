@@ -259,7 +259,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
       case '2': // মাসিক আয়-ব্যয় বিবরণী
         return (
           <table className="w-full text-left text-xs border border-gray-200">
-            <thead className="bg-[#f0f9fa] border-b border-gray-200">
+            <thead className="bg-[#f8fafc] border-b border-gray-200">
               <tr>
                 <th className="py-2.5 px-3 border-r">ভাউচার নং</th>
                 <th className="py-2.5 px-3 border-r">তারিখ</th>
@@ -298,7 +298,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
       case '3': // জামাতভিত্তিক বকেয়া রিপোর্ট
         return (
           <table className="w-full text-left text-xs border border-gray-200">
-            <thead className="bg-[#f0f9fa] border-b">
+            <thead className="bg-[#f8fafc] border-b">
               <tr>
                 <th className="py-2.5 px-3 border-r">রোল</th>
                 <th className="py-2.5 px-3 border-r">শিক্ষার্থীর নাম</th>
@@ -333,7 +333,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
       case '4': // খোরাকী ও বোডিং ফি রেজিস্টার
         return (
           <table className="w-full text-left text-xs border border-gray-200">
-            <thead className="bg-[#f0f9fa] border-b">
+            <thead className="bg-[#f8fafc] border-b">
               <tr>
                 <th className="py-2.5 px-3 border-r">রোল</th>
                 <th className="py-2.5 px-3 border-r">শিক্ষার্থীর নাম</th>
@@ -371,7 +371,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
           );
           return (
             <table className="w-full text-left text-xs border border-gray-200">
-              <thead className="bg-[#f0f9fa] border-b">
+              <thead className="bg-[#f8fafc] border-b">
                 <tr>
                   <th className="py-2.5 px-3 border-r">ভাউচার নং</th>
                   <th className="py-2.5 px-3 border-r">তারিখ</th>
@@ -394,7 +394,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
                       <td className="py-2 px-3 border-r font-mono font-bold">{t.voucherNo}</td>
                       <td className="py-2 px-3 border-r font-mono text-gray-500">{t.date}</td>
                       <td className="py-2 px-3 border-r font-bold text-gray-800">{t.donorOrStudent}</td>
-                      <td className="py-2 px-3 border-r text-[#0f626a] font-semibold">{t.items[0]?.category}</td>
+                      <td className="py-2 px-3 border-r text-[#15803D] font-semibold">{t.items[0]?.category}</td>
                       <td className="py-2 px-3 border-r text-gray-600">{t.account}</td>
                       <td className="py-2 px-3 text-right font-mono font-bold text-emerald-700">৳ {t.totalAmount.toFixed(2)}</td>
                     </tr>
@@ -412,7 +412,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
           );
           return (
             <table className="w-full text-left text-xs border border-gray-200">
-              <thead className="bg-[#f0f9fa] border-b">
+              <thead className="bg-[#f8fafc] border-b">
                 <tr>
                   <th className="py-2.5 px-3 border-r">ভাউচার নং</th>
                   <th className="py-2.5 px-3 border-r">তারিখ</th>
@@ -428,7 +428,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
                     <td className="py-2 px-3 border-r font-mono font-bold">{t.voucherNo}</td>
                     <td className="py-2 px-3 border-r font-mono text-gray-500">{t.date}</td>
                     <td className="py-2 px-3 border-r font-bold text-gray-800">{t.donorOrStudent}</td>
-                    <td className="py-2 px-3 border-r text-teal-700 font-semibold">{t.items[0]?.category}</td>
+                    <td className="py-2 px-3 border-r text-emerald-700 font-semibold">{t.items[0]?.category}</td>
                     <td className="py-2 px-3 border-r text-gray-600">{t.account}</td>
                     <td className="py-2 px-3 text-right font-mono font-bold text-emerald-700">৳ {t.totalAmount.toFixed(2)}</td>
                   </tr>
@@ -441,7 +441,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
       case '7': // শিক্ষক-কর্মচারী বেতন রেজিস্টার
         return (
           <table className="w-full text-left text-xs border border-gray-200">
-            <thead className="bg-[#f0f9fa] border-b">
+            <thead className="bg-[#f8fafc] border-b">
               <tr>
                 <th className="py-2.5 px-3 border-r">আইডি</th>
                 <th className="py-2.5 px-3 border-r">শিক্ষকের নাম</th>
@@ -479,7 +479,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
           );
           return (
             <table className="w-full text-left text-xs border border-gray-200">
-              <thead className="bg-[#f0f9fa] border-b">
+              <thead className="bg-[#f8fafc] border-b">
                 <tr>
                   <th className="py-2.5 px-3 border-r">ভাউচার নং</th>
                   <th className="py-2.5 px-3 border-r">তারিখ</th>
@@ -508,7 +508,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
       case '9': // ছাত্র হাজিরা সামারি রিপোর্ট
         return (
           <table className="w-full text-left text-xs border border-gray-200">
-            <thead className="bg-[#f0f9fa] border-b">
+            <thead className="bg-[#f8fafc] border-b">
               <tr>
                 <th className="py-2.5 px-3 border-r">ক্রমিক</th>
                 <th className="py-2.5 px-3 border-r">জামাতের নাম</th>
@@ -527,7 +527,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
                   <tr key={j.id} className="hover:bg-gray-50">
                     <td className="py-2 px-3 border-r font-mono text-center">{idx + 1}</td>
                     <td className="py-2 px-3 border-r font-bold text-gray-800">{j.name}</td>
-                    <td className="py-2 px-3 border-r text-center font-mono font-bold text-[#0f626a]">{count} জন</td>
+                    <td className="py-2 px-3 border-r text-center font-mono font-bold text-[#15803D]">{count} জন</td>
                     <td className="py-2 px-3 border-r text-center font-mono text-emerald-700 font-bold">৯৬.৪%</td>
                     <td className="py-2 px-3 border-r text-center font-mono text-rose-600 font-semibold">৩.৬%</td>
                     <td className="py-2 px-3 border-r text-gray-700">{teacherName}</td>
@@ -546,7 +546,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
       case '10': // পরীক্ষা ফলাফল ও মেধা তালিকা
         return (
           <table className="w-full text-left text-xs border border-gray-200">
-            <thead className="bg-[#f0f9fa] border-b">
+            <thead className="bg-[#f8fafc] border-b">
               <tr>
                 <th className="py-2.5 px-3 border-r text-center">মেধাক্রম</th>
                 <th className="py-2.5 px-3 border-r">রোল</th>
@@ -562,14 +562,14 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
             <tbody className="divide-y divide-gray-200">
               {students.slice(0, 12).map((s, idx) => (
                 <tr key={s.id} className="hover:bg-gray-50">
-                  <td className="py-2 px-3 border-r font-mono font-bold text-center text-[#0f626a]">#{idx + 1}</td>
+                  <td className="py-2 px-3 border-r font-mono font-bold text-center text-[#15803D]">#{idx + 1}</td>
                   <td className="py-2 px-3 border-r font-mono font-bold">{s.roll}</td>
                   <td className="py-2 px-3 border-r font-bold text-gray-800">{s.name}</td>
                   <td className="py-2 px-3 border-r">{s.jamat}</td>
                   <td className="py-2 px-3 border-r text-center font-mono">৯{8 - (idx % 4)}</td>
                   <td className="py-2 px-3 border-r text-center font-mono">৯{5 - (idx % 3)}</td>
                   <td className="py-2 px-3 border-r text-center font-mono">৯{2 - (idx % 3)}</td>
-                  <td className="py-2 px-3 border-r text-center font-mono font-bold text-[#0f626a]">{285 - idx * 3}</td>
+                  <td className="py-2 px-3 border-r text-center font-mono font-bold text-[#15803D]">{285 - idx * 3}</td>
                   <td className="py-2 px-3 text-center">
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
                       মুমতাজ (A+)
@@ -584,7 +584,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
       case '11': // আজীবন সদস্য চাঁদা রিপোর্ট
         return (
           <table className="w-full text-left text-xs border border-gray-200">
-            <thead className="bg-[#f0f9fa] border-b">
+            <thead className="bg-[#f8fafc] border-b">
               <tr>
                 <th className="py-2.5 px-3 border-r">সদস্য আইডি</th>
                 <th className="py-2.5 px-3 border-r">সম্মানিত সদস্যের নাম</th>
@@ -605,7 +605,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
                   <td className="py-2 px-3 border-r text-right font-mono font-bold">৳ ২৪,০০০.০০</td>
                   <td className="py-2 px-3 border-r text-right font-mono text-emerald-700 font-bold">৳ ২০,০০০.০০</td>
                   <td className="py-2 px-3 text-center">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
                       নিয়মিত দাতা
                     </span>
                   </td>
@@ -618,7 +618,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
       case '12': // ডিজিটাল অ্যাকাউন্ট বিবরণী
         return (
           <table className="w-full text-left text-xs border border-gray-200">
-            <thead className="bg-[#f0f9fa] border-b">
+            <thead className="bg-[#f8fafc] border-b">
               <tr>
                 <th className="py-2.5 px-3 border-r">অ্যাকাউন্ট নাম</th>
                 <th className="py-2.5 px-3 border-r">ধরণ</th>
@@ -641,7 +641,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
                     <td className="py-2.5 px-3 border-r text-gray-600">{a.type}</td>
                     <td className="py-2.5 px-3 border-r text-right font-mono text-emerald-700 font-bold">৳ {dep.toFixed(2)}</td>
                     <td className="py-2.5 px-3 border-r text-right font-mono text-rose-700 font-bold">৳ {exp.toFixed(2)}</td>
-                    <td className="py-2.5 px-3 text-right font-mono font-bold text-base text-[#0f626a]">৳ {a.balance.toFixed(2)}</td>
+                    <td className="py-2.5 px-3 text-right font-mono font-bold text-base text-[#15803D]">৳ {a.balance.toFixed(2)}</td>
                   </tr>
                 );
               })}
@@ -652,7 +652,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
       case '13': // খাতভিত্তিক ব্যয় বিশ্লেষণ
         return (
           <table className="w-full text-left text-xs border border-gray-200">
-            <thead className="bg-[#f0f9fa] border-b">
+            <thead className="bg-[#f8fafc] border-b">
               <tr>
                 <th className="py-2.5 px-3 border-r text-center w-12">নং</th>
                 <th className="py-2.5 px-3 border-r">ব্যয় / খরচ খাতের নাম</th>
@@ -686,7 +686,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
       default:
         return (
           <table className="w-full text-left text-xs border border-gray-200">
-            <thead className="bg-[#f0f9fa] border-b border-gray-200">
+            <thead className="bg-[#f8fafc] border-b border-gray-200">
               <tr>
                 <th className="py-2.5 px-3 border-r">ভাউচার নং</th>
                 <th className="py-2.5 px-3 border-r">তারিখ</th>
@@ -729,8 +729,8 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
       {/* Header */}
       <div className="bg-white rounded-2xl p-5 border border-[#e2e8f0] shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4 no-print">
         <div>
-          <h2 className="text-xl font-bold text-[#082f32] flex items-center space-x-2">
-            <BarChart3 className="w-6 h-6 text-[#0f626a]" />
+          <h2 className="text-xl font-bold text-[#0F172A] flex items-center space-x-2">
+            <BarChart3 className="w-6 h-6 text-[#15803D]" />
             <span>সমন্বিত আর্থিক ও প্রশাসনিক রিপোর্ট (১৪টি শাখা)</span>
           </h2>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -748,7 +748,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
           </button>
           <button
             onClick={handlePrint}
-            className="px-4 py-2 bg-[#0f626a] hover:bg-[#0c5259] text-white text-xs font-bold rounded-xl shadow transition flex items-center space-x-1.5"
+            className="px-4 py-2 bg-[#15803D] hover:bg-[#166534] text-white text-xs font-bold rounded-xl shadow transition flex items-center space-x-1.5"
           >
             <Printer className="w-4 h-4" />
             <span>প্রিন্ট রিপোর্ট</span>
@@ -768,13 +768,13 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
               onClick={() => setActiveReportId(rep.id)}
               className={`w-full text-left p-2.5 rounded-xl text-xs transition duration-150 block ${
                 activeReportId === rep.id
-                  ? 'bg-[#0f626a] text-white font-bold shadow-xs'
-                  : 'text-gray-700 hover:bg-[#eaf4f5] hover:text-[#0f626a]'
+                  ? 'bg-[#15803D] text-white font-bold shadow-xs'
+                  : 'text-gray-700 hover:bg-[#dcfce7] hover:text-[#15803D]'
               }`}
             >
               <div className="leading-snug">{rep.title}</div>
               <div className={`text-[10px] truncate mt-0.5 ${
-                activeReportId === rep.id ? 'text-teal-200' : 'text-gray-400'
+                activeReportId === rep.id ? 'text-emerald-200' : 'text-gray-400'
               }`}>
                 {rep.desc}
               </div>
@@ -785,15 +785,15 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
         {/* Right: Detailed Active Report View */}
         <div className="lg:col-span-3 bg-white rounded-2xl p-6 border border-[#e2e8f0] shadow-sm print:p-0 print:border-none">
           {/* Official Report Header */}
-          <div className="text-center pb-4 border-b-2 border-[#0f626a]">
-            <h2 className="text-xl font-extrabold text-[#082f32] font-bangla">
+          <div className="text-center pb-4 border-b-2 border-[#15803D]">
+            <h2 className="text-xl font-extrabold text-[#0F172A] font-bangla">
               {profile.name}
             </h2>
             <p className="text-xs text-gray-600">{profile.address}</p>
             <p className="text-[11px] text-gray-500 font-mono">
               ফোন: {profile.phone1} | ইমেইল: {profile.email} | প্রতিষ্ঠা: {profile.established}
             </p>
-            <div className="inline-block mt-3 px-4 py-1 bg-[#eaf4f5] text-[#0f626a] text-xs font-extrabold rounded-full border border-[#0f626a]/30">
+            <div className="inline-block mt-3 px-4 py-1 bg-[#dcfce7] text-[#15803D] text-xs font-extrabold rounded-full border border-[#15803D]/30">
               {currentReport.title}
             </div>
             <p className="text-[11px] text-gray-400 mt-1 font-mono">
@@ -811,9 +811,9 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
               <span className="text-[11px] text-rose-800 font-semibold block">মোট ব্যয় / খরচ</span>
               <span className="text-base font-bold text-rose-700 font-mono">৳ {totalExpenses.toFixed(2)}</span>
             </div>
-            <div className="p-2.5 bg-[#f0f9fa] rounded-xl border border-[#0f626a]/30">
-              <span className="text-[11px] text-[#082f32] font-semibold block">নিট সংরক্ষিত স্থিতি</span>
-              <span className="text-base font-bold text-[#0f626a] font-mono">৳ {netSurplus.toFixed(2)}</span>
+            <div className="p-2.5 bg-[#f8fafc] rounded-xl border border-[#15803D]/30">
+              <span className="text-[11px] text-[#0F172A] font-semibold block">নিট সংরক্ষিত স্থিতি</span>
+              <span className="text-base font-bold text-[#15803D] font-mono">৳ {netSurplus.toFixed(2)}</span>
             </div>
           </div>
 
@@ -835,7 +835,7 @@ export const ReportsModule = ({ initialReportId = '1' }) => {
               </span>
             </div>
             <div className="text-center">
-              <span className="border-t border-gray-500 pt-1 block font-bold text-[#0f626a]">
+              <span className="border-t border-gray-500 pt-1 block font-bold text-[#15803D]">
                 মুহতামিম / প্রধান পরীক্ষক
               </span>
             </div>

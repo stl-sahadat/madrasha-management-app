@@ -39,7 +39,7 @@ export const Header = () => {
                 className="fw-bold"
                 style={{
                   fontSize: '1.12rem',
-                  color: '#0f626a',
+                  color: '#0F172A',
                   lineHeight: '1.25',
                   letterSpacing: '-0.2px',
                   fontFamily: "'SolaimanLipi', sans-serif"
@@ -80,20 +80,20 @@ export const Header = () => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       borderRadius: '10px',
-                      backgroundColor: '#0f626a'
+                      backgroundColor: '#15803D'
                     }}
                     title="ইউজার প্রোফাইল ও সেটিংস"
                   >
                     <img
                       className="img-fluid b-r-10"
                       style={{ borderRadius: '10px', width: '100%', height: '100%', objectFit: 'cover' }}
-                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0f626a&color=fff&bold=true`}
+                      src={`https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=15803d&color=fff&bold=true`}
                       onError={(e) => { e.target.onerror = null; e.target.src = '/assets/images/avatar.svg'; }}
                       alt="User Avatar"
                     />
                     <span
                       className="position-absolute top-0 end-0 p-1 bg-success border border-light rounded-circle"
-                      style={{ width: '10px', height: '10px', backgroundColor: '#28a745' }}
+                      style={{ width: '10px', height: '10px', backgroundColor: '#22C55E' }}
                     ></span>
                   </span>
 

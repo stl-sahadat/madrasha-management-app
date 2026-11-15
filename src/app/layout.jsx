@@ -64,8 +64,8 @@ export default function RootLayout({ children }) {
           }
           body {
             font-family: 'SolaimanLipi', 'Noto Sans Bengali', sans-serif;
-            background-color: var(--bodybg-color, #f6f7fa);
-            color: var(--font-color, #082f32);
+            background-color: var(--bodybg-color, #f1f5f9);
+            color: var(--font-color, #0F172A);
           }
         `}</style>
       </head>

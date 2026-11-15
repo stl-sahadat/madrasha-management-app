@@ -15,11 +15,11 @@ export default function ClientApp({ initialSlug, initialSearchParams }) {
     return (
       <div
         className="d-flex justify-content-center align-items-center min-vh-100"
-        style={{ background: '#f6f7fa' }}
+        style={{ background: '#f1f5f9' }}
       >
         <div
           className="spinner-border"
-          style={{ color: '#0f626a', width: '3rem', height: '3rem' }}
+          style={{ color: '#15803D', width: '3rem', height: '3rem' }}
           role="status"
         >
           <span className="visually-hidden">লোড হচ্ছে...</span>

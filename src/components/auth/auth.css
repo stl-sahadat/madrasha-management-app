@@ -6,7 +6,7 @@
     min-height: 100vh;
     width: 100%;
     display: flex;
-    background: linear-gradient(135deg, #0c153d 0%, #403892 50%, #2c757c 100%);
+    background: linear-gradient(135deg, #020617 0%, #0F172A 50%, #15803D 100%);
     font-family: 'SolaimanLipi', 'Rubik', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     position: relative;
     overflow-x: hidden;
@@ -181,7 +181,7 @@
 
 .auth-logo-text h1 {
     font-size: 20px;
-    color: #0f626a;
+    color: #0F172A;
     margin: 0;
     font-weight: 700;
     line-height: 1.3;
@@ -306,9 +306,9 @@
 }
 
 .auth-tab-pill.active {
-    background: #0f626a;
+    background: #15803D;
     color: white;
-    box-shadow: 0 4px 12px rgba(15, 98, 106, 0.3);
+    box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
 }
 
 .auth-card-header {
@@ -318,7 +318,7 @@
 
 .auth-card-header h2 {
     font-size: 26px;
-    color: #0f626a;
+    color: #0F172A;
     margin-bottom: 6px;
     font-weight: 700;
 }
@@ -372,9 +372,9 @@
 
 .auth-form-input:focus {
     outline: none;
-    border-color: #0f626a;
+    border-color: #15803D;
     background: white;
-    box-shadow: 0 0 0 4px rgba(15, 98, 106, 0.12);
+    box-shadow: 0 0 0 4px rgba(21, 128, 61, 0.12);
 }
 
 .auth-form-input.is-invalid {
@@ -402,8 +402,8 @@
 }
 
 .auth-password-toggle:hover {
-    color: #0f626a;
-    background: rgba(15, 98, 106, 0.05);
+    color: #15803D;
+    background: rgba(21, 128, 61, 0.05);
 }
 
 /* Feedback & Errors */
@@ -436,7 +436,7 @@
     height: 16px;
     margin-right: 8px;
     cursor: pointer;
-    accent-color: #0f626a;
+    accent-color: #15803D;
 }
 
 .auth-remember-me label {
@@ -448,7 +448,7 @@
 }
 
 .auth-forgot-password {
-    color: #0f626a;
+    color: #15803D;
     text-decoration: none;
     font-size: 13px;
     font-weight: 600;
@@ -460,7 +460,7 @@
 }
 
 .auth-forgot-password:hover {
-    color: #082f32;
+    color: #166534;
     text-decoration: underline;
 }
 
@@ -468,7 +468,7 @@
 .auth-btn-submit {
     width: 100%;
     padding: 14px 20px;
-    background: linear-gradient(135deg, #0f626a 0%, #2c757c 100%);
+    background: linear-gradient(135deg, #15803D 0%, #166534 100%);
     color: white;
     border: none;
     border-radius: 12px;
@@ -476,7 +476,7 @@
     font-weight: 700;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 8px 20px rgba(15, 98, 106, 0.3);
+    box-shadow: 0 8px 20px rgba(21, 128, 61, 0.3);
     position: relative;
     overflow: hidden;
     display: flex;
@@ -503,8 +503,8 @@
 
 .auth-btn-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(15, 98, 106, 0.4);
-    background: linear-gradient(135deg, #13747d 0%, #0f626a 100%);
+    box-shadow: 0 12px 28px rgba(21, 128, 61, 0.4);
+    background: linear-gradient(135deg, #16a34a 0%, #15803D 100%);
 }
 
 .auth-btn-submit:active {
@@ -530,7 +530,7 @@
 
 .auth-demo-box:hover {
     background: #f1f5f9;
-    border-color: #0f626a;
+    border-color: #15803D;
 }
 
 .auth-demo-item {
@@ -595,7 +595,7 @@
 }
 
 .auth-switch-prompt button {
-    color: #0f626a;
+    color: #15803D;
     font-weight: 700;
     background: none;
     border: none;
@@ -607,7 +607,7 @@
 }
 
 .auth-switch-prompt button:hover {
-    color: #082f32;
+    color: #166534;
 }
 
 /* Modal styles for forgot password */
@@ -617,7 +617,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(8, 47, 50, 0.7);
+    background: rgba(15, 23, 42, 0.75);
     backdrop-filter: blur(4px);
     display: flex;
     align-items: center;

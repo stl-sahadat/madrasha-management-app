@@ -132,7 +132,7 @@ export const StudentCertificate = () => {
           font-size: 24px;
           font-weight: 700;
           margin: 15px 0;
-          color: #0f626a;
+          color: #15803D;
         }
 
         /* Tables */
