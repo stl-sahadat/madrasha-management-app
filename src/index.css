@@ -431,13 +431,22 @@ header.header-main .header-right {
   overflow: hidden !important;
 }
 
-.app-wrapper nav .app-nav .main-nav ul.collapse.show,
-.app-wrapper nav .app-nav .main-nav .sidebar-submenu.show {
+.app-wrapper nav:not(.semi-nav) .app-nav .main-nav ul.collapse.show,
+.app-wrapper nav:not(.semi-nav) .app-nav .main-nav .sidebar-submenu.show {
   display: block !important;
   visibility: visible !important;
   height: auto !important;
   opacity: 1 !important;
   overflow: visible !important;
+}
+
+.app-wrapper nav.semi-nav .app-nav .main-nav ul.collapse,
+.app-wrapper nav.semi-nav .app-nav .main-nav .sidebar-submenu {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
 }
 
 /* 5. Clean, dark-teal (#0f626a) sidebar category styling matching hostzonebd */

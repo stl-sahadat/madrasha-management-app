@@ -84,6 +84,12 @@ export const Sidebar = () => {
       e.preventDefault();
       e.stopPropagation();
     }
+
+    // If sidebar is currently collapsed / semi-nav, automatically expand it so full menu & submenus are beautifully visible!
+    if (!sidebarOpen) {
+      setSidebarOpen(true);
+    }
+
     setOpenSection(prev => {
       const isOpening = prev !== sectionId;
       if (isOpening && defaultTabMap[sectionId]) {
@@ -96,6 +102,9 @@ export const Sidebar = () => {
   const handleNavClick = (tab, e) => {
     if (e) e.preventDefault();
     setActiveTab(tab);
+    if (!sidebarOpen) {
+      setSidebarOpen(true);
+    }
     if (window.innerWidth < 1200) {
       setSidebarOpen(false);
     }
