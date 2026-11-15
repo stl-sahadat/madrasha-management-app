@@ -184,66 +184,6 @@ export const SettingsModule = ({ initialTab = 'institute' }) => {
 
   return (
     <div className="container-fluid p-0">
-      {/* Top Settings Navigation Pills (no-print) */}
-      <div className="d-flex flex-wrap gap-1 bg-white p-2 rounded shadow-sm border mb-4 no-print">
-        <button
-          type="button"
-          onClick={() => setActiveTab('institute')}
-          className={`btn btn-sm ${activeTab === 'institute' || activeTab === 'profile' ? 'btn-primary' : 'btn-outline-primary'}`}
-        >
-          <i className="fa-solid fa-university me-1"></i> প্রতিষ্ঠানের তথ্য
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('jamat')}
-          className={`btn btn-sm ${activeTab === 'jamat' ? 'btn-primary' : 'btn-outline-primary'}`}
-        >
-          <i className="fa-solid fa-layer-group me-1"></i> জামাত তৈরি
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('payment')}
-          className={`btn btn-sm ${activeTab === 'payment' ? 'btn-primary' : 'btn-outline-primary'}`}
-        >
-          <i className="fa-solid fa-credit-card me-1"></i> পেমেন্ট মাধ্যম
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('deposit-cat')}
-          className={`btn btn-sm ${activeTab === 'deposit-cat' ? 'btn-primary' : 'btn-outline-primary'}`}
-        >
-          <i className="fa-solid fa-arrow-down-left me-1"></i> জমার খাত
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('expense-cat')}
-          className={`btn btn-sm ${activeTab === 'expense-cat' ? 'btn-primary' : 'btn-outline-primary'}`}
-        >
-          <i className="fa-solid fa-arrow-up-right me-1"></i> খরচের খাত
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('receiver')}
-          className={`btn btn-sm ${activeTab === 'receiver' ? 'btn-primary' : 'btn-outline-primary'}`}
-        >
-          <i className="fa-solid fa-user-check me-1"></i> গ্রহণকারী
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('role')}
-          className={`btn btn-sm ${activeTab === 'role' ? 'btn-primary' : 'btn-outline-primary'}`}
-        >
-          <i className="fa-solid fa-shield-halved me-1"></i> রোল (Role)
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('user')}
-          className={`btn btn-sm ${activeTab === 'user' ? 'btn-primary' : 'btn-outline-primary'}`}
-        >
-          <i className="fa-solid fa-users me-1"></i> ইউজার
-        </button>
-      </div>
-
       {/* 1. INSTITUTE PROFILE */}
       {(activeTab === 'institute' || activeTab === 'profile') && (
         <div className="card shadow-sm border-0">

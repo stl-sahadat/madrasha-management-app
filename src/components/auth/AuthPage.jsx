@@ -145,8 +145,8 @@ export const AuthPage = ({ initialMode = 'login' }) => {
     }
   };
 
-  // Quick fill demo credentials
-  const fillDemoCredentials = () => {
+  // Quick fill demo credentials and instant auto-login
+  const fillDemoCredentials = async () => {
     setLoginForm({
       emailOrUsername: 'admin@gmail.com',
       password: 'admin1234',
@@ -154,7 +154,17 @@ export const AuthPage = ({ initialMode = 'login' }) => {
     });
     setLoginError('');
     setRegSuccessBanner('');
-    showToast('ডেমো তথ্য ইনপুট ফিল্ডে পূরণ করা হয়েছে!', 'success');
+    setLoginLoading(true);
+    try {
+      const result = await login('admin@gmail.com', 'admin1234', true);
+      if (!result.success) {
+        showToast('ডেমো তথ্য ইনপুট ফিল্ডে পূরণ করা হয়েছে!', 'success');
+      }
+    } catch {
+      showToast('ডেমো তথ্য ইনপুট ফিল্ডে পূরণ করা হয়েছে!', 'success');
+    } finally {
+      setLoginLoading(false);
+    }
   };
 
   return (

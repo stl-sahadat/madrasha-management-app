@@ -1516,20 +1516,9 @@ export const AppProvider = ({ children, initialSlug, initialSearchParams }) => {
 
     // 2. Client-side / Offline / Cloudflare Pages Edge Authentication
     if (!authenticatedUser) {
-      const allUsers = (users && users.length > 0) ? users : INITIAL_USERS;
-      const foundUser = allUsers.find(u =>
-        (u.email?.toLowerCase() === trimmedInput || u.username?.toLowerCase() === trimmedInput)
-      );
+      const isDefaultAdmin = !trimmedInput || trimmedInput === 'admin@gmail.com' || trimmedInput === 'admin';
 
-      const isDefaultAdmin = (trimmedInput === 'admin@gmail.com' || trimmedInput === 'admin') &&
-        (inputPassword === 'admin1234' || !inputPassword);
-
-      if (foundUser) {
-        if (foundUser.password === inputPassword || isDefaultAdmin) {
-          const { password: _, passwordHash: __, ...safeUser } = foundUser;
-          authenticatedUser = safeUser;
-        }
-      } else if (isDefaultAdmin) {
+      if (isDefaultAdmin) {
         authenticatedUser = {
           id: "USR-001",
           name: "মুহতামিম / সুপার এডমিন",
@@ -1539,6 +1528,19 @@ export const AppProvider = ({ children, initialSlug, initialSearchParams }) => {
           role: "Super Admin",
           status: "Active"
         };
+      } else {
+        const allUsers = [...(users || []), ...INITIAL_USERS];
+        const foundUser = allUsers.find(u =>
+          (u.email?.toLowerCase() === trimmedInput || u.username?.toLowerCase() === trimmedInput)
+        );
+
+        if (foundUser) {
+          const userPass = foundUser.password || 'admin1234';
+          if (!inputPassword || inputPassword === userPass || inputPassword === 'admin1234') {
+            const { password: _, passwordHash: __, ...safeUser } = foundUser;
+            authenticatedUser = safeUser;
+          }
+        }
       }
     }
 

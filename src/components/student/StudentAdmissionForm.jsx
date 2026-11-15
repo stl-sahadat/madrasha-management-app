@@ -11,7 +11,8 @@ export const StudentAdmissionForm = () => {
     return students.filter(s => s.jamat === selectedJamat);
   }, [students, selectedJamat]);
 
-  const currentStudent = students.find(s => s.id === selectedStudentId) || filteredStudents[0] || students[0];
+  const isBlank = selectedStudentId === 'blank';
+  const currentStudent = isBlank ? null : (students.find(s => s.id === selectedStudentId) || filteredStudents[0] || students[0]);
 
   const madrashaNameBn = profile?.name || 'ইকরা ইসলামিয়া মাদ্রাসা';
   const madrashaNameAr = 'مَدْرَسَةُ إِقْرَاء الإِسْلَامِيَّة';
@@ -21,30 +22,30 @@ export const StudentAdmissionForm = () => {
   const madrashaEmail = profile?.email || 'hafezazamnur@gmail.com';
   const madrashaEstablished = profile?.established || '১৯৯০';
 
-  const admissionNo = currentStudent?.roll || currentStudent?.admissionNumber || currentStudent?.id || '১০১';
-  const sessionYear = currentStudent?.session || '২০২৬';
-  const admissionDate = currentStudent?.admissionDate || '১৫/০১/২০২৬';
-  const nameBn = currentStudent?.name || 'মুহাম্মদ আবু বকর';
-  const nameEn = currentStudent?.nameEn || 'MUHAMMAD ABU BAKR';
-  const jamatName = currentStudent?.jamat || 'হিফজ বিভাগ';
-  const bloodGroup = currentStudent?.bloodGroup || 'A+';
-  const dob = currentStudent?.dob || '০৮/০২/২০১৩';
-  const birthReg = currentStudent?.birthReg || '২০১৩১৫৯২৩১০০১০০১';
+  const admissionNo = isBlank ? '' : (currentStudent?.roll || currentStudent?.admissionNumber || currentStudent?.id || '১০১');
+  const sessionYear = isBlank ? '২০২৬' : (currentStudent?.session || '২০২৬');
+  const admissionDate = isBlank ? '' : (currentStudent?.admissionDate || '১৫/০১/২০২৬');
+  const nameBn = isBlank ? '' : (currentStudent?.name || 'মুহাম্মদ আবু বকর');
+  const nameEn = isBlank ? '' : (currentStudent?.nameEn || 'MUHAMMAD ABU BAKR');
+  const jamatName = isBlank ? (selectedJamat !== 'all' ? selectedJamat : '') : (currentStudent?.jamat || 'হিফজ বিভাগ');
+  const bloodGroup = isBlank ? '' : (currentStudent?.bloodGroup || 'A+');
+  const dob = isBlank ? '' : (currentStudent?.dob || '০৮/০২/২০১৩');
+  const birthReg = isBlank ? '' : (currentStudent?.birthReg || '২০১৩১৫৯২৩১০০১০০১');
 
-  const fatherName = currentStudent?.fatherName || 'মাওলানা নুরুল হক';
-  const fatherOcc = currentStudent?.fatherOcc || 'ইমাম / ব্যবসা';
-  const motherName = currentStudent?.motherName || 'ফাতেমা জান্নাত';
-  const motherOcc = currentStudent?.motherOcc || 'গৃহিনী';
-  const guardianPhone = currentStudent?.guardianPhone || '০১৮১০০০৩৮৭১';
-  const guardianPhone2 = currentStudent?.parentsPhone2 || '০১৮৪৭৬৫৭৫৮০';
-  const nid = currentStudent?.nid || '১৯৮৫১৫৯২৩১০০২০০১';
-  const address = currentStudent?.address || 'গ্রাম: বরুড়া, ডাকঘর: বরুড়া, উপজেলা: বরুড়া, জেলা: কুমিল্লা';
+  const fatherName = isBlank ? '' : (currentStudent?.fatherName || 'মাওলানা নুরুল হক');
+  const fatherOcc = isBlank ? '' : (currentStudent?.fatherOcc || 'ইমাম / ব্যবসা');
+  const motherName = isBlank ? '' : (currentStudent?.motherName || 'ফাতেমা জান্নাত');
+  const motherOcc = isBlank ? '' : (currentStudent?.motherOcc || 'গৃহিনী');
+  const guardianPhone = isBlank ? '' : (currentStudent?.guardianPhone || '০১৮১০০০৩৮৭১');
+  const guardianPhone2 = isBlank ? '' : (currentStudent?.parentsPhone2 || '০১৮৪৭৬৫৭৫৮০');
+  const nid = isBlank ? '' : (currentStudent?.nid || '১৯৮৫১৫৯২৩১০০২০০১');
+  const address = isBlank ? '' : (currentStudent?.address || 'গ্রাম: বরুড়া, ডাকঘর: বরুড়া, উপজেলা: বরুড়া, জেলা: কুমিল্লা');
 
-  const courseFee = currentStudent?.monthlyFee || currentStudent?.coursefee || 800;
-  const foodBill = currentStudent?.khurakiFee || currentStudent?.food_bill || 2200;
-  const admissionFee = currentStudent?.admissionFee || 1500;
-  const totalMonthlyFee = Number(courseFee) + Number(foodBill);
-  const isAbasik = (currentStudent?.khurakiFee || currentStudent?.food_bill || 0) > 0 || currentStudent?.residential === 'আবাসিক';
+  const courseFee = isBlank ? '' : (currentStudent?.monthlyFee || currentStudent?.coursefee || 800);
+  const foodBill = isBlank ? '' : (currentStudent?.khurakiFee || currentStudent?.food_bill || 2200);
+  const admissionFee = isBlank ? '' : (currentStudent?.admissionFee || 1500);
+  const totalMonthlyFee = isBlank ? '' : (Number(courseFee) + Number(foodBill));
+  const isAbasik = isBlank ? false : ((currentStudent?.khurakiFee || currentStudent?.food_bill || 0) > 0 || currentStudent?.residential === 'আবাসিক');
 
   return (
     <div className="container-fluid p-0">
@@ -546,6 +547,7 @@ export const StudentAdmissionForm = () => {
                 value={selectedStudentId}
                 onChange={(e) => setSelectedStudentId(e.target.value)}
               >
+                <option value="blank">📄 খালি ভর্তি ফরম (নতুন আবেদনকারীর জন্য ফাঁকা প্রিন্ট কপি)</option>
                 {filteredStudents.map((s) => (
                   <option key={s.id} value={s.id}>
                     রোল: {s.roll} | {s.name} ({s.jamat})

@@ -88,6 +88,11 @@ export const Sidebar = () => {
     // If sidebar is currently collapsed / semi-nav, automatically expand it so full menu & submenus are beautifully visible!
     if (!sidebarOpen) {
       setSidebarOpen(true);
+      setOpenSection(sectionId);
+      if (defaultTabMap[sectionId]) {
+        setActiveTab(defaultTabMap[sectionId]);
+      }
+      return;
     }
 
     setOpenSection(prev => {
@@ -220,10 +225,10 @@ export const Sidebar = () => {
           </li>
 
           {/* ছাত্র/ছাত্রী */}
-          <li className={openSection === 'students' ? 'active' : ''}>
+          <li className={sidebarOpen && openSection === 'students' ? 'active' : ''}>
             <a
-              aria-expanded={openSection === 'students'}
-              data-bs-toggle="collapse"
+              aria-expanded={sidebarOpen && openSection === 'students'}
+              
               href="#students"
               className="d-flex align-items-center fw-bold text-decoration-none"
               onClick={(e) => toggleSection('students', e)}
@@ -231,7 +236,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-users me-2"></i>
               ছাত্র/ছাত্রী
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'students' ? 'show' : ''}`} id="students">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'students' ? 'show' : ''}`} id="students">
               <li className={activeTab === 'student-create' ? 'active' : ''}>
                 <a href="#student-create" onClick={(e) => handleNavClick('student-create', e)}>ছাত্র/ছাত্রী তৈরি</a>
               </li>
@@ -287,10 +292,10 @@ export const Sidebar = () => {
           </li>
 
           {/* শিক্ষক */}
-          <li className={openSection === 'teachers' ? 'active' : ''}>
+          <li className={sidebarOpen && openSection === 'teachers' ? 'active' : ''}>
             <a
-              aria-expanded={openSection === 'teachers'}
-              data-bs-toggle="collapse"
+              aria-expanded={sidebarOpen && openSection === 'teachers'}
+              
               href="#teachers"
               className="d-flex align-items-center fw-bold text-decoration-none"
               onClick={(e) => toggleSection('teachers', e)}
@@ -298,7 +303,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-chalkboard-user me-2"></i>
               শিক্ষক
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'teachers' ? 'show' : ''}`} id="teachers">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'teachers' ? 'show' : ''}`} id="teachers">
               <li className={activeTab === 'teacher-create' ? 'active' : ''}>
                 <a href="#teacher-create" onClick={(e) => handleNavClick('teacher-create', e)}>শিক্ষক তৈরি</a>
               </li>
@@ -321,10 +326,10 @@ export const Sidebar = () => {
           </li>
 
           {/* মাসিক চাঁদাদাতা */}
-          <li className={openSection === 'monthly-donors' ? 'active' : ''}>
+          <li className={sidebarOpen && openSection === 'monthly-donors' ? 'active' : ''}>
             <a
-              aria-expanded={openSection === 'monthly-donors'}
-              data-bs-toggle="collapse"
+              aria-expanded={sidebarOpen && openSection === 'monthly-donors'}
+              
               href="#monthly-donors"
               className="d-flex align-items-center fw-bold text-decoration-none"
               onClick={(e) => toggleSection('monthly-donors', e)}
@@ -332,7 +337,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-calendar-check me-2"></i>
               মাসিক চাঁদাদাতা
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'monthly-donors' ? 'show' : ''}`} id="monthly-donors">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'monthly-donors' ? 'show' : ''}`} id="monthly-donors">
               <li className={activeTab === 'contributor-list' ? 'active' : ''}>
                 <a href="#contributor-list" onClick={(e) => handleNavClick('contributor-list', e)}>মাসিক চাঁদাদাতার তালিকা</a>
               </li>
@@ -352,10 +357,10 @@ export const Sidebar = () => {
           </li>
 
           {/* দানকারী */}
-          <li className={openSection === 'donors' ? 'active' : ''}>
+          <li className={sidebarOpen && openSection === 'donors' ? 'active' : ''}>
             <a
-              aria-expanded={openSection === 'donors'}
-              data-bs-toggle="collapse"
+              aria-expanded={sidebarOpen && openSection === 'donors'}
+              
               href="#donors"
               className="d-flex align-items-center fw-bold text-decoration-none"
               onClick={(e) => toggleSection('donors', e)}
@@ -363,7 +368,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-hand-holding-heart me-2"></i>
               দানকারী
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'donors' ? 'show' : ''}`} id="donors">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'donors' ? 'show' : ''}`} id="donors">
               <li className={activeTab === 'donor-create' ? 'active' : ''}>
                 <a href="#donor-create" onClick={(e) => handleNavClick('donor-create', e)}>নতুন দানকারী তৈরি</a>
               </li>
@@ -386,10 +391,10 @@ export const Sidebar = () => {
           </li>
 
           {/* যাকাত দাতা */}
-          <li className={openSection === 'zakat-donors' ? 'active' : ''}>
+          <li className={sidebarOpen && openSection === 'zakat-donors' ? 'active' : ''}>
             <a
-              aria-expanded={openSection === 'zakat-donors'}
-              data-bs-toggle="collapse"
+              aria-expanded={sidebarOpen && openSection === 'zakat-donors'}
+              
               href="#zakat-donors"
               className="d-flex align-items-center fw-bold text-decoration-none"
               onClick={(e) => toggleSection('zakat-donors', e)}
@@ -397,7 +402,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-gem me-2"></i>
               যাকাত দাতা
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'zakat-donors' ? 'show' : ''}`} id="zakat-donors">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'zakat-donors' ? 'show' : ''}`} id="zakat-donors">
               <li className={activeTab === 'zakat-donor-create' ? 'active' : ''}>
                 <a href="#zakat-donor-create" onClick={(e) => handleNavClick('zakat-donor-create', e)}>নতুন যাকাত দাতা তৈরি</a>
               </li>
@@ -420,10 +425,10 @@ export const Sidebar = () => {
           </li>
 
           {/* বাজার */}
-          <li className={openSection === 'market' ? 'active' : ''}>
+          <li className={sidebarOpen && openSection === 'market' ? 'active' : ''}>
             <a
-              aria-expanded={openSection === 'market'}
-              data-bs-toggle="collapse"
+              aria-expanded={sidebarOpen && openSection === 'market'}
+              
               href="#market"
               className="d-flex align-items-center fw-bold text-decoration-none"
               onClick={(e) => toggleSection('market', e)}
@@ -431,7 +436,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-shopping-cart me-2"></i>
               বাজার
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'market' ? 'show' : ''}`} id="market">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'market' ? 'show' : ''}`} id="market">
               <li className={activeTab === 'bazar-weekly-create' ? 'active' : ''}>
                 <a href="#bazar-weekly-create" onClick={(e) => handleNavClick('bazar-weekly-create', e)}>সাপ্তাহিক বাজার এন্ট্রি</a>
               </li>
@@ -465,10 +470,10 @@ export const Sidebar = () => {
           </li>
 
           {/* হাজিরা */}
-          <li className={openSection === 'attendance' ? 'active' : ''}>
+          <li className={sidebarOpen && openSection === 'attendance' ? 'active' : ''}>
             <a
-              aria-expanded={openSection === 'attendance'}
-              data-bs-toggle="collapse"
+              aria-expanded={sidebarOpen && openSection === 'attendance'}
+              
               href="#attendance"
               className="d-flex align-items-center fw-bold text-decoration-none"
               onClick={(e) => toggleSection('attendance', e)}
@@ -476,7 +481,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-user-check me-2"></i>
               হাজিরা
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'attendance' ? 'show' : ''}`} id="attendance">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'attendance' ? 'show' : ''}`} id="attendance">
               <li className={activeTab === 'attendance-student' ? 'active' : ''}>
                 <a href="#attendance-student" onClick={(e) => handleNavClick('attendance-student', e)}>ছাত্র-ছাত্রী হাজিরা</a>
               </li>
@@ -493,10 +498,10 @@ export const Sidebar = () => {
           </li>
 
           {/* রেজাল্ট */}
-          <li className={openSection === 'results' ? 'active' : ''}>
+          <li className={sidebarOpen && openSection === 'results' ? 'active' : ''}>
             <a
-              aria-expanded={openSection === 'results'}
-              data-bs-toggle="collapse"
+              aria-expanded={sidebarOpen && openSection === 'results'}
+              
               href="#results"
               className="d-flex align-items-center fw-bold text-decoration-none"
               onClick={(e) => toggleSection('results', e)}
@@ -504,7 +509,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-chart-line me-2"></i>
               রেজাল্ট
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'results' ? 'show' : ''}`} id="results">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'results' ? 'show' : ''}`} id="results">
               <li className={activeTab === 'result-create' ? 'active' : ''}>
                 <a href="#result-create" onClick={(e) => handleNavClick('result-create', e)}>মার্কস এনট্রি/আপডেট</a>
               </li>
@@ -518,10 +523,10 @@ export const Sidebar = () => {
           </li>
 
           {/* জমা/খরচ হিসাব সমূহ */}
-          <li className={openSection === 'income-expense' ? 'active' : ''}>
+          <li className={sidebarOpen && openSection === 'income-expense' ? 'active' : ''}>
             <a
-              aria-expanded={openSection === 'income-expense'}
-              data-bs-toggle="collapse"
+              aria-expanded={sidebarOpen && openSection === 'income-expense'}
+              
               href="#income-expense"
               className="d-flex align-items-center fw-bold text-decoration-none"
               onClick={(e) => toggleSection('income-expense', e)}
@@ -529,7 +534,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-wallet me-2"></i>
               জমা/খরচ হিসাব সমূহ
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'income-expense' ? 'show' : ''}`} id="income-expense">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'income-expense' ? 'show' : ''}`} id="income-expense">
               <li className={activeTab === 'voucher-deposit' ? 'active' : ''}>
                 <a href="#voucher-deposit" onClick={(e) => handleNavClick('voucher-deposit', e)}>নতুন অর্থ জমা করুন</a>
               </li>
@@ -546,10 +551,10 @@ export const Sidebar = () => {
           </li>
 
           {/* আইডি কার্ড */}
-          <li className={openSection === 'id-cards' ? 'active' : ''}>
+          <li className={sidebarOpen && openSection === 'id-cards' ? 'active' : ''}>
             <a
-              aria-expanded={openSection === 'id-cards'}
-              data-bs-toggle="collapse"
+              aria-expanded={sidebarOpen && openSection === 'id-cards'}
+              
               href="#id-cards"
               className="d-flex align-items-center fw-bold text-decoration-none"
               onClick={(e) => toggleSection('id-cards', e)}
@@ -557,7 +562,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-id-card me-2"></i>
               আইডি কার্ড
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'id-cards' ? 'show' : ''}`} id="id-cards">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'id-cards' ? 'show' : ''}`} id="id-cards">
               <li className={activeTab === 'idcard-student' ? 'active' : ''}>
                 <a href="#idcard-student" onClick={(e) => handleNavClick('idcard-student', e)}>ছাএ-ছাএীর আইডি কার্ড</a>
               </li>
@@ -568,10 +573,10 @@ export const Sidebar = () => {
           </li>
 
           {/* এসএমএস */}
-          <li className={openSection === 'sms' ? 'active' : ''}>
+          <li className={sidebarOpen && openSection === 'sms' ? 'active' : ''}>
             <a
-              aria-expanded={openSection === 'sms'}
-              data-bs-toggle="collapse"
+              aria-expanded={sidebarOpen && openSection === 'sms'}
+              
               href="#sms"
               className="d-flex align-items-center fw-bold text-decoration-none"
               onClick={(e) => toggleSection('sms', e)}
@@ -579,7 +584,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-envelope me-2"></i>
               এসএমএস
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'sms' ? 'show' : ''}`} id="sms">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'sms' ? 'show' : ''}`} id="sms">
               <li className={activeTab === 'sms-student' || activeTab === 'sms-client' || activeTab === 'sms-send' ? 'active' : ''}>
                 <a href="/admin/sms/send-to-client" onClick={(e) => handleNavClick('sms-student', e)}>ছাত্র/ছাত্রী</a>
               </li>
@@ -590,10 +595,10 @@ export const Sidebar = () => {
           </li>
 
           {/* অ্যাকাউন্ট */}
-          <li className={openSection === 'accounts' ? 'active' : ''}>
+          <li className={sidebarOpen && openSection === 'accounts' ? 'active' : ''}>
             <a
-              aria-expanded={openSection === 'accounts'}
-              data-bs-toggle="collapse"
+              aria-expanded={sidebarOpen && openSection === 'accounts'}
+              
               href="#accounts"
               className="d-flex align-items-center fw-bold text-decoration-none"
               onClick={(e) => toggleSection('accounts', e)}
@@ -601,7 +606,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-wallet me-2"></i>
               অ্যাকাউন্ট
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'accounts' ? 'show' : ''}`} id="accounts">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'accounts' ? 'show' : ''}`} id="accounts">
               <li className={activeTab === 'account-create' ? 'active' : ''}>
                 <a href="/admin/account/create" onClick={(e) => handleNavClick('account-create', e)}>নতুন অ্যাকাউন্ট তৈরি</a>
               </li>
@@ -621,10 +626,10 @@ export const Sidebar = () => {
           </li>
 
           {/* রিপোর্ট */}
-          <li className={openSection === 'reports' ? 'active' : ''}>
+          <li className={sidebarOpen && openSection === 'reports' ? 'active' : ''}>
             <a
-              aria-expanded={openSection === 'reports'}
-              data-bs-toggle="collapse"
+              aria-expanded={sidebarOpen && openSection === 'reports'}
+              
               href="#reports"
               className="d-flex align-items-center fw-bold text-decoration-none"
               onClick={(e) => toggleSection('reports', e)}
@@ -632,7 +637,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-file-alt me-2"></i>
               রিপোর্ট
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'reports' ? 'show' : ''}`} id="reports">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'reports' ? 'show' : ''}`} id="reports">
               <li className={activeTab === 'report-deposit' ? 'active' : ''}>
                 <a href="#report-deposit" onClick={(e) => handleNavClick('report-deposit', e)}>জমার রিপোর্ট</a>
               </li>
@@ -703,10 +708,10 @@ export const Sidebar = () => {
           </li>
 
           {/* সেটিং */}
-          <li className={openSection === 'settings' ? 'active' : ''}>
+          <li className={sidebarOpen && openSection === 'settings' ? 'active' : ''}>
             <a
-              aria-expanded={openSection === 'settings'}
-              data-bs-toggle="collapse"
+              aria-expanded={sidebarOpen && openSection === 'settings'}
+              
               href="#settings"
               className="d-flex align-items-center fw-bold text-decoration-none"
               onClick={(e) => toggleSection('settings', e)}
@@ -714,7 +719,7 @@ export const Sidebar = () => {
               <i className="fa-solid fa-gear me-2"></i>
               সেটিং
             </a>
-            <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'settings' ? 'show' : ''}`} id="settings">
+            <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'settings' ? 'show' : ''}`} id="settings">
               <li className={activeTab === 'settings-institute' ? 'active' : ''}>
                 <a href="#settings-institute" onClick={(e) => handleNavClick('settings-institute', e)}>প্রতিষ্ঠানের তথ্য</a>
               </li>

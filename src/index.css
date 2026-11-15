@@ -443,12 +443,17 @@ header.header-main .header-right {
 }
 
 .app-wrapper nav.semi-nav .app-nav .main-nav ul.collapse,
-.app-wrapper nav.semi-nav .app-nav .main-nav .sidebar-submenu {
+.app-wrapper nav.semi-nav .app-nav .main-nav .sidebar-submenu,
+.app-wrapper nav.semi-nav .app-nav .main-nav .collapse.show,
+.app-wrapper nav.semi-nav .app-nav .main-nav ul.collapse.show,
+.app-wrapper nav.semi-nav .app-nav .main-nav .sidebar-submenu.show {
   display: none !important;
   visibility: hidden !important;
   height: 0 !important;
+  max-height: 0 !important;
   opacity: 0 !important;
   overflow: hidden !important;
+  pointer-events: none !important;
 }
 
 /* 5. Clean, forest-slate & sage green sidebar category styling matching modern minimalist */
