@@ -23,7 +23,7 @@ export const Sidebar = () => {
     if (['voucher-deposit', 'deposit-list', 'voucher-expense', 'expense-list'].includes(activeTab)) return 'income-expense';
     if (activeTab.startsWith('idcard')) return 'id-cards';
     if (activeTab.startsWith('sms')) return 'sms';
-    if (activeTab.startsWith('account') || activeTab === 'balancesheet') return 'accounts';
+    if (activeTab.startsWith('account') || activeTab === 'balancesheet' || activeTab.includes('transfer')) return 'accounts';
     if (activeTab.startsWith('report-') && !['report-daily', 'report-yearly', 'report-bank'].includes(activeTab)) return 'reports';
     if (activeTab.startsWith('settings')) return 'settings';
     return null;
@@ -53,7 +53,7 @@ export const Sidebar = () => {
       setOpenSection('id-cards');
     } else if (activeTab.startsWith('sms')) {
       setOpenSection('sms');
-    } else if (activeTab.startsWith('account') || activeTab === 'balancesheet') {
+    } else if (activeTab.startsWith('account') || activeTab === 'balancesheet' || activeTab.includes('transfer')) {
       setOpenSection('accounts');
     } else if (activeTab.startsWith('report-') && !['report-daily', 'report-yearly', 'report-bank'].includes(activeTab)) {
       setOpenSection('reports');
@@ -119,35 +119,86 @@ export const Sidebar = () => {
         />
       )}
       <nav className={`app-sidebar ${sidebarOpen ? "sidebar-mobile-open" : "semi-nav"}`}>
-      <div className="app-logo">
+      <div
+        className="app-logo d-flex align-items-center"
+        style={{
+          height: '65px',
+          minHeight: '65px',
+          maxHeight: '65px',
+          borderBottom: '1px solid #e2e8f0',
+          padding: sidebarOpen ? '0 1rem' : '0',
+          justifyContent: sidebarOpen ? 'space-between' : 'center',
+          position: 'relative',
+          backgroundColor: '#ffffff'
+        }}
+      >
         <a
-          className="logo d-flex justify-content-center"
+          className={`logo d-flex align-items-center text-decoration-none ${!sidebarOpen ? 'justify-content-center w-100 p-0 m-0' : 'gap-2'}`}
           href="/dashboard"
           onClick={(e) => handleNavClick('dashboard', e)}
+          title="মাদ্রাসা ম্যানেজমেন্ট - মাদ্রাসার হিসাব নিকাশ"
         >
           <img
-            style={{ width: '85%' }}
-            alt="Madrasha Logo"
-            src="/storage/institute/sidelogo/kZvKJCWGaUTdn3y6ZSjepGWQoM2vD9wRM6iBLrRl.png"
+            style={{
+              height: '44px',
+              width: '44px',
+              minWidth: '44px',
+              maxWidth: '44px',
+              objectFit: 'contain',
+              flexShrink: 0
+            }}
+            alt="মাদ্রাসা ৩৬০"
+            src="/storage/institute/sidelogo/madrasha_360_logo.png"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = '/storage/institute/sidelogo/kZvKJCWGaUTdn3y6ZSjepGWQoM2vD9wRM6iBLrRl.png';
+            }}
           />
+          {sidebarOpen && (
+            <div className="d-flex flex-column text-start overflow-hidden text-nowrap ms-1">
+              <span
+                className="fw-bold"
+                style={{
+                  fontSize: '1.05rem',
+                  color: '#0f626a',
+                  lineHeight: '1.25',
+                  letterSpacing: '-0.2px',
+                  fontFamily: "'SolaimanLipi', sans-serif"
+                }}
+              >
+                মাদ্রাসা ম্যানেজমেন্ট
+              </span>
+              <span
+                className="text-muted"
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 500,
+                  lineHeight: '1.2',
+                  fontFamily: "'SolaimanLipi', sans-serif"
+                }}
+              >
+                মাদ্রাসার হিসাব নিকাশ
+              </span>
+            </div>
+          )}
         </a>
-        <span
-          className="bg-light-primary toggle-semi-nav d-flex-center"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          role="button"
-          tabIndex={0}
-        >
-          <i className="ti ti-chevron-right"></i>
-        </span>
+        {sidebarOpen && (
+          <span
+            className="bg-light-primary toggle-semi-nav d-flex-center"
+            style={{ cursor: 'pointer' }}
+            onClick={() => setSidebarOpen(false)}
+            role="button"
+            tabIndex={0}
+            title="মেনু সংকুচিত করুন"
+          >
+            <i className="ti ti-chevron-left"></i>
+          </span>
+        )}
       </div>
 
-      <hr className="m-0 p-0" />
+      <hr className="m-0 p-0 border-0" />
       <div className="app-nav" id="app-simple-bar">
         <ul className="main-nav p-0 mt-2 list-unstyled">
-          <div className="text-center py-2 font-semibold text-xs text-muted">
-            SMS Balance: <span id="sms-balance" className="fw-bold text-dark">{profile?.smsBalance ?? 0} ৳</span>
-          </div>
-
           {/* ড্যাশবোর্ড */}
           <li className={`no-sub ${activeTab === 'dashboard' ? 'active' : ''}`}>
             <a
@@ -520,11 +571,11 @@ export const Sidebar = () => {
               এসএমএস
             </a>
             <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'sms' ? 'show' : ''}`} id="sms">
-              <li className={activeTab === 'sms-student' ? 'active' : ''}>
-                <a href="#sms-student" onClick={(e) => handleNavClick('sms-student', e)}>ছাত্র/ছাত্রী</a>
+              <li className={activeTab === 'sms-student' || activeTab === 'sms-client' || activeTab === 'sms-send' ? 'active' : ''}>
+                <a href="/admin/sms/send-to-client" onClick={(e) => handleNavClick('sms-student', e)}>ছাত্র/ছাত্রী</a>
               </li>
               <li className={activeTab === 'sms-teacher' ? 'active' : ''}>
-                <a href="#sms-teacher" onClick={(e) => handleNavClick('sms-teacher', e)}>শিক্ষক</a>
+                <a href="/admin/sms/send-to-teacher" onClick={(e) => handleNavClick('sms-teacher', e)}>শিক্ষক</a>
               </li>
             </ul>
           </li>
@@ -543,19 +594,19 @@ export const Sidebar = () => {
             </a>
             <ul className={`sidebar-submenu collapse list-unstyled ${openSection === 'accounts' ? 'show' : ''}`} id="accounts">
               <li className={activeTab === 'account-create' ? 'active' : ''}>
-                <a href="#account-create" onClick={(e) => handleNavClick('account-create', e)}>নতুন অ্যাকাউন্ট তৈরি</a>
+                <a href="/admin/account/create" onClick={(e) => handleNavClick('account-create', e)}>নতুন অ্যাকাউন্ট তৈরি</a>
               </li>
-              <li className={activeTab === 'account-list' ? 'active' : ''}>
-                <a href="#account-list" onClick={(e) => handleNavClick('account-list', e)}>অ্যাকাউন্ট তালিকা</a>
+              <li className={activeTab === 'account-list' || activeTab === 'accounts-list' || activeTab.startsWith('account-edit') ? 'active' : ''}>
+                <a href="/admin/account" onClick={(e) => handleNavClick('account-list', e)}>অ্যাকাউন্ট তালিকা</a>
               </li>
               <li className={activeTab === 'account-report' ? 'active' : ''}>
-                <a href="#account-report" onClick={(e) => handleNavClick('account-report', e)}>অ্যাকাউন্ট বিবরণী</a>
+                <a href="/admin/account/account/report" onClick={(e) => handleNavClick('account-report', e)}>অ্যাকাউন্ট বিবরণী</a>
               </li>
-              <li className={activeTab === 'accounts-transfer' ? 'active' : ''}>
-                <a href="#accounts-transfer" onClick={(e) => handleNavClick('accounts-transfer', e)}>ব্যলেন্স ট্রান্সফার</a>
+              <li className={activeTab === 'accounts-transfer' || activeTab === 'balance-transfer' ? 'active' : ''}>
+                <a href="/admin/account/balance/transfer" onClick={(e) => handleNavClick('accounts-transfer', e)}>ব্যলেন্স ট্রান্সফার</a>
               </li>
               <li className={activeTab === 'balancesheet' ? 'active' : ''}>
-                <a href="#balancesheet" onClick={(e) => handleNavClick('balancesheet', e)}>ব্যলেন্স সিট</a>
+                <a href="/admin/account/balancesheet" onClick={(e) => handleNavClick('balancesheet', e)}>ব্যলেন্স সিট</a>
               </li>
             </ul>
           </li>

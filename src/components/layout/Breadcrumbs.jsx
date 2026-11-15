@@ -94,9 +94,11 @@ const TAB_METADATA = {
 
   // অ্যাকাউন্ট
   'account-create': { section: 'অ্যাকাউন্ট', title: 'নতুন অ্যাকাউন্ট তৈরি', parentTab: 'account-list' },
+  'account-edit': { section: 'অ্যাকাউন্ট', title: 'এ্যাকাউন্ট সম্পাদনা', parentTab: 'account-list' },
   'account-list': { section: 'অ্যাকাউন্ট', title: 'অ্যাকাউন্ট তালিকা', parentTab: 'account-list' },
   'account-report': { section: 'অ্যাকাউন্ট', title: 'অ্যাকাউন্ট বিবরণী', parentTab: 'account-list' },
   'accounts-transfer': { section: 'অ্যাকাউন্ট', title: 'ব্যলেন্স ট্রান্সফার', parentTab: 'account-list' },
+  'balance-transfer': { section: 'অ্যাকাউন্ট', title: 'ব্যলেন্স ট্রান্সফার', parentTab: 'account-list' },
   'balancesheet': { section: 'অ্যাকাউন্ট', title: 'ব্যলেন্স সিট', parentTab: 'account-list' },
 
   // রিপোর্ট
@@ -134,12 +136,18 @@ export const Breadcrumbs = () => {
     activeTab === 'dashboard' ||
     ['report-daily', 'report-yearly', 'report-bank'].includes(activeTab) ||
     activeTab === 'report-deposit' ||
-    activeTab.startsWith('report-')
+    activeTab.startsWith('report-') ||
+    activeTab.startsWith('account') ||
+    activeTab === 'balancesheet' ||
+    activeTab === 'balance-transfer' ||
+    activeTab.startsWith('sms') ||
+    activeTab.startsWith('idcard')
   ) {
     return null;
   }
 
-  const meta = TAB_METADATA[activeTab] || {
+  const lookupKey = activeTab.startsWith('account-edit') ? 'account-edit' : activeTab;
+  const meta = TAB_METADATA[lookupKey] || {
     section: 'মডিউল',
     title: activeTab,
     parentTab: 'dashboard'

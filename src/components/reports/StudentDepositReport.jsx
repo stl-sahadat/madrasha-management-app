@@ -10,7 +10,7 @@ import {
 } from '../../utils/bengaliWords';
 
 export const StudentDepositReport = () => {
-  const { profile, students, transactions, activeTab, setSelectedVoucherForReceipt, setIsReceiptModalOpen } = useApp();
+  const { profile, students, jamats, transactions, activeTab, setSelectedVoucherForReceipt, setIsReceiptModalOpen } = useApp();
 
   const currentYear = new Date().getFullYear().toString();
 
@@ -33,9 +33,15 @@ export const StudentDepositReport = () => {
   };
 
   const initial = getInitialParams();
+  const [selectedJamat, setSelectedJamat] = useState('all');
   const [selectedStudentId, setSelectedStudentId] = useState(initial.studentId);
   const [selectedYear, setSelectedYear] = useState(initial.year);
   const [appliedFilter, setAppliedFilter] = useState(initial);
+
+  const filteredStudents = React.useMemo(() => {
+    if (selectedJamat === 'all') return students;
+    return students.filter(s => s.jamat === selectedJamat);
+  }, [students, selectedJamat]);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -124,7 +130,27 @@ export const StudentDepositReport = () => {
         <div className="card-body mb-3">
           <form onSubmit={handleSubmit} id="depositForm" className="w-100">
             <div className="row g-3 align-items-end">
-              <div className="col-12 col-md-5">
+              <div className="col-12 col-md-4">
+                <label htmlFor="jamat_select" className="form-label fw-bold">জামাত</label>
+                <select
+                  id="jamat_select"
+                  className="form-select"
+                  value={selectedJamat}
+                  onChange={(e) => {
+                    setSelectedJamat(e.target.value);
+                    setSelectedStudentId('');
+                  }}
+                >
+                  <option value="all">সকল জামাত</option>
+                  {(jamats || []).map((j) => (
+                    <option key={j.id || j.name} value={j.name}>
+                      {j.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="col-12 col-md-4">
                 <label className="form-label fw-bold">ভর্তি নং দিয়ে খুঁজুন</label>
                 <select
                   name="student_id"
@@ -135,15 +161,15 @@ export const StudentDepositReport = () => {
                   required
                 >
                   <option value="">ভর্তি নং নির্বাচন করুন</option>
-                  {students.map((st) => (
+                  {filteredStudents.map((st) => (
                     <option key={st.id} value={st.id}>
-                      {st.roll} - {st.name} ({st.jamat})
+                      {st.roll} - {st.name}
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div className="col-12 col-md-4">
+              <div className="col-12 col-md-2">
                 <label className="form-label fw-bold">সন নির্বাচন করুন</label>
                 <select
                   name="year"
@@ -161,7 +187,7 @@ export const StudentDepositReport = () => {
                 </select>
               </div>
 
-              <div className="col-12 col-md-3">
+              <div className="col-12 col-md-2">
                 <button type="submit" className="btn btn-success fw-bold px-4 w-100">
                   <i className="fa-solid fa-search me-1"></i> খুঁজুন
                 </button>

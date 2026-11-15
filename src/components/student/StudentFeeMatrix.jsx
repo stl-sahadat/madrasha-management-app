@@ -3,14 +3,20 @@ import { useApp } from '../../context/AppContext';
 import { MONTH_NAMES } from '../../data/initialData';
 
 export const StudentFeeMatrix = () => {
-  const { students, recordStudentFee, accounts, setSelectedReceiptForPrint } = useApp();
+  const { students, jamats, recordStudentFee, accounts, setSelectedReceiptForPrint } = useApp();
 
+  const [selectedJamat, setSelectedJamat] = useState('all');
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || '');
   const [selectedAccount, setSelectedAccount] = useState(accounts[0]?.name || 'নগদ ক্যাশ (Hand Cash)');
   const [payingMonth, setPayingMonth] = useState(null);
   const [payFeeType, setPayFeeType] = useState('both'); // tuition, khuraki, both
 
-  const currentStudent = students.find(s => s.id === selectedStudentId) || students[0];
+  const filteredStudents = React.useMemo(() => {
+    if (selectedJamat === 'all') return students;
+    return students.filter(s => s.jamat === selectedJamat);
+  }, [students, selectedJamat]);
+
+  const currentStudent = students.find(s => s.id === selectedStudentId) || filteredStudents[0] || students[0];
 
   const handlePayClick = (month) => {
     setPayingMonth(month);
@@ -60,24 +66,42 @@ export const StudentFeeMatrix = () => {
 
         <div className="card-body">
           <div className="row g-3 align-items-end">
-            <div className="col-md-6">
+            <div className="col-md-3">
+              <label htmlFor="jamat_select" className="form-label fw-bold">জামাত:</label>
+              <select
+                id="jamat_select"
+                value={selectedJamat}
+                onChange={(e) => {
+                  setSelectedJamat(e.target.value);
+                  const firstOfJamat = students.find(s => e.target.value === 'all' || s.jamat === e.target.value);
+                  if (firstOfJamat) setSelectedStudentId(firstOfJamat.id);
+                }}
+                className="form-select"
+              >
+                <option value="all">সকল জামাত</option>
+                {(jamats || []).map(j => (
+                  <option key={j.id || j.name} value={j.name}>{j.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-5">
               <label className="form-label fw-bold">শিক্ষার্থী নির্বাচন করুন:</label>
               <select
                 value={selectedStudentId}
                 onChange={(e) => setSelectedStudentId(e.target.value)}
                 className="form-select"
               >
-                {students.map(s => {
+                {filteredStudents.map(s => {
                   const adm = s.admissionNumber || s.admission_number || s.roll;
                   return (
                     <option key={s.id} value={s.id}>
-                      {adm} - {s.name} ({s.jamat})
+                      {adm} - {s.name}
                     </option>
                   );
                 })}
               </select>
             </div>
-            <div className="col-md-6">
+            <div className="col-md-4">
               <label className="form-label fw-bold">জমার এ্যাকাউন্ট:</label>
               <select
                 value={selectedAccount}

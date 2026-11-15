@@ -186,11 +186,11 @@ export const AuthPage = ({ initialMode = 'login' }) => {
             <div className="auth-brand-logo">
               <div className="auth-logo-icon-wrapper">
                 <img
-                  src="/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png"
+                  src="/storage/institute/logos/madrasha_360_logo.png"
                   alt="মাদ্রাসা মনোগ্রাম"
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = 'https://madrasha.hostzonebd.com/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png';
+                    e.target.src = '/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png';
                   }}
                 />
               </div>
@@ -228,12 +228,12 @@ export const AuthPage = ({ initialMode = 'login' }) => {
             <div className="auth-mobile-brand-inner">
               <div className="auth-mobile-logo-wrapper">
                 <img
-                  src="/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png"
+                  src="/storage/institute/logos/madrasha_360_logo.png"
                   alt="Madrasa Logo"
                   className="auth-mobile-logo"
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = 'https://madrasha.hostzonebd.com/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png';
+                    e.target.src = '/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png';
                   }}
                 />
               </div>

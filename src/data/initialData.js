@@ -15,6 +15,7 @@ export const MADRASHA_PROFILE = {
   principalRole: "মুহতামিম / প্রধান পরীক্ষক",
   smsBalance: 0.00,
   logoText: "JNSEM",
+  banner: "/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg",
 };
 
 export const JAMATS = [

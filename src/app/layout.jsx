@@ -7,7 +7,7 @@ export const metadata = {
   keywords: 'Madrasa Management Software, Madrasa Software, Madrasah Management System, মাদ্রাসা সফটওয়্যার, মাদ্রাসা ম্যানেজমেন্ট, ছাত্র ব্যবস্থাপনা, শিক্ষক ব্যবস্থাপনা, মাদ্রাসা হিসাব, হাজিরা, রেজাল্ট, ভর্তি, বেতন, দান, যাকাত',
   authors: [{ name: 'Madrasa Management Software' }],
   icons: {
-    icon: '/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png',
+    icon: '/storage/institute/logos/madrasha_360_logo.png',
   },
 };
 
@@ -16,7 +16,7 @@ export default function RootLayout({ children }) {
     <html lang="bn">
       <head>
         {/* Favicon */}
-        <link rel="icon" type="image/png" href="/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png" />
+        <link rel="icon" type="image/png" href="/storage/institute/logos/madrasha_360_logo.png" />
 
         {/* Animation css */}
         <link rel="stylesheet" href="/assets/vendor/animation/animate.min.css" />
@@ -84,6 +84,12 @@ export default function RootLayout({ children }) {
         {/* Apexcharts JS */}
         <Script
           src="/assets/vendor/apexcharts/apexcharts.min.js"
+          strategy="afterInteractive"
+        />
+
+        {/* SweetAlert2 (1:1 matching madrasha.hostzonebd.com) */}
+        <Script
+          src="https://cdn.jsdelivr.net/npm/sweetalert2@11"
           strategy="afterInteractive"
         />
       </body>

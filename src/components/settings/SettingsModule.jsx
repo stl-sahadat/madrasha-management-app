@@ -365,7 +365,7 @@ export const SettingsModule = ({ initialTab = 'institute' }) => {
                   <label className="form-label fw-bold">মাদ্রাসার লোগো</label>
                   <div className="d-flex align-items-center gap-3">
                     <img
-                      src={profileData.logo || '/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png'}
+                      src={profileData.logo || '/storage/institute/logos/madrasha_360_logo.png'}
                       alt="Logo Preview"
                       className="img-thumbnail"
                       style={{ maxHeight: '60px', maxWidth: '60px', objectFit: 'contain' }}

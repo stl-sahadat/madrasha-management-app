@@ -1,109 +1,227 @@
-import React, { useState, useEffect } from 'react';
+'use client';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
-import { numberToBengaliWords } from '../../utils/bengaliWords';
+import {
+  numberToBengaliWords,
+  formatMoney,
+  formatDateDDMMYYYY,
+  toStandardDateStr
+} from '../../utils/bengaliWords';
 
-function toBengaliDigits(num) {
-  const digits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
-  return String(num).replace(/[0-9]/g, d => digits[d]);
-}
-
-export const AccountsModule = ({ defaultView = 'list' }) => {
-  const { accounts, setAccounts, transferAccount, transactions, showToast } = useApp();
+export const AccountsModule = ({ defaultView = 'list', initialEditId = null }) => {
+  const {
+    profile,
+    accounts = [],
+    addAccount,
+    updateAccount,
+    deleteAccount,
+    transferAccount,
+    transfers = [],
+    deleteAccountTransfer,
+    transactions = [],
+    setActiveTab,
+    showToast
+  } = useApp();
 
   const [activeView, setActiveView] = useState(defaultView);
   const [editingAccount, setEditingAccount] = useState(null);
 
   // Form State for Create / Edit Account
-  const [accName, setAccName] = useState('');
-  const [accDesc, setAccDesc] = useState('');
-  const [accNumber, setAccNumber] = useState('');
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [number, setNumber] = useState('');
   const [contactPerson, setContactPerson] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
+  const [contactPersonPhone, setContactPersonPhone] = useState('');
   const [isBank, setIsBank] = useState(false);
 
   // Transfer Form State
-  const [fromAccount, setFromAccount] = useState(accounts[0]?.id || '');
-  const [toAccount, setToAccount] = useState(accounts[1]?.id || '');
+  const [fromAccountId, setFromAccountId] = useState('');
+  const [toAccountId, setToAccountId] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
-  const [transferDate, setTransferDate] = useState(new Date().toISOString().split('T')[0]);
+  const [transferDate, setTransferDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [transferNote, setTransferNote] = useState('');
 
-  // Transfer history state
-  const [transferLogs, setTransferLogs] = useState([
-    {
-      id: 1,
-      from: 'Bkash',
-      to: 'Hand Cash',
-      amount: 5000,
-      date: '2026-10-25',
-      note: 'জরুরি নগদ ব্যয় নির্বাহ'
+  // Report View State
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const firstDayOfYear = useMemo(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-01-01`;
+  }, []);
+
+  const [startDate, setStartDate] = useState(firstDayOfYear);
+  const [endDate, setEndDate] = useState(todayStr);
+  const [appliedFilter, setAppliedFilter] = useState({
+    start: firstDayOfYear,
+    end: todayStr
+  });
+  const [hasSearched, setHasSearched] = useState(false);
+  const [reportPage, setReportPage] = useState(1);
+  const reportPerPage = 20;
+
+  // SweetAlert2 styled modal state
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: '',
+    text: '',
+    confirmText: '',
+    cancelText: 'বাতিল করুন',
+    onConfirm: null
+  });
+
+  // Sync initialEditId if provided via props
+  useEffect(() => {
+    if (initialEditId && accounts && accounts.length > 0) {
+      const found = accounts.find(
+        (a, idx) => String(a.id) === String(initialEditId) || String(idx + 1) === String(initialEditId)
+      );
+      if (found) {
+        setEditingAccount(found);
+        setName(found.name || '');
+        setDescription(found.description || '');
+        setNumber(found.number || found.accountNumber || '');
+        setContactPerson(found.contact_person || found.contactPerson || '');
+        setContactPersonPhone(found.contact_person_phone || found.mobile || '');
+        setIsBank(!!found.isBank || !!found.is_bank);
+        setActiveView('create');
+      }
     }
-  ]);
+  }, [initialEditId, accounts]);
 
-  // Report State
-  const [reportStartDate, setReportStartDate] = useState('');
-  const [reportEndDate, setReportEndDate] = useState('');
-  const [searchedReport, setSearchedReport] = useState(false);
-
+  // Sync activeView with defaultView prop
   useEffect(() => {
     setActiveView(defaultView);
-  }, [defaultView]);
+    if (defaultView === 'create' && !initialEditId && !editingAccount) {
+      resetForm();
+    }
+  }, [defaultView, initialEditId]);
+
+  // Check URL query parameters on mount for report view
+  useEffect(() => {
+    if (typeof window !== 'undefined' && activeView === 'report') {
+      const params = new URLSearchParams(window.location.search);
+      const s = params.get('start_date');
+      const e = params.get('end_date');
+      if (s || e) {
+        const stdStart = s ? toStandardDateStr(s) : firstDayOfYear;
+        const stdEnd = e ? toStandardDateStr(e) : todayStr;
+        setStartDate(stdStart);
+        setEndDate(stdEnd);
+        setAppliedFilter({
+          start: stdStart,
+          end: stdEnd
+        });
+        setHasSearched(true);
+      }
+    }
+  }, [activeView, firstDayOfYear, todayStr]);
+
+  const resetForm = () => {
+    setName('');
+    setDescription('');
+    setNumber('');
+    setContactPerson('');
+    setContactPersonPhone('');
+    setIsBank(false);
+    setEditingAccount(null);
+  };
+
+  const handleStartEdit = (acc, updateUrl = true) => {
+    setEditingAccount(acc);
+    setName(acc.name || '');
+    setDescription(acc.description || '');
+    setNumber(acc.number || acc.accountNumber || '');
+    setContactPerson(acc.contact_person || acc.contactPerson || '');
+    setContactPersonPhone(acc.contact_person_phone || acc.mobile || '');
+    setIsBank(!!acc.isBank || !!acc.is_bank);
+    setActiveView('create');
+    if (updateUrl && setActiveTab) {
+      setActiveTab(`account-edit:${acc.id}`);
+    }
+  };
 
   const handleSaveAccount = (e) => {
     e.preventDefault();
-    if (!accName.trim()) {
+    if (!name.trim()) {
       alert('এ্যাকাউন্ট নাম আবশ্যক');
       return;
     }
 
     if (editingAccount) {
-      setAccounts(accounts.map(a => a.id === editingAccount.id ? {
-        ...a,
-        name: accName.trim(),
-        description: accDesc.trim(),
-        accountNumber: accNumber.trim(),
-        contactPerson: contactPerson.trim(),
-        mobile: contactPhone.trim(),
-        isBank
-      } : a));
-      showToast(`এ্যাকাউন্ট "${accName}" সফলভাবে সম্পাদনা করা হয়েছে!`);
-      setEditingAccount(null);
+      updateAccount(editingAccount.id, {
+        name: name.trim(),
+        description: description.trim(),
+        number: number.trim(),
+        contact_person: contactPerson.trim(),
+        contact_person_phone: contactPersonPhone.trim(),
+        is_bank: isBank
+      });
+      resetForm();
+      setActiveView('list');
+      if (setActiveTab) setActiveTab('account-list');
     } else {
-      const newAcc = {
-        id: `acc-${Date.now()}`,
-        name: accName.trim(),
-        type: isBank ? 'ব্যাংক অ্যাকাউন্ট' : 'ক্যাশ/ডিজিটাল',
-        balance: 0,
-        description: accDesc.trim(),
-        accountNumber: accNumber.trim(),
-        contactPerson: contactPerson.trim(),
-        mobile: contactPhone.trim(),
-        isBank
-      };
-      setAccounts([...accounts, newAcc]);
-      showToast(`নতুন এ্যাকাউন্ট "${newAcc.name}" সফলভাবে তৈরি হয়েছে!`);
+      addAccount({
+        name: name.trim(),
+        description: description.trim(),
+        number: number.trim(),
+        contact_person: contactPerson.trim(),
+        contact_person_phone: contactPersonPhone.trim(),
+        is_bank: isBank,
+        balance: 0
+      });
+      resetForm();
+      setActiveView('list');
+      if (setActiveTab) setActiveTab('account-list');
     }
-
-    setAccName('');
-    setAccDesc('');
-    setAccNumber('');
-    setContactPerson('');
-    setContactPhone('');
-    setIsBank(false);
-    setActiveView('list');
   };
 
-  const handleDeleteAccount = (accId) => {
-    if (confirm('আপনি কি নিশ্চিত যে এই এ্যাকাউন্টটি মুছে ফেলতে চান?')) {
-      setAccounts(accounts.filter(a => a.id !== accId));
-      showToast('এ্যাকাউন্ট সফলভাবে মুছে ফেলা হয়েছে!');
+  const handleCancelCreateOrEdit = () => {
+    const wasEditing = !!editingAccount;
+    resetForm();
+    if (wasEditing) {
+      setActiveView('list');
+      if (setActiveTab) setActiveTab('account-list');
+    } else {
+      if (setActiveTab) setActiveTab('dashboard');
     }
+  };
+
+  const handleDeleteAccountClick = (acc) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'আপনি কি নিশ্চিত?',
+      text: 'একবার মুছে ফেলা হলে এটি পুনরুদ্ধার করা যাবে না!',
+      confirmText: 'হ্যাঁ, মুছে দিন!',
+      cancelText: 'বাতিল করুন',
+      onConfirm: () => {
+        deleteAccount(acc.id, true);
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+      }
+    });
+  };
+
+  const handleDeleteTransferClick = (transferId) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'আপনি কি নিশ্চিত?',
+      text: 'এই ট্রান্সফার রেকর্ডটি মুছে ফেলা হলে ব্যালেন্স পুনরায় সমন্বয় করা হবে।',
+      confirmText: 'হ্যাঁ, মুছে দিন!',
+      cancelText: 'বাতিল করুন',
+      onConfirm: () => {
+        deleteAccountTransfer(transferId, true);
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+      }
+    });
   };
 
   const handleTransferSubmit = (e) => {
     e.preventDefault();
-    if (fromAccount === toAccount) {
-      alert('প্রেরক এবং প্রাপক একই এ্যাকাউন্ট হতে পারে না');
+    if (!fromAccountId || !toAccountId) {
+      alert('অনুগ্রহ করে প্রেরক এবং প্রাপক উভয় অ্যাকাউন্ট নির্বাচন করুন');
+      return;
+    }
+    if (String(fromAccountId) === String(toAccountId)) {
+      alert('প্রেরক এবং প্রাপক একই অ্যাকাউন্ট হতে পারে না');
       return;
     }
     const amt = parseFloat(transferAmount);
@@ -112,97 +230,96 @@ export const AccountsModule = ({ defaultView = 'list' }) => {
       return;
     }
 
-    const src = accounts.find(a => String(a.id) === String(fromAccount));
-    const dest = accounts.find(a => String(a.id) === String(toAccount));
+    const success = transferAccount(
+      fromAccountId,
+      toAccountId,
+      amt,
+      transferNote,
+      transferDate
+    );
 
-    if (!src || !dest) {
-      alert('অনুগ্রহ করে সঠিক এ্যাকাউন্ট নির্বাচন করুন');
-      return;
+    if (success) {
+      setFromAccountId('');
+      setToAccountId('');
+      setTransferAmount('');
+      setTransferNote('');
     }
-
-    if ((src.balance || 0) < amt) {
-      alert('প্রেরক অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই');
-      return;
-    }
-
-    transferAccount(src.name, dest.name, amt, transferNote);
-
-    setTransferLogs([
-      {
-        id: Date.now(),
-        from: src.name,
-        to: dest.name,
-        amount: amt,
-        date: transferDate,
-        note: transferNote
-      },
-      ...transferLogs
-    ]);
-
-    setTransferAmount('');
-    setTransferNote('');
-    showToast(`৳ ${amt} সফলভাবে ${src.name} থেকে ${dest.name}-এ স্থানান্তর করা হয়েছে!`);
   };
 
-  const todayStr = new Date().toLocaleDateString('bn-BD', {
-    day: 'numeric',
-    month: 'numeric',
-    year: 'numeric'
-  });
+  const handleReportSearch = (e) => {
+    e.preventDefault();
+    setAppliedFilter({
+      start: startDate,
+      end: endDate
+    });
+    setHasSearched(true);
+    setReportPage(1);
+
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('start_date', formatDateDDMMYYYY(startDate));
+      url.searchParams.set('end_date', formatDateDDMMYYYY(endDate));
+      window.history.pushState({}, '', url.toString());
+    }
+  };
+
+  // Filtered transactions for Account Statement / Report
+  const filteredTransactions = useMemo(() => {
+    if (!hasSearched) return [];
+    const sDate = toStandardDateStr(appliedFilter.start);
+    const eDate = toStandardDateStr(appliedFilter.end);
+
+    return transactions.filter((t) => {
+      const tDate = toStandardDateStr(t.date);
+      if (sDate && tDate < sDate) return false;
+      if (eDate && tDate > eDate) return false;
+      return true;
+    });
+  }, [transactions, appliedFilter, hasSearched]);
+
+  const totalDeposit = useMemo(() => {
+    return filteredTransactions
+      .filter((t) => t.type === 'deposit')
+      .reduce((sum, t) => sum + (parseFloat(t.totalAmount || t.amount) || 0), 0);
+  }, [filteredTransactions]);
+
+  const totalExpense = useMemo(() => {
+    return filteredTransactions
+      .filter((t) => t.type === 'expense')
+      .reduce((sum, t) => sum + (parseFloat(t.totalAmount || t.amount) || 0), 0);
+  }, [filteredTransactions]);
+
+  // Paginated report transactions
+  const totalReportEntries = filteredTransactions.length;
+  const totalReportPages = Math.max(1, Math.ceil(totalReportEntries / reportPerPage));
+  const displayedReportTransactions = useMemo(() => {
+    const startIdx = (reportPage - 1) * reportPerPage;
+    return filteredTransactions.slice(startIdx, startIdx + reportPerPage);
+  }, [filteredTransactions, reportPage, reportPerPage]);
+
+  const formattedCurrentDateBangla = useMemo(() => {
+    const now = new Date();
+    const d = String(now.getDate()).padStart(2, '0');
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const y = now.getFullYear();
+    return `${d}/${m}/${y} ইং`;
+  }, []);
+
+  const bannerSrc = profile?.banner || '/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg';
+
+  const switchView = (view, tabName) => {
+    setActiveView(view);
+    if (view === 'create' && !editingAccount) {
+      resetForm();
+    }
+    if (setActiveTab && tabName) {
+      setActiveTab(tabName);
+    }
+  };
 
   return (
     <div className="container-fluid p-0">
-      {/* View Switcher Top Toolbar (no-print) */}
-      <div className="d-flex flex-wrap justify-content-between align-items-center mb-3 no-print">
-        <div className="btn-group shadow-sm">
-          <button
-            type="button"
-            onClick={() => setActiveView('list')}
-            className={`btn btn-sm ${activeView === 'list' ? 'btn-primary' : 'btn-outline-primary'}`}
-          >
-            <i className="fa-solid fa-list me-1"></i> এ্যাকাউন্ট তালিকা
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setEditingAccount(null);
-              setAccName('');
-              setAccDesc('');
-              setAccNumber('');
-              setContactPerson('');
-              setContactPhone('');
-              setIsBank(false);
-              setActiveView('create');
-            }}
-            className={`btn btn-sm ${activeView === 'create' ? 'btn-primary' : 'btn-outline-primary'}`}
-          >
-            <i className="fa-solid fa-plus me-1"></i> নতুন অ্যাকাউন্ট তৈরি
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveView('transfer')}
-            className={`btn btn-sm ${activeView === 'transfer' ? 'btn-primary' : 'btn-outline-primary'}`}
-          >
-            <i className="fa-solid fa-money-bill-transfer me-1"></i> ব্যলেন্স ট্রান্সফার
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveView('report')}
-            className={`btn btn-sm ${activeView === 'report' ? 'btn-primary' : 'btn-outline-primary'}`}
-          >
-            <i className="fa-solid fa-file-invoice me-1"></i> এ্যাকাউন্ট বিবরণ
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveView('balancesheet')}
-            className={`btn btn-sm ${activeView === 'balancesheet' ? 'btn-primary' : 'btn-outline-primary'}`}
-          >
-            <i className="fa-solid fa-scale-balanced me-1"></i> ব্যলেন্স সিট
-          </button>
-        </div>
-      </div>
-
-      {/* 1. CREATE / EDIT ACCOUNT (Matches account_create.html) */}
+      {/* 1. CREATE / EDIT ACCOUNT (Matches 1_create.html & account_edit.html) */}
       {activeView === 'create' && (
         <div className="row">
           <div className="col-12">
@@ -210,22 +327,22 @@ export const AccountsModule = ({ defaultView = 'list' }) => {
               <div className="card-header bg-gradient bg-primary text-white py-3">
                 <h5 className="mb-0 text-white">
                   <i className="fas fa-wallet me-2"></i>
-                  {editingAccount ? 'এ্যাকাউন্ট সম্পাদনা করুন' : 'নতুন অ্যাকাউন্ট তৈরি'}
+                  {editingAccount ? 'এ্যাকাউন্ট সম্পাদনা' : 'নতুন অ্যাকাউন্ট তৈরি'}
                 </h5>
               </div>
               <div className="card-body p-4">
                 <form onSubmit={handleSaveAccount}>
                   <div className="mb-3">
                     <label className="form-label">
-                      এ্যাকাউন্ট নাম<span className="text-danger">*</span>
+                      এ্যাকাউন্ট নাম <span className="text-danger">*</span>
                     </label>
                     <input
                       type="text"
                       className="form-control"
                       name="name"
-                      value={accName}
-                      onChange={(e) => setAccName(e.target.value)}
                       required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                     />
                   </div>
 
@@ -235,8 +352,8 @@ export const AccountsModule = ({ defaultView = 'list' }) => {
                       type="text"
                       className="form-control"
                       name="description"
-                      value={accDesc}
-                      onChange={(e) => setAccDesc(e.target.value)}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
                     />
                   </div>
 
@@ -246,8 +363,8 @@ export const AccountsModule = ({ defaultView = 'list' }) => {
                       type="text"
                       className="form-control"
                       name="number"
-                      value={accNumber}
-                      onChange={(e) => setAccNumber(e.target.value)}
+                      value={number}
+                      onChange={(e) => setNumber(e.target.value)}
                     />
                   </div>
 
@@ -268,8 +385,12 @@ export const AccountsModule = ({ defaultView = 'list' }) => {
                       type="text"
                       className="form-control"
                       name="contact_person_phone"
-                      value={contactPhone}
-                      onChange={(e) => setContactPhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 11))}
+                      value={contactPersonPhone}
+                      onInput={(e) => {
+                        e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 11);
+                        setContactPersonPhone(e.target.value);
+                      }}
+                      onChange={(e) => setContactPersonPhone(e.target.value)}
                     />
                   </div>
 
@@ -277,9 +398,9 @@ export const AccountsModule = ({ defaultView = 'list' }) => {
                     <div className="form-check">
                       <input
                         className="form-check-input"
-                        type="checkbox"
-                        name="is_bank"
                         id="is_bank"
+                        name="is_bank"
+                        type="checkbox"
                         checked={isBank}
                         onChange={(e) => setIsBank(e.target.checked)}
                       />
@@ -290,28 +411,23 @@ export const AccountsModule = ({ defaultView = 'list' }) => {
                   </div>
 
                   <div className="d-flex gap-2 justify-content-end">
+                    {!editingAccount && (
+                      <button
+                        className="btn btn-warning"
+                        type="button"
+                        onClick={resetForm}
+                      >
+                        পুনরায় সেট করুন
+                      </button>
+                    )}
                     <button
-                      type="button"
-                      onClick={() => {
-                        setAccName('');
-                        setAccDesc('');
-                        setAccNumber('');
-                        setContactPerson('');
-                        setContactPhone('');
-                        setIsBank(false);
-                      }}
-                      className="btn btn-warning"
-                    >
-                      পুনরায় সেট করুন
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveView('list')}
                       className="btn btn-danger"
+                      type="button"
+                      onClick={handleCancelCreateOrEdit}
                     >
                       বাতিল
                     </button>
-                    <button type="submit" className="btn btn-primary">
+                    <button className="btn btn-primary" type="submit">
                       {editingAccount ? 'আপডেট করুন' : 'এ্যাকাউন্ট যুক্ত করুন'}
                     </button>
                   </div>
@@ -322,7 +438,7 @@ export const AccountsModule = ({ defaultView = 'list' }) => {
         </div>
       )}
 
-      {/* 2. ACCOUNT LIST VIEW (Matches account_list.html) */}
+      {/* 2. ACCOUNT LIST VIEW (Matches 2_list.html) */}
       {activeView === 'list' && (
         <div className="row">
           <div className="col-12">
@@ -334,13 +450,8 @@ export const AccountsModule = ({ defaultView = 'list' }) => {
                     type="button"
                     onClick={() => {
                       setEditingAccount(null);
-                      setAccName('');
-                      setAccDesc('');
-                      setAccNumber('');
-                      setContactPerson('');
-                      setContactPhone('');
-                      setIsBank(false);
-                      setActiveView('create');
+                      resetForm();
+                      switchView('create', 'account-create');
                     }}
                     className="btn btn-success"
                   >
@@ -359,308 +470,46 @@ export const AccountsModule = ({ defaultView = 'list' }) => {
                         <th>বিবরণ</th>
                         <th>যোগাযোগ ব্যক্তি</th>
                         <th>মোবাইল</th>
-                        <th>ব্যালেন্স</th>
                         <th className="text-center">মুছুন</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {accounts.map((acc, index) => (
-                        <tr key={acc.id}>
-                          <td>{index + 1}</td>
-                          <td>
-                            <strong>{acc.name}</strong>
-                            {acc.isBank && (
-                              <span className="badge bg-info text-dark ms-2">ব্যাংক</span>
-                            )}
-                          </td>
-                          <td>{acc.accountNumber || '-'}</td>
-                          <td>{acc.description || '-'}</td>
-                          <td>{acc.contactPerson || '-'}</td>
-                          <td>{acc.mobile || '-'}</td>
-                          <td>
-                            <strong className="text-primary font-monospace">৳ {acc.balance.toFixed(2)}</strong>
-                          </td>
-                          <td className="text-center">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingAccount(acc);
-                                setAccName(acc.name);
-                                setAccDesc(acc.description || '');
-                                setAccNumber(acc.accountNumber || '');
-                                setContactPerson(acc.contactPerson || '');
-                                setContactPhone(acc.mobile || '');
-                                setIsBank(!!acc.isBank);
-                                setActiveView('create');
-                              }}
-                              className="btn btn-sm btn-warning me-1"
-                            >
-                              <i className="fa-solid fa-pen-to-square"></i> সম্পাদনা
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteAccount(acc.id)}
-                              className="btn btn-sm btn-danger delete-btn"
-                              title="ডিলিট"
-                            >
-                              <i className="fa-solid fa-trash"></i> মুছে ফেলুন
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 3. BALANCE TRANSFER VIEW (Matches account_transfer.html) */}
-      {activeView === 'transfer' && (
-        <>
-          <div className="card shadow-sm mb-4">
-            <div className="card-header bg-primary">
-              <h5 className="mb-0 text-white">
-                <i className="fa-solid fa-money-bill-transfer me-2"></i> ব্যলেন্স ট্রান্সফার
-              </h5>
-            </div>
-
-            <div className="card-body">
-              <form onSubmit={handleTransferSubmit}>
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <label htmlFor="from_account_id" className="form-label">
-                      প্রেরক অ্যাকাউন্ট <span className="text-danger">*</span>
-                    </label>
-                    <select
-                      name="from_account_id"
-                      id="from_account_id"
-                      className="form-select"
-                      value={fromAccount}
-                      onChange={(e) => setFromAccount(e.target.value)}
-                      required
-                    >
-                      <option value="">-- নির্বাচন করুন --</option>
-                      {accounts.map((acc) => (
-                        <option key={acc.id} value={acc.id}>
-                          {acc.name} - ব্যালেন্স: ৳ {acc.balance.toFixed(2)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="col-md-6 mb-3">
-                    <label htmlFor="to_account_id" className="form-label">
-                      প্রাপক অ্যাকাউন্ট <span className="text-danger">*</span>
-                    </label>
-                    <select
-                      name="to_account_id"
-                      id="to_account_id"
-                      className="form-select"
-                      value={toAccount}
-                      onChange={(e) => setToAccount(e.target.value)}
-                      required
-                    >
-                      <option value="">-- নির্বাচন করুন --</option>
-                      {accounts.map((acc) => (
-                        <option key={acc.id} value={acc.id}>
-                          {acc.name} - ব্যালেন্স: ৳ {acc.balance.toFixed(2)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="row">
-                  <div className="col-md-6 mb-3">
-                    <label htmlFor="amount" className="form-label">
-                      পরিমাণ (টাকা) <span className="text-danger">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      name="amount"
-                      id="amount"
-                      className="form-control font-monospace"
-                      step="0.01"
-                      min="0.01"
-                      value={transferAmount}
-                      onChange={(e) => setTransferAmount(e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div className="col-md-6 mb-3">
-                    <label htmlFor="transfer_date" className="form-label">
-                      তারিখ <span className="text-danger">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      name="transfer_date"
-                      id="transfer_date"
-                      className="form-control"
-                      value={transferDate}
-                      onChange={(e) => setTransferDate(e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="mb-3">
-                  <label htmlFor="note" className="form-label">নোট</label>
-                  <textarea
-                    name="note"
-                    id="note"
-                    rows="2"
-                    className="form-control"
-                    value={transferNote}
-                    onChange={(e) => setTransferNote(e.target.value)}
-                  ></textarea>
-                </div>
-
-                <div className="text-end">
-                  <button type="submit" className="btn btn-primary">
-                    <i className="fa-solid fa-exchange-alt me-1"></i> ট্রান্সফার করুন
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          {/* Transfer List Table */}
-          <div className="card shadow-sm">
-            <div className="card-header bg-primary">
-              <h5 className="mb-0 text-white">
-                <i className="fa-solid fa-list me-2"></i>ট্রান্সফার তালিকা
-              </h5>
-            </div>
-            <div className="card-body p-0">
-              <div className="table-responsive">
-                <table className="table table-hover table-bordered mb-0">
-                  <thead className="table bg-primary text-white">
-                    <tr>
-                      <th>নং</th>
-                      <th>প্রেরক এ্যাকাউন্ট</th>
-                      <th>প্রাপক এ্যাকাউন্ট</th>
-                      <th>পরিমাণ</th>
-                      <th>তারিখ</th>
-                      <th>নোট</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {transferLogs.map((log, index) => (
-                      <tr key={log.id}>
-                        <td>{index + 1}</td>
-                        <td>{log.from}</td>
-                        <td>{log.to}</td>
-                        <td className="font-monospace text-primary">৳ {log.amount.toFixed(2)}</td>
-                        <td>{log.date}</td>
-                        <td>{log.note || '-'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* 4. ACCOUNT REPORT VIEW (Matches account_report.html) */}
-      {activeView === 'report' && (
-        <>
-          <div className="card shadow-sm mb-4">
-            <div className="card-header bg-primary">
-              <h5 className="mb-0 text-white">
-                <i className="fa-solid fa-file-invoice me-2"></i> এ্যাকাউন্ট বিবরণ
-              </h5>
-            </div>
-
-            <div className="card-body">
-              <form onSubmit={(e) => { e.preventDefault(); setSearchedReport(true); }}>
-                <div className="row">
-                  <div className="col-md-4 mb-3">
-                    <label className="form-label fw-bold">শুরুর তারিখ</label>
-                    <input
-                      type="date"
-                      name="start_date"
-                      className="form-control"
-                      value={reportStartDate}
-                      onChange={(e) => setReportStartDate(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="col-md-4 mb-3">
-                    <label className="form-label fw-bold">শেষের তারিখ</label>
-                    <input
-                      type="date"
-                      name="end_date"
-                      className="form-control"
-                      value={reportEndDate}
-                      onChange={(e) => setReportEndDate(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="col-md-4 mb-3">
-                    <label className="form-label">&nbsp;</label>
-                    <button type="submit" className="btn btn-success fw-bold w-100">
-                      <i className="fa-solid fa-search me-1"></i> রিপোর্ট দেখাও
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </div>
-          </div>
-
-          {searchedReport && (
-            <div className="card shadow-sm">
-              <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <h5 className="mb-0 text-white">লেনদেন বিবরণী ফলাফল</h5>
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="btn btn-sm btn-light font-bold"
-                >
-                  <i className="fa-solid fa-print me-1"></i> প্রিন্ট
-                </button>
-              </div>
-              <div className="card-body p-0">
-                <div className="table-responsive">
-                  <table className="table table-bordered table-hover mb-0">
-                    <thead className="bg-light">
-                      <tr>
-                        <th>তারিখ</th>
-                        <th>ভাউচার / আইডি</th>
-                        <th>খাত / বিবরণ</th>
-                        <th>অ্যাকাউন্ট</th>
-                        <th>জমা (৳)</th>
-                        <th>খরচ (৳)</th>
-                        <th>ব্যালেন্স (৳)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {transactions.length === 0 ? (
+                      {accounts.length === 0 ? (
                         <tr>
                           <td colSpan="7" className="text-center py-4 text-muted">
-                            কোনো লেনদেন পাওয়া যায়নি
+                            কোন রেকর্ড নেই
                           </td>
                         </tr>
                       ) : (
-                        transactions.map((tx) => (
-                          <tr key={tx.id}>
-                            <td>{tx.date}</td>
-                            <td>{tx.voucherNo || tx.id}</td>
-                            <td>{tx.particulars || tx.category || '-'}</td>
-                            <td>{tx.account || '-'}</td>
-                            <td className="text-success font-monospace">
-                              {tx.type === 'deposit' ? `৳ ${Number(tx.amount).toFixed(2)}` : '-'}
+                        accounts.map((acc, index) => (
+                          <tr key={acc.id}>
+                            <td>{index + 1}</td>
+                            <td>
+                              <strong>{acc.name}</strong>
+                              {(acc.isBank || acc.is_bank) && (
+                                <span className="badge bg-info text-dark ms-2">ব্যাংক</span>
+                              )}
                             </td>
-                            <td className="text-danger font-monospace">
-                              {tx.type === 'expense' ? `৳ ${Number(tx.amount).toFixed(2)}` : '-'}
-                            </td>
-                            <td className="font-monospace fw-bold">
-                              ৳ {Number(tx.amount).toFixed(2)}
+                            <td>{acc.number || acc.accountNumber || ''}</td>
+                            <td>{acc.description || ''}</td>
+                            <td>{acc.contact_person || acc.contactPerson || ''}</td>
+                            <td>{acc.contact_person_phone || acc.mobile || ''}</td>
+                            <td className="text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleStartEdit(acc)}
+                                className="btn btn-sm btn-warning me-1"
+                              >
+                                <i className="fa-solid fa-pen-to-square me-1"></i> সম্পাদনা
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteAccountClick(acc)}
+                                className="btn btn-sm btn-danger delete-btn"
+                                title="মুছে ফেলুন"
+                              >
+                                <i className="fa-solid fa-trash me-1"></i> মুছে ফেলুন
+                              </button>
                             </td>
                           </tr>
                         ))
@@ -670,34 +519,420 @@ export const AccountsModule = ({ defaultView = 'list' }) => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. ACCOUNT REPORT / STATEMENT VIEW (Matches 3_report.html & 3_report_ddmmyyyy.html) */}
+      {activeView === 'report' && (
+        <>
+          <div className="card shadow-sm mb-4 no-print">
+            <div className="card-header bg-primary">
+              <h5 className="mb-0 text-white">
+                <i className="fa-solid fa-file-invoice me-2"></i> এ্যাকাউন্ট বিবরণ
+              </h5>
+            </div>
+            <div className="card-body">
+              <form onSubmit={handleReportSearch}>
+                <div className="row">
+                  <div className="col-md-4 mb-3">
+                    <label className="form-label fw-bold">শুরুর তারিখ</label>
+                    <input
+                      type="date"
+                      name="start_date"
+                      className="form-control"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-md-4 mb-3">
+                    <label className="form-label fw-bold">শেষের তারিখ</label>
+                    <input
+                      type="date"
+                      name="end_date"
+                      className="form-control"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-md-4 mb-3 d-flex align-items-end">
+                    <button type="submit" className="btn btn-success fw-bold w-100">
+                      <i className="fa-solid fa-search me-1"></i> রিপোর্ট দেখাও
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          {/* Results Card (shown only after search, matching live site behavior) */}
+          {hasSearched && (
+            <div className="card shadow-sm mb-4" id="printContent">
+              <div className="card-body">
+                <img
+                  src={bannerSrc}
+                  alt="Banner"
+                  className="w-100 img-fluid mb-2"
+                  style={{ maxHeight: '160px', objectFit: 'contain' }}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg';
+                  }}
+                />
+                <div className="row mt-3">
+                  <div className="col-md-2"></div>
+                  <div className="col-md-8 text-center">
+                    <h5 className="text-success fw-semibold mb-1">অ্যাকাউন্ট বিবরণ</h5>
+                    <p className="mb-2 text-muted">
+                      {formatDateDDMMYYYY(appliedFilter.start)} - {formatDateDDMMYYYY(appliedFilter.end)}
+                    </p>
+                  </div>
+                  <div className="col-md-2 text-end"></div>
+                </div>
+
+                <div className="table-responsive mt-2">
+                  <table className="table table-bordered table-striped align-middle mb-0 print-table">
+                    <thead className="table-primary print-thead">
+                      <tr className="text-center text-white">
+                        <th style={{ width: '60px' }}>ক্রম</th>
+                        <th style={{ width: '110px' }}>তারিখ</th>
+                        <th>এ্যাকাউন্ট</th>
+                        <th style={{ width: '90px' }}>জমা/খরচ</th>
+                        <th>খাত</th>
+                        <th>বিবরণ</th>
+                        <th style={{ width: '180px' }}>জমা</th>
+                        <th style={{ width: '180px' }}>খরচ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {displayedReportTransactions.length === 0 ? (
+                        <tr>
+                          <td colSpan="8" className="text-center py-4 text-muted">
+                            কোন রেকর্ড নেই
+                          </td>
+                        </tr>
+                      ) : (
+                        displayedReportTransactions.map((tx, idx) => {
+                          const serial = (reportPage - 1) * reportPerPage + idx + 1;
+                          const isDep = tx.type === 'deposit';
+                          const isExp = tx.type === 'expense';
+                          const amtNum = parseFloat(tx.totalAmount || tx.amount || 0);
+
+                          return (
+                            <tr key={tx.id || idx}>
+                              <td className="text-center">{serial}</td>
+                              <td className="text-center">{formatDateDDMMYYYY(tx.date)}</td>
+                              <td className="text-center">{tx.account || '-'}</td>
+                              <td className="text-center">
+                                {isDep ? (
+                                  <span className="badge bg-success">জমা</span>
+                                ) : isExp ? (
+                                  <span className="badge bg-danger">খরচ</span>
+                                ) : (
+                                  '-'
+                                )}
+                              </td>
+                              <td>
+                                {tx.category || (tx.items && tx.items[0]?.category) || '-'}
+                              </td>
+                              <td>
+                                {tx.description || tx.particulars || (tx.items && tx.items[0]?.description) || '-'}
+                              </td>
+                              <td className="text-center fw-bold">
+                                {isDep ? formatMoney(amtNum) : '-'}
+                              </td>
+                              <td className="text-center fw-bold">
+                                {isExp ? formatMoney(amtNum) : '-'}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                    <tfoot className="table-secondary">
+                      <tr>
+                        <td className="text-end fw-bold" colSpan="6">
+                          মোট:
+                        </td>
+                        <td className="text-center fw-bold">
+                          {formatMoney(totalDeposit)}
+                          <br />
+                          <small className="fw-normal">
+                            ({numberToBengaliWords(totalDeposit)} টাকা মাত্র)
+                          </small>
+                        </td>
+                        <td className="text-center fw-bold">
+                          {formatMoney(totalExpense)}
+                          <br />
+                          <small className="fw-normal">
+                            ({numberToBengaliWords(totalExpense)} টাকা মাত্র)
+                          </small>
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+
+                {/* Pagination controls (no-print) */}
+                <div className="d-flex flex-wrap justify-content-between align-items-center mt-3 no-print">
+                  <div className="pagination-info text-muted small">
+                    মোট {totalReportEntries} টি এন্ট্রি থেকে{' '}
+                    {totalReportEntries > 0 ? (reportPage - 1) * reportPerPage + 1 : 0} -{' '}
+                    {Math.min(reportPage * reportPerPage, totalReportEntries)} দেখাচ্ছে
+                  </div>
+                  {totalReportPages > 1 && (
+                    <ul className="pagination pagination-sm mb-0">
+                      <li className={`page-item ${reportPage === 1 ? 'disabled' : ''}`}>
+                        <button
+                          type="button"
+                          className="page-link"
+                          onClick={() => setReportPage((p) => Math.max(1, p - 1))}
+                        >
+                          পূর্ববর্তী
+                        </button>
+                      </li>
+                      {Array.from({ length: totalReportPages }, (_, i) => i + 1).map((pNum) => (
+                        <li
+                          key={pNum}
+                          className={`page-item ${reportPage === pNum ? 'active' : ''}`}
+                        >
+                          <button
+                            type="button"
+                            className="page-link"
+                            onClick={() => setReportPage(pNum)}
+                          >
+                            {pNum}
+                          </button>
+                        </li>
+                      ))}
+                      <li className={`page-item ${reportPage === totalReportPages ? 'disabled' : ''}`}>
+                        <button
+                          type="button"
+                          className="page-link"
+                          onClick={() => setReportPage((p) => Math.min(totalReportPages, p + 1))}
+                        >
+                          পরবর্তী
+                        </button>
+                      </li>
+                    </ul>
+                  )}
+                </div>
+
+                {/* Print Button */}
+                <div className="m-3 d-flex justify-content-end no-print">
+                  <button
+                    type="button"
+                    className="btn btn-primary fw-bold"
+                    onClick={() => window.print()}
+                  >
+                    <i className="fa-solid fa-print me-2"></i> প্রিন্ট করুন
+                  </button>
+                </div>
+              </div>
+            </div>
           )}
         </>
       )}
 
-      {/* 5. BALANCESHEET VIEW (Matches account_balancesheet.html) */}
+      {/* 4. BALANCE TRANSFER VIEW (Matches 4_transfer.html) */}
+      {activeView === 'transfer' && (
+        <>
+          <div className="card shadow-sm mb-4">
+            <div className="card-header bg-primary">
+              <h5 className="mb-0 text-white">
+                <i className="fa-solid fa-money-bill-transfer me-2"></i> ব্যলেন্স ট্রান্সফার
+              </h5>
+            </div>
+            <div className="card-body">
+              <form onSubmit={handleTransferSubmit}>
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label" htmlFor="from_account_id">
+                      প্রেরক অ্যাকাউন্ট <span className="text-danger">*</span>
+                    </label>
+                    <select
+                      className="form-select"
+                      id="from_account_id"
+                      name="from_account_id"
+                      required
+                      value={fromAccountId}
+                      onChange={(e) => setFromAccountId(e.target.value)}
+                    >
+                      <option value="">-- নির্বাচন করুন --</option>
+                      {accounts.map((acc) => (
+                        <option key={acc.id} value={acc.id}>
+                          {acc.name} - ব্যালেন্স: ৳ {formatMoney(acc.balance || 0)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label" htmlFor="to_account_id">
+                      প্রাপক অ্যাকাউন্ট <span className="text-danger">*</span>
+                    </label>
+                    <select
+                      className="form-select"
+                      id="to_account_id"
+                      name="to_account_id"
+                      required
+                      value={toAccountId}
+                      onChange={(e) => setToAccountId(e.target.value)}
+                    >
+                      <option value="">-- নির্বাচন করুন --</option>
+                      {accounts.map((acc) => (
+                        <option key={acc.id} value={acc.id}>
+                          {acc.name} - ব্যালেন্স: ৳ {formatMoney(acc.balance || 0)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label" htmlFor="amount">
+                      পরিমাণ (টাকা) <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      className="form-control"
+                      id="amount"
+                      min="0.01"
+                      step="0.01"
+                      name="amount"
+                      required
+                      type="number"
+                      value={transferAmount}
+                      onChange={(e) => setTransferAmount(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label" htmlFor="transfer_date">
+                      তারিখ <span className="text-danger">*</span>
+                    </label>
+                    <input
+                      className="form-control"
+                      id="transfer_date"
+                      name="transfer_date"
+                      required
+                      type="date"
+                      value={transferDate}
+                      onChange={(e) => setTransferDate(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label" htmlFor="note">
+                    নোট
+                  </label>
+                  <textarea
+                    className="form-control"
+                    id="note"
+                    name="note"
+                    rows="2"
+                    value={transferNote}
+                    onChange={(e) => setTransferNote(e.target.value)}
+                  ></textarea>
+                </div>
+
+                <div className="text-end">
+                  <button className="btn btn-primary" type="submit">
+                    <i className="fa-solid fa-exchange-alt me-1"></i> ট্রান্সফার করুন
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          {/* Transfer List */}
+          <div className="card shadow-sm">
+            <div className="card-header bg-primary">
+              <h5 className="mb-0 text-white">
+                <i className="fa-solid fa-list me-2"></i> ট্রান্সফার তালিকা
+              </h5>
+            </div>
+            <div className="card-body">
+              <div className="table-responsive">
+                <table className="table table-bordered table-hover mb-0">
+                  <thead className="table-light">
+                    <tr>
+                      <th style={{ width: '60px' }}>ক্রম</th>
+                      <th style={{ width: '120px' }}>তারিখ</th>
+                      <th>প্রেরক</th>
+                      <th>প্রাপক</th>
+                      <th>পরিমাণ</th>
+                      <th>নোট</th>
+                      <th className="text-center" style={{ width: '110px' }}>
+                        অ্যাকশন
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {transfers.length === 0 ? (
+                      <tr>
+                        <td className="text-center" colSpan="7">
+                          কোন রেকর্ড নেই
+                        </td>
+                      </tr>
+                    ) : (
+                      transfers.map((t, idx) => (
+                        <tr key={t.id || idx}>
+                          <td className="text-center">{idx + 1}</td>
+                          <td>{t.date}</td>
+                          <td>{t.from}</td>
+                          <td>{t.to}</td>
+                          <td className="fw-bold font-monospace text-primary">
+                            ৳{formatMoney(t.amount)}
+                          </td>
+                          <td>{t.note || ''}</td>
+                          <td className="text-center">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteTransferClick(t.id)}
+                              className="btn btn-sm btn-danger delete-btn"
+                              title="মুছে ফেলুন"
+                            >
+                              <i className="fa-solid fa-trash me-1"></i> মুছে ফেলুন
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* 5. BALANCESHEET VIEW (Matches 5_balancesheet.html) */}
       {activeView === 'balancesheet' && (
         <div className="card border-0 shadow-sm mb-4" id="printContent">
           <div className="card-body py-4">
             <img
-              src="https://madrasha.hostzonebd.com/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg"
+              src={bannerSrc}
               alt="Banner"
-              className="w-100 img-fluid mb-3"
+              className="w-100 img-fluid"
+              style={{ maxHeight: '160px', objectFit: 'contain' }}
               onError={(e) => {
-                e.target.style.display = 'none';
+                e.target.onerror = null;
+                e.target.src = '/storage/institute/banners/Nn41tAOrEkJExjPWHQgOL8DElvFavVh1oR3RVNJq.jpg';
               }}
             />
             <div className="row mt-3">
               <div className="col-md-2"></div>
               <div className="col-md-8 text-center">
-                <h5 className="fw-semibold" style={{ color: '#2c5f2d' }}>ব্যলেন্স সিট</h5>
+                <h5 className="fw-semibold" style={{ color: '#2c5f2d' }}>
+                  ব্যলেন্স সিট
+                </h5>
               </div>
               <div className="col-md-2 text-end">
-                <p className="mb-0 fw-semibold">{todayStr} ইং</p>
+                <p className="mb-0 fw-semibold">{formattedCurrentDateBangla}</p>
               </div>
             </div>
           </div>
-
-          <div className="table-responsive card-body pt-0">
+          <div className="table-responsive card-body">
             <table className="table table-bordered table-striped align-middle mb-0 print-table text-center">
               <thead className="bg-primary print-thead">
                 <tr className="text-center text-white">
@@ -708,28 +943,85 @@ export const AccountsModule = ({ defaultView = 'list' }) => {
                 </tr>
               </thead>
               <tbody>
-                {accounts.map((acc, index) => (
-                  <tr key={acc.id}>
-                    <td className="text-center">{index + 1}</td>
-                    <td>{acc.name}</td>
-                    <td>{acc.accountNumber || '-'}</td>
-                    <td>
-                      {acc.balance}
-                      <br />
-                      <small className="text-muted">
-                        ({numberToBengaliWords(acc.balance)} টাকা মাত্র)
-                      </small>
+                {accounts.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="text-center py-4 text-muted">
+                      কোন রেকর্ড নেই
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  accounts.map((acc, index) => (
+                    <tr key={acc.id}>
+                      <td className="text-center">{index + 1}</td>
+                      <td>{acc.name}</td>
+                      <td>{acc.number || acc.accountNumber || ''}</td>
+                      <td>
+                        {acc.balance}
+                        <br />
+                        ({numberToBengaliWords(acc.balance)} টাকা মাত্র)
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
-
           <div className="m-3 d-flex justify-content-end no-print">
-            <button className="btn btn-primary fw-bold" onClick={() => window.print()}>
+            <button
+              type="button"
+              className="btn btn-primary fw-bold"
+              onClick={() => window.print()}
+            >
               <i className="fa-solid fa-print me-2"></i> প্রিন্ট করুন
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* SweetAlert2-Style Confirmation Modal (Matching Live Site Swal.fire) */}
+      {confirmModal.isOpen && (
+        <div
+          className="modal fade show d-block no-print"
+          tabIndex="-1"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 1055 }}
+        >
+          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: '420px' }}>
+            <div className="modal-content border-0 shadow-lg text-center p-4 rounded-4">
+              <div className="modal-body p-0">
+                <div
+                  className="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle"
+                  style={{
+                    width: '70px',
+                    height: '70px',
+                    border: '4px solid #facea8',
+                    color: '#f8bb86'
+                  }}
+                >
+                  <span style={{ fontSize: '38px', fontWeight: 'bold' }}>!</span>
+                </div>
+                <h4 className="fw-bold mb-2 text-dark">{confirmModal.title}</h4>
+                <p className="text-muted mb-4 small">{confirmModal.text}</p>
+                <div className="d-flex justify-content-center gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-danger px-4 fw-bold"
+                    onClick={() => {
+                      if (confirmModal.onConfirm) confirmModal.onConfirm();
+                    }}
+                  >
+                    {confirmModal.confirmText}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary px-4 fw-bold"
+                    style={{ backgroundColor: '#3085d6', borderColor: '#3085d6' }}
+                    onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                  >
+                    {confirmModal.cancelText}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

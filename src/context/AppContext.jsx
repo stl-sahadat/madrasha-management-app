@@ -23,90 +23,12 @@ import {
   INITIAL_SALARY_PAYMENTS,
   INITIAL_USERS
 } from '../data/initialData';
-
-export function pathnameToTab(pathname) {
-  if (!pathname || pathname === '/' || pathname === '/dashboard') return 'dashboard';
-  const clean = pathname.replace(/^\/+/, '').replace(/\/+$/, '');
-
-  if (clean === 'dashboard') return 'dashboard';
-
-  // Admin and classic routes mapping
-  if (clean === 'admin/student/create' || clean === 'student/create') return 'student-create';
-  if (clean === 'admin/student' || clean === 'admin/student/list' || clean === 'student/list') return 'student-list';
-  if (clean === 'admin/student-by-class' || clean === 'admin/student/by/jamat') return 'jamat-grid';
-  if (clean === 'admin/student-admission-report' || clean === 'admin/student/admission/report/by/jamat') return 'student-admission-report';
-  if (clean === 'admin/student-admission-register' || clean === 'admin/student/admission/register/by/jamat') return 'student-admission-register';
-  if (clean === 'admin/student-blood-group' || clean === 'admin/student/bloodgroup') return 'student-bloodgroup';
-  if (clean === 'admin/student-parents-number' || clean === 'admin/student/parents/number/by/jamat') return 'student-parents-number';
-  if (clean === 'admin/khuraki-deposit-entry' || clean === 'admin/student/deposit/entry') return 'student-khuraki-entry';
-  if (clean === 'admin/khuraki-deposit-list' || clean === 'admin/student/deposit/list') return 'student-khuraki-list';
-  if (clean === 'admin/khuraki-collection-register' || clean === 'admin/student/deposit/register') return 'student-khuraki-register';
-  if (clean === 'admin/salary-deposit-entry' || clean === 'admin/student/salary/payment') return 'student-salary-entry';
-  if (clean === 'admin/salary-deposit-list' || clean === 'admin/student/salary/payment/list') return 'student-salary-list';
-  if (clean === 'admin/salary-collection-register' || clean === 'admin/student/salary/payment/register') return 'student-salary-register';
-  if (clean === 'admin/student/admission/form') return 'student-admission-form';
-  if (clean === 'admin/student/prottoyon/potro') return 'student-prottoyon';
-  if (clean === 'admin/student/certificate') return 'student-certificate';
-
-  // Teacher routes
-  if (clean === 'admin/teacher/create' || clean === 'teacher/create') return 'teacher-create';
-  if (clean === 'admin/teacher' || clean === 'teacher/list') return 'teacher-list';
-  if (clean === 'admin/teacher/number') return 'teacher-number';
-  if (clean === 'admin/teacher/salary/sheet') return 'teacher-salary-sheet';
-  if (clean === 'admin/teacher/salary/day') return 'teacher-salary-day';
-  if (clean === 'admin/teacher/salary/list') return 'teacher-salary-list';
-
-  // Monthly Donor / Contributor routes
-  if (clean === 'admin/contributor' || clean === 'admin/monthly-donor') return 'contributor-list';
-  if (clean === 'admin/contributor/monthly/subscription/add') return 'contributor-add';
-  if (clean === 'admin/contributor/monthly/individual/contributor/list') return 'contributor-individual';
-  if (clean === 'admin/contributor/monthly/contributors/list') return 'contributor-all';
-  if (clean === 'admin/contributor/monthly/contribution/list') return 'contributor-history';
-
-  // Settings routes
-  if (clean === 'admin/settings' || clean === 'admin/settings/institute/info') return 'settings-institute';
-  if (clean === 'admin/settings/jamat/create') return 'settings-jamat';
-  if (clean === 'admin/settings/payment/create') return 'settings-payment';
-  if (clean === 'admin/settings/deposit/category/create') return 'settings-deposit-cat';
-  if (clean === 'admin/settings/expense/category/create') return 'settings-expense-cat';
-  if (clean === 'admin/settings/receiver') return 'settings-receiver';
-  if (clean === 'admin/settings/role') return 'settings-role';
-  if (clean === 'admin/settings/user') return 'settings-user';
-
-  if (clean === 'admin/donor') return 'donor-list';
-  if (clean === 'admin/zakat-donor') return 'zakat-donor-list';
-  if (clean === 'admin/bazar') return 'bazar-weekly-create';
-  if (clean === 'admin/committee') return 'committee-list';
-  if (clean === 'admin/attendance') return 'attendance-student';
-  if (clean === 'admin/result') return 'result-create';
-  if (clean === 'admin/voucher/deposit') return 'voucher-deposit';
-  if (clean === 'admin/voucher/expense') return 'voucher-expense';
-  if (clean === 'admin/id-card') return 'idcard-student';
-  if (clean === 'admin/sms') return 'sms-student';
-  if (clean === 'admin/account') return 'account-list';
-  if (clean === 'admin/report/daily/deposit-expense' || clean === 'report/daily/deposit-expense') return 'report-daily';
-  if (clean === 'admin/report/yearly/deposit-expense' || clean === 'report/yearly/deposit-expense') return 'report-yearly';
-  if (clean === 'admin/report/bank' || clean === 'report/bank') return 'report-bank';
-  if (clean === 'admin/report/deposit' || clean === 'report/deposit' || clean === 'admin/report' || clean === 'report') return 'report-deposit';
-  if (clean === 'admin/report/expense' || clean === 'report/expense') return 'report-expense';
-  if (clean === 'admin/report/student/deposit' || clean === 'report/student/deposit') return 'report-student-deposit';
-  if (clean === 'admin/report/student/salary/deposit' || clean === 'report/student/salary/deposit' || clean === 'admin/report/student/salary') return 'report-student-salary';
-  if (clean === 'admin/report/deposit/account' || clean === 'report/deposit/account') return 'report-deposit-account';
-  if (clean === 'admin/report/expense/account' || clean === 'report/expense/account') return 'report-expense-account';
-  if (clean === 'admin/report/monthly/donors' || clean === 'report/monthly/donors') return 'report-monthly-donors';
-  if (clean === 'admin/report/account/deposit' || clean === 'report/account/deposit') return 'report-account-deposit';
-  if (clean === 'admin/report/account/expense' || clean === 'report/account/expense') return 'report-account-expense';
-  if (clean === 'admin/report/deposit-expense' || clean === 'report/deposit-expense') return 'report-deposit-expense';
-  if (clean === 'admin/report/account/details' || clean === 'report/account/details') return 'report-account-details';
-  if (clean === 'admin/login' || clean === 'login') return 'login';
-  if (clean === 'admin/register' || clean === 'register' || clean === 'signup') return 'register';
-
-  return clean;
-}
+import { pathnameToTab } from '../utils/routing';
+export { pathnameToTab };
 
 const AppContext = createContext();
 
-export const AppProvider = ({ children, initialSlug }) => {
+export const AppProvider = ({ children, initialSlug, initialSearchParams }) => {
   // Load saved state or use initial seeds
   const [profile, setProfile] = useState(() => {
     try {
@@ -150,6 +72,15 @@ export const AppProvider = ({ children, initialSlug }) => {
       return saved ? JSON.parse(saved) : ACCOUNTS;
     } catch {
       return ACCOUNTS;
+    }
+  });
+
+  const [transfers, setTransfers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('madrasha_account_transfers');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
     }
   });
 
@@ -422,6 +353,30 @@ export const AppProvider = ({ children, initialSlug }) => {
           ? '/admin/report/deposit-expense'
           : tab === 'report-account-details'
           ? '/admin/report/account/details'
+          : tab === 'account-create'
+          ? '/admin/account/create'
+          : tab.startsWith('account-edit:')
+          ? `/admin/account/${tab.split(':')[1]}/edit`
+          : tab === 'account-edit'
+          ? '/admin/account/1/edit'
+          : tab === 'account-list' || tab === 'accounts-list'
+          ? '/admin/account'
+          : tab === 'account-report'
+          ? '/admin/account/account/report'
+          : tab === 'accounts-transfer' || tab === 'balance-transfer'
+          ? '/admin/account/balance/transfer'
+          : tab === 'balancesheet'
+          ? '/admin/account/balancesheet'
+          : tab === 'idcard-teacher'
+          ? '/admin/id-card/teacher'
+          : tab === 'idcard-student'
+          ? '/admin/id-card'
+          : tab === 'sms-student' || tab === 'sms-client' || tab === 'sms-send'
+          ? '/admin/sms/send-to-client'
+          : tab === 'sms-teacher'
+          ? '/admin/sms/send-to-teacher'
+          : tab === 'sms-logs'
+          ? '/admin/sms/history'
           : '/' + tab;
       if (window.location.pathname !== targetPath) {
         window.history.pushState({ tab }, '', targetPath);
@@ -516,6 +471,10 @@ export const AppProvider = ({ children, initialSlug }) => {
   useEffect(() => {
     try { localStorage.setItem('madrasha_accounts', JSON.stringify(accounts)); } catch {}
   }, [accounts]);
+
+  useEffect(() => {
+    try { localStorage.setItem('madrasha_account_transfers', JSON.stringify(transfers)); } catch {}
+  }, [transfers]);
 
   useEffect(() => {
     try { localStorage.setItem('madrasha_teachers', JSON.stringify(teachers)); } catch {}
@@ -876,20 +835,123 @@ export const AppProvider = ({ children, initialSlug }) => {
     showToast(`শিক্ষক ${newTeacher.name} সফলভাবে যুক্ত হয়েছেন!`);
   };
 
-  // Account Transfer
-  const transferAccount = (fromAccountName, toAccountName, amount, note) => {
+  // Account Management
+  const addAccount = (accData) => {
+    const newAcc = {
+      id: `acc-${Date.now()}`,
+      name: accData.name ? accData.name.trim() : '',
+      description: accData.description ? accData.description.trim() : '',
+      accountNumber: accData.accountNumber ? accData.accountNumber.trim() : (accData.number ? accData.number.trim() : ''),
+      number: accData.number ? accData.number.trim() : (accData.accountNumber ? accData.accountNumber.trim() : ''),
+      contactPerson: accData.contactPerson ? accData.contactPerson.trim() : (accData.contact_person ? accData.contact_person.trim() : ''),
+      contact_person: accData.contact_person ? accData.contact_person.trim() : (accData.contactPerson ? accData.contactPerson.trim() : ''),
+      mobile: accData.mobile ? accData.mobile.trim() : (accData.contact_person_phone ? accData.contact_person_phone.trim() : ''),
+      contact_person_phone: accData.contact_person_phone ? accData.contact_person_phone.trim() : (accData.mobile ? accData.mobile.trim() : ''),
+      isBank: !!accData.isBank || !!accData.is_bank,
+      balance: parseFloat(accData.balance) || 0
+    };
+    setAccounts(prev => [...prev, newAcc]);
+    showToast(`নতুন এ্যাকাউন্ট "${newAcc.name}" সফলভাবে তৈরি হয়েছে!`);
+    return newAcc;
+  };
+
+  const updateAccount = (id, accData) => {
+    setAccounts(prev => prev.map(a => {
+      if (a.id === id) {
+        return {
+          ...a,
+          name: accData.name ? accData.name.trim() : a.name,
+          description: accData.description !== undefined ? accData.description.trim() : a.description,
+          accountNumber: accData.accountNumber !== undefined ? accData.accountNumber.trim() : (accData.number !== undefined ? accData.number.trim() : a.accountNumber),
+          number: accData.number !== undefined ? accData.number.trim() : (accData.accountNumber !== undefined ? accData.accountNumber.trim() : a.number),
+          contactPerson: accData.contactPerson !== undefined ? accData.contactPerson.trim() : (accData.contact_person !== undefined ? accData.contact_person.trim() : a.contactPerson),
+          contact_person: accData.contact_person !== undefined ? accData.contact_person.trim() : (accData.contactPerson !== undefined ? accData.contactPerson.trim() : a.contact_person),
+          mobile: accData.mobile !== undefined ? accData.mobile.trim() : (accData.contact_person_phone !== undefined ? accData.contact_person_phone.trim() : a.mobile),
+          contact_person_phone: accData.contact_person_phone !== undefined ? accData.contact_person_phone.trim() : (accData.mobile !== undefined ? accData.mobile.trim() : a.contact_person_phone),
+          isBank: accData.isBank !== undefined ? !!accData.isBank : (accData.is_bank !== undefined ? !!accData.is_bank : a.isBank)
+        };
+      }
+      return a;
+    }));
+    showToast('এ্যাকাউন্ট সফলভাবে আপডেট করা হয়েছে!');
+  };
+
+  const deleteAccount = (id, skipConfirm = false) => {
+    const acc = accounts.find(a => a.id === id);
+    if (skipConfirm || (typeof window !== 'undefined' && window.confirm('আপনি কি নিশ্চিত? একবার মুছে ফেলা হলে এটি পুনরুদ্ধার করা যাবে না!'))) {
+      setAccounts(prev => prev.filter(a => a.id !== id));
+      showToast('এ্যাকাউন্ট সফলভাবে মুছে ফেলা হয়েছে!');
+      return true;
+    }
+    return false;
+  };
+
+  // Account Transfer with validation and logging
+  const transferAccount = (fromAccountIdOrName, toAccountIdOrName, amount, note, transferDate) => {
     const amt = parseFloat(amount);
-    if (!amt || amt <= 0) return;
+    if (!amt || amt <= 0) {
+      if (typeof window !== 'undefined') window.alert('সঠিক টাকার পরিমাণ লিখুন');
+      return false;
+    }
+    const src = accounts.find(a => String(a.id) === String(fromAccountIdOrName) || a.name === fromAccountIdOrName);
+    const dest = accounts.find(a => String(a.id) === String(toAccountIdOrName) || a.name === toAccountIdOrName);
+    if (!src || !dest) {
+      if (typeof window !== 'undefined') window.alert('অনুগ্রহ করে সঠিক অ্যাকাউন্ট নির্বাচন করুন');
+      return false;
+    }
+    if (src.id === dest.id) {
+      if (typeof window !== 'undefined') window.alert('প্রেরক এবং প্রাপক একই অ্যাকাউন্ট হতে পারে না');
+      return false;
+    }
+    if ((src.balance || 0) < amt) {
+      if (typeof window !== 'undefined') window.alert('প্রেরক অ্যাকাউন্টে পর্যাপ্ত ব্যালেন্স নেই');
+      return false;
+    }
+
     setAccounts(prev => prev.map(acc => {
-      if (acc.name === fromAccountName) {
+      if (acc.id === src.id) {
         return { ...acc, balance: +(acc.balance - amt).toFixed(2) };
       }
-      if (acc.name === toAccountName) {
+      if (acc.id === dest.id) {
         return { ...acc, balance: +(acc.balance + amt).toFixed(2) };
       }
       return acc;
     }));
-    showToast(`৳ ${amt} সফলভাবে ট্রান্সফার করা হয়েছে!`);
+
+    const date = transferDate || new Date().toISOString().split('T')[0];
+    const newTransfer = {
+      id: Date.now(),
+      date,
+      from: src.name,
+      fromId: src.id,
+      to: dest.name,
+      toId: dest.id,
+      amount: amt,
+      note: note || ''
+    };
+    setTransfers(prev => [newTransfer, ...prev]);
+    showToast(`৳ ${amt} সফলভাবে ${src.name} থেকে ${dest.name}-এ স্থানান্তর করা হয়েছে!`);
+    return true;
+  };
+
+  const deleteAccountTransfer = (transferId, skipConfirm = false) => {
+    const t = transfers.find(item => item.id === transferId);
+    if (!t) return false;
+    if (skipConfirm || (typeof window !== 'undefined' && window.confirm('আপনি কি নিশ্চিত যে এই ট্রান্সফার রেকর্ডটি মুছে ফেলতে চান? ব্যালেন্স পুনরায় সমন্বয় করা হবে।'))) {
+      setAccounts(prev => prev.map(acc => {
+        if (acc.id === t.fromId || acc.name === t.from) {
+          return { ...acc, balance: +(acc.balance + t.amount).toFixed(2) };
+        }
+        if (acc.id === t.toId || acc.name === t.to) {
+          return { ...acc, balance: +(acc.balance - t.amount).toFixed(2) };
+        }
+        return acc;
+      }));
+      setTransfers(prev => prev.filter(item => item.id !== transferId));
+      showToast('ট্রান্সফার রেকর্ড সফলভাবে মুছে ফেলা হয়েছে এবং ব্যালেন্স ফিরিয়ে নেওয়া হয়েছে!');
+      return true;
+    }
+    return false;
   };
 
   // Add Contributor
@@ -1621,6 +1683,7 @@ export const AppProvider = ({ children, initialSlug }) => {
       localStorage.removeItem('madrasha_jamats');
       localStorage.removeItem('madrasha_transactions');
       localStorage.removeItem('madrasha_accounts');
+      localStorage.removeItem('madrasha_account_transfers');
       localStorage.removeItem('madrasha_teachers');
       localStorage.removeItem('madrasha_committee');
       localStorage.removeItem('madrasha_dep_categories');
@@ -1647,6 +1710,7 @@ export const AppProvider = ({ children, initialSlug }) => {
     setJamats(JAMATS);
     setTransactions(INITIAL_TRANSACTIONS);
     setAccounts(ACCOUNTS);
+    setTransfers([]);
     setTeachers(INITIAL_TEACHERS);
     setCommittee(INITIAL_COMMITTEE);
     setDepositCategories(DEPOSIT_CATEGORIES);
@@ -1738,6 +1802,7 @@ export const AppProvider = ({ children, initialSlug }) => {
         setStudentSalaryPayments,
         activeTab,
         setActiveTab,
+        initialSearchParams,
         sidebarOpen,
         setSidebarOpen,
         selectedReceiptForPrint,
@@ -1776,6 +1841,12 @@ export const AppProvider = ({ children, initialSlug }) => {
         addKhurakiPayment,
         addStudentFeePayment,
         transferAccount,
+        transfers,
+        setTransfers,
+        deleteAccountTransfer,
+        addAccount,
+        updateAccount,
+        deleteAccount,
         resetToDemoData,
         totalStudentsCount,
         currentMonthDeposits,

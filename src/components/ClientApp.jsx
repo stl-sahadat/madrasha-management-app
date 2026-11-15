@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { AppProvider } from '../context/AppContext';
 import { App } from '../App';
 
-export default function ClientApp({ initialSlug }) {
+export default function ClientApp({ initialSlug, initialSearchParams }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function ClientApp({ initialSlug }) {
   }
 
   return (
-    <AppProvider initialSlug={initialSlug}>
+    <AppProvider initialSlug={initialSlug} initialSearchParams={initialSearchParams}>
       <App />
     </AppProvider>
   );

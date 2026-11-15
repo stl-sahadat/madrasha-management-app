@@ -16,9 +16,15 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
   // Exam Filters
   const [examName, setExamName] = useState('বার্ষিক মূল্যায়ন পরীক্ষা ২০২৬');
   const [examSubject, setExamSubject] = useState('কুরআন হিফজ ও তাজবীদ');
+  const [selectedResultJamat, setSelectedResultJamat] = useState('all');
   const [individualStudentId, setIndividualStudentId] = useState(students?.[0]?.id || '');
 
-  // Student Attendance: { [studentId]: 'present' | 'absent' | 'leave' }
+  const filteredResultStudents = React.useMemo(() => {
+    if (selectedResultJamat === 'all') return students;
+    return students.filter(s => s.jamat === selectedResultJamat);
+  }, [students, selectedResultJamat]);
+
+  // Student Attendance: { [studentId]: { status: 'present' | 'absent' | 'sick' | 'leave', note: '' } }
   const [studentStatus, setStudentStatus] = useState(() => {
     const map = {};
     (students || []).forEach(s => {
@@ -27,14 +33,32 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
     return map;
   });
 
-  // Teacher Attendance: { [teacherId]: { status: 'present' | 'absent' | 'leave', inTime: '08:30 AM', outTime: '04:30 PM', note: '' } }
+  // Teacher Attendance: { [teacherId]: { status: 'present' | 'absent' | 'sick' | 'leave', note: '' } }
   const [teacherStatus, setTeacherStatus] = useState(() => {
     const map = {};
     (teachers || []).forEach(t => {
-      map[t.id] = { status: 'present', inTime: '08:30 AM', outTime: '04:30 PM', note: '' };
+      map[t.id] = { status: 'present', note: '' };
     });
     return map;
   });
+
+  const handleMarkAllStudentsPresent = () => {
+    const updated = { ...studentStatus };
+    currentJamatStudents.forEach(s => {
+      updated[s.id] = { ...(updated[s.id] || {}), status: 'present' };
+    });
+    setStudentStatus(updated);
+    if (showToast) showToast('সকল শিক্ষার্থীকে উপস্থিত হিসেবে চিহ্নিত করা হয়েছে');
+  };
+
+  const handleMarkAllTeachersPresent = () => {
+    const updated = { ...teacherStatus };
+    teachers.forEach(t => {
+      updated[t.id] = { ...(updated[t.id] || {}), status: 'present' };
+    });
+    setTeacherStatus(updated);
+    if (showToast) showToast('সকল শিক্ষককে উপস্থিত হিসেবে চিহ্নিত করা হয়েছে');
+  };
 
   // Marks: { [studentId]: { marks: 85, note: 'সন্তোষজনক' } }
   const [studentMarks, setStudentMarks] = useState(() => {
@@ -115,26 +139,32 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
                   />
                 </div>
 
-                {/* Submit Filter */}
-                <div className="col-md-4">
-                  <button type="button" className="btn btn-success fw-bold w-100">
-                    <i className="fa-solid fa-eye me-1"></i> ছাত্র/ছাত্রী দেখান ({currentJamatStudents.length} জন)
+                {/* Submit Filter & Quick Action */}
+                <div className="col-md-4 d-flex gap-2">
+                  <button type="button" className="btn btn-success fw-bold flex-grow-1">
+                    <i className="fa-solid fa-eye me-1"></i> ছাত্র/ছাত্রী দেখান
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleMarkAllStudentsPresent}
+                    className="btn btn-outline-primary fw-bold"
+                    title="এক ক্লিকে সকল শিক্ষার্থীকে উপস্থিত করুন"
+                  >
+                    <i className="fa-solid fa-check-double me-1"></i> সবাইকে উপস্থিত
                   </button>
                 </div>
               </div>
 
-              {/* Student Attendance Table */}
+              {/* Student Attendance Table (1:1 with madrasha.hostzonebd.com) */}
               <div className="table-responsive">
-                <table className="table table-bordered table-striped align-middle mb-0 print-table text-center">
+                <table className="table table-bordered table-hover align-middle mb-0 print-table text-center">
                   <thead className="bg-primary print-thead text-white">
                     <tr>
-                      <th style={{ width: '60px' }}>নং</th>
-                      <th style={{ width: '100px' }}>রোল / আইডি</th>
+                      <th style={{ width: '80px' }}>আইডি</th>
                       <th className="text-start">ছাত্রের নাম</th>
-                      <th style={{ width: '100px' }}>উপস্থিত</th>
-                      <th style={{ width: '100px' }}>অনুপস্থিত</th>
-                      <th style={{ width: '100px' }}>ছুটি</th>
-                      <th style={{ width: '220px' }}>মন্তব্য</th>
+                      <th style={{ width: '380px' }}>উপস্থিতি</th>
+                      <th>মন্তব্য করুন</th>
+                      <th style={{ width: '160px' }}>অভিভাবকের ফোন নম্বর</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -142,49 +172,68 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
                       const entry = studentStatus[s.id] || { status: 'present', note: '' };
                       return (
                         <tr key={s.id}>
-                          <td>{idx + 1}</td>
-                          <td className="font-monospace">{s.roll || s.admissionNumber || s.id}</td>
-                          <td className="text-start fw-bold">{s.name}</td>
+                          <td className="font-monospace fw-bold">{s.admissionNumber || s.roll || s.id}</td>
+                          <td className="text-start fw-bold text-dark">{s.name}</td>
                           <td>
-                            <input
-                              type="radio"
-                              name={`status_${s.id}`}
-                              className="form-check-input"
-                              checked={entry.status === 'present'}
-                              onChange={() => setStudentStatus({
-                                ...studentStatus,
-                                [s.id]: { ...entry, status: 'present' }
-                              })}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="radio"
-                              name={`status_${s.id}`}
-                              className="form-check-input"
-                              checked={entry.status === 'absent'}
-                              onChange={() => setStudentStatus({
-                                ...studentStatus,
-                                [s.id]: { ...entry, status: 'absent' }
-                              })}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="radio"
-                              name={`status_${s.id}`}
-                              className="form-check-input"
-                              checked={entry.status === 'leave'}
-                              onChange={() => setStudentStatus({
-                                ...studentStatus,
-                                [s.id]: { ...entry, status: 'leave' }
-                              })}
-                            />
+                            <div className="d-flex justify-content-center align-items-center gap-3">
+                              <label className="form-check-label d-flex align-items-center gap-1 cursor-pointer text-success fw-semibold">
+                                <input
+                                  type="radio"
+                                  name={`status_${s.id}`}
+                                  className="form-check-input"
+                                  checked={entry.status === 'present'}
+                                  onChange={() => setStudentStatus({
+                                    ...studentStatus,
+                                    [s.id]: { ...entry, status: 'present' }
+                                  })}
+                                />
+                                উপস্থিত
+                              </label>
+                              <label className="form-check-label d-flex align-items-center gap-1 cursor-pointer text-danger fw-semibold">
+                                <input
+                                  type="radio"
+                                  name={`status_${s.id}`}
+                                  className="form-check-input"
+                                  checked={entry.status === 'absent'}
+                                  onChange={() => setStudentStatus({
+                                    ...studentStatus,
+                                    [s.id]: { ...entry, status: 'absent' }
+                                  })}
+                                />
+                                অনুপস্থিত
+                              </label>
+                              <label className="form-check-label d-flex align-items-center gap-1 cursor-pointer text-warning fw-semibold">
+                                <input
+                                  type="radio"
+                                  name={`status_${s.id}`}
+                                  className="form-check-input"
+                                  checked={entry.status === 'sick'}
+                                  onChange={() => setStudentStatus({
+                                    ...studentStatus,
+                                    [s.id]: { ...entry, status: 'sick' }
+                                  })}
+                                />
+                                অসুস্থ
+                              </label>
+                              <label className="form-check-label d-flex align-items-center gap-1 cursor-pointer text-secondary fw-semibold">
+                                <input
+                                  type="radio"
+                                  name={`status_${s.id}`}
+                                  className="form-check-input"
+                                  checked={entry.status === 'leave'}
+                                  onChange={() => setStudentStatus({
+                                    ...studentStatus,
+                                    [s.id]: { ...entry, status: 'leave' }
+                                  })}
+                                />
+                                ছুটি
+                              </label>
+                            </div>
                           </td>
                           <td>
                             <input
                               type="text"
-                              className="form-control"
+                              className="form-control form-control-sm"
                               placeholder="মন্তব্য (ঐচ্ছিক)"
                               value={entry.note}
                               onChange={(e) => setStudentStatus({
@@ -193,6 +242,9 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
                               })}
                             />
                           </td>
+                          <td className="font-monospace text-muted">
+                            {s.phone || s.guardianPhone || s.parentNumber || '—'}
+                          </td>
                         </tr>
                       );
                     })}
@@ -200,9 +252,9 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
                 </table>
               </div>
 
-              <div className="mt-4 text-end">
-                <button type="submit" className="btn btn-primary btn-lg px-4 fw-bold">
-                  <i className="fa-solid fa-save me-2"></i> হাজিরা সংরক্ষণ করুন
+              <div className="mt-4 text-center">
+                <button type="submit" className="btn btn-primary btn-lg px-5 fw-bold shadow-sm">
+                  <i className="fa-solid fa-save me-2"></i> উপস্থিতি সংরক্ষণ করুন
                 </button>
               </div>
             </form>
@@ -221,9 +273,10 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
             </div>
             <div className="card-body">
               <div className="row align-items-end g-3">
-                <div className="col-md-3">
-                  <label className="form-label fw-bold">জামাত</label>
+                <div className="col-md-4">
+                  <label htmlFor="report_jamat_select" className="form-label fw-bold">জামাত লিস্ট</label>
                   <select
+                    id="report_jamat_select"
                     className="form-select"
                     value={selectedJamat}
                     onChange={(e) => setSelectedJamat(e.target.value)}
@@ -233,32 +286,19 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
                     ))}
                   </select>
                 </div>
-                <div className="col-md-3">
-                  <label className="form-label fw-bold">মাস</label>
-                  <select
-                    className="form-select"
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                  >
-                    {MONTH_NAMES.map((m, idx) => (
-                      <option key={m} value={(idx + 1).toString()}>{m}</option>
-                    ))}
-                  </select>
+                <div className="col-md-4">
+                  <label htmlFor="report_date_input" className="form-label fw-bold">তারিখ নির্বাচন করুন</label>
+                  <input
+                    type="date"
+                    id="report_date_input"
+                    className="form-control"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                  />
                 </div>
-                <div className="col-md-3">
-                  <label className="form-label fw-bold">সাল</label>
-                  <select
-                    className="form-select"
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                  >
-                    <option value="2026">2026</option>
-                    <option value="2025">2025</option>
-                  </select>
-                </div>
-                <div className="col-md-3">
+                <div className="col-md-4">
                   <button type="button" className="btn btn-success fw-bold w-100">
-                    <i className="fa-solid fa-search me-1"></i> রিপোর্ট দেখুন
+                    <i className="fa-solid fa-eye me-1"></i> ছাত্র/ছাত্রী দেখান
                   </button>
                 </div>
               </div>
@@ -277,7 +317,7 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
                 <div className="col-md-2"></div>
                 <div className="col-md-8 text-center">
                   <h5 className="fw-semibold" style={{ color: '#2c5f2d' }}>
-                    ছাত্র-ছাত্রী মাসিক হাজিরা প্রতিবেদন: {selectedJamat} (মাসঃ অক্টোবর ২০২৬)
+                    ছাত্র-ছাত্রী হাজিরা প্রতিবেদন: {selectedJamat} ({selectedDate})
                   </h5>
                 </div>
                 <div className="col-md-2 text-end">
@@ -285,39 +325,68 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
                 </div>
               </div>
 
-              <div className="table-responsive mt-3">
-                <table className="table table-bordered table-striped align-middle mb-0 print-table text-center">
-                  <thead className="bg-primary print-thead text-white">
+              {/* Summary Table 1:1 with live site */}
+              <div className="table-responsive mt-3 mb-4">
+                <table className="table table-bordered text-center align-middle mb-0">
+                  <thead className="table-light">
                     <tr>
-                      <th style={{ width: '50px' }}>নং</th>
-                      <th>রোল</th>
-                      <th className="text-start">নাম</th>
-                      <th>মোট কর্মদিবস</th>
-                      <th>উপস্থিতি</th>
-                      <th>অনুপস্থিতি</th>
-                      <th>ছুটি</th>
-                      <th>শতকরা হার</th>
+                      <th className="fw-bold">মোট ছাত্র</th>
+                      <th className="fw-bold text-success">উপস্থিত</th>
+                      <th className="fw-bold text-danger">অনুপস্থিত</th>
+                      <th className="fw-bold text-warning">অসুস্থ</th>
+                      <th className="fw-bold text-secondary">ছুটি</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {currentJamatStudents.map((s, idx) => (
-                      <tr key={s.id}>
-                        <td>{idx + 1}</td>
-                        <td className="font-monospace">{s.roll || s.admissionNumber || s.id}</td>
-                        <td className="text-start fw-bold">{s.name}</td>
-                        <td>২৬ দিন</td>
-                        <td className="text-success fw-bold font-monospace">২৪ দিন</td>
-                        <td className="text-danger font-monospace">২ দিন</td>
-                        <td className="text-muted font-monospace">০ দিন</td>
-                        <td className="fw-bold font-monospace text-primary">৯২.৩%</td>
-                      </tr>
-                    ))}
+                    <tr className="fw-bold font-monospace fs-5">
+                      <td>{currentJamatStudents.length}</td>
+                      <td className="text-success">{currentJamatStudents.length}</td>
+                      <td className="text-danger">০</td>
+                      <td className="text-warning">০</td>
+                      <td className="text-secondary">০</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Detailed Student Attendance Table */}
+              <div className="table-responsive mt-2">
+                <table className="table table-bordered table-striped align-middle mb-0 print-table text-center">
+                  <thead className="bg-primary print-thead text-white">
+                    <tr>
+                      <th style={{ width: '80px' }}>আইডি</th>
+                      <th className="text-start">ছাত্রের নাম</th>
+                      <th style={{ width: '120px' }}>উপস্থিতি</th>
+                      <th>মন্তব্য</th>
+                      <th style={{ width: '160px' }}>অভিভাবকের ফোন নম্বর</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentJamatStudents.map((s) => {
+                      const entry = studentStatus[s.id] || { status: 'present', note: '' };
+                      return (
+                        <tr key={s.id}>
+                          <td className="font-monospace fw-bold">{s.admissionNumber || s.roll || s.id}</td>
+                          <td className="text-start fw-bold text-dark">{s.name}</td>
+                          <td>
+                            {entry.status === 'present' && <span className="badge bg-success">উপস্থিত</span>}
+                            {entry.status === 'absent' && <span className="badge bg-danger">অনুপস্থিত</span>}
+                            {entry.status === 'sick' && <span className="badge bg-warning text-dark">অসুস্থ</span>}
+                            {entry.status === 'leave' && <span className="badge bg-secondary">ছুটি</span>}
+                          </td>
+                          <td className="text-muted">{entry.note || '—'}</td>
+                          <td className="font-monospace text-muted">
+                            {s.phone || s.guardianPhone || s.parentNumber || '—'}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
 
               <div className="mt-3 text-end no-print">
-                <button className="btn btn-primary fw-bold" onClick={() => window.print()}>
+                <button className="btn btn-primary fw-bold px-4" onClick={() => window.print()}>
                   <i className="fa-solid fa-print me-1"></i> প্রিন্ট করুন
                 </button>
               </div>
@@ -350,94 +419,98 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
                   />
                 </div>
 
-                <div className="col-md-4">
-                  <button type="button" className="btn btn-success fw-bold w-100">
-                    <i className="fa-solid fa-eye me-1"></i> শিক্ষকদের দেখান ({teachers.length} জন)
+                <div className="col-md-4 d-flex gap-2">
+                  <button type="button" className="btn btn-success fw-bold flex-grow-1">
+                    <i className="fa-solid fa-eye me-1"></i> শিক্ষকদের দেখান
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleMarkAllTeachersPresent}
+                    className="btn btn-outline-primary fw-bold"
+                    title="এক ক্লিকে সকল শিক্ষককে উপস্থিত করুন"
+                  >
+                    <i className="fa-solid fa-check-double me-1"></i> সবাইকে উপস্থিত
                   </button>
                 </div>
               </div>
 
+              {/* Teacher Attendance Table (1:1 with madrasha.hostzonebd.com) */}
               <div className="table-responsive">
-                <table className="table table-bordered table-striped align-middle mb-0 print-table text-center">
+                <table className="table table-bordered table-hover align-middle mb-0 print-table text-center">
                   <thead className="bg-primary print-thead text-white">
                     <tr>
-                      <th style={{ width: '60px' }}>নং</th>
-                      <th className="text-start">শিক্ষকের নাম ও পদবি</th>
-                      <th style={{ width: '100px' }}>উপস্থিত</th>
-                      <th style={{ width: '100px' }}>অনুপস্থিত</th>
-                      <th style={{ width: '100px' }}>ছুটি</th>
-                      <th style={{ width: '140px' }}>আসার সময়</th>
-                      <th style={{ width: '140px' }}>যাওয়ার সময়</th>
-                      <th style={{ width: '200px' }}>মন্তব্য</th>
+                      <th style={{ width: '80px' }}>আইডি</th>
+                      <th className="text-start">শিক্ষকের নাম</th>
+                      <th style={{ width: '380px' }}>উপস্থিতি</th>
+                      <th>মন্তব্য করুন</th>
+                      <th style={{ width: '160px' }}>ফোন নম্বর</th>
                     </tr>
                   </thead>
                   <tbody>
                     {teachers.map((t, idx) => {
-                      const entry = teacherStatus[t.id] || { status: 'present', inTime: '08:30 AM', outTime: '04:30 PM', note: '' };
+                      const entry = teacherStatus[t.id] || { status: 'present', note: '' };
                       return (
                         <tr key={t.id}>
-                          <td>{idx + 1}</td>
-                          <td className="text-start fw-bold">
+                          <td className="font-monospace fw-bold">{t.id}</td>
+                          <td className="text-start fw-bold text-dark">
                             {t.name}
                             <span className="text-muted small d-block">{t.designation || 'সহকারী শিক্ষক'}</span>
                           </td>
                           <td>
-                            <input
-                              type="radio"
-                              name={`tstatus_${t.id}`}
-                              className="form-check-input"
-                              checked={entry.status === 'present'}
-                              onChange={() => setTeacherStatus({
-                                ...teacherStatus,
-                                [t.id]: { ...entry, status: 'present' }
-                              })}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="radio"
-                              name={`tstatus_${t.id}`}
-                              className="form-check-input"
-                              checked={entry.status === 'absent'}
-                              onChange={() => setTeacherStatus({
-                                ...teacherStatus,
-                                [t.id]: { ...entry, status: 'absent' }
-                              })}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="radio"
-                              name={`tstatus_${t.id}`}
-                              className="form-check-input"
-                              checked={entry.status === 'leave'}
-                              onChange={() => setTeacherStatus({
-                                ...teacherStatus,
-                                [t.id]: { ...entry, status: 'leave' }
-                              })}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="text"
-                              className="form-control form-control-sm text-center"
-                              value={entry.inTime}
-                              onChange={(e) => setTeacherStatus({
-                                ...teacherStatus,
-                                [t.id]: { ...entry, inTime: e.target.value }
-                              })}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              type="text"
-                              className="form-control form-control-sm text-center"
-                              value={entry.outTime}
-                              onChange={(e) => setTeacherStatus({
-                                ...teacherStatus,
-                                [t.id]: { ...entry, outTime: e.target.value }
-                              })}
-                            />
+                            <div className="d-flex justify-content-center align-items-center gap-3">
+                              <label className="form-check-label d-flex align-items-center gap-1 cursor-pointer text-success fw-semibold">
+                                <input
+                                  type="radio"
+                                  name={`tstatus_${t.id}`}
+                                  className="form-check-input"
+                                  checked={entry.status === 'present'}
+                                  onChange={() => setTeacherStatus({
+                                    ...teacherStatus,
+                                    [t.id]: { ...entry, status: 'present' }
+                                  })}
+                                />
+                                উপস্থিত
+                              </label>
+                              <label className="form-check-label d-flex align-items-center gap-1 cursor-pointer text-danger fw-semibold">
+                                <input
+                                  type="radio"
+                                  name={`tstatus_${t.id}`}
+                                  className="form-check-input"
+                                  checked={entry.status === 'absent'}
+                                  onChange={() => setTeacherStatus({
+                                    ...teacherStatus,
+                                    [t.id]: { ...entry, status: 'absent' }
+                                  })}
+                                />
+                                অনুপস্থিত
+                              </label>
+                              <label className="form-check-label d-flex align-items-center gap-1 cursor-pointer text-warning fw-semibold">
+                                <input
+                                  type="radio"
+                                  name={`tstatus_${t.id}`}
+                                  className="form-check-input"
+                                  checked={entry.status === 'sick'}
+                                  onChange={() => setTeacherStatus({
+                                    ...teacherStatus,
+                                    [t.id]: { ...entry, status: 'sick' }
+                                  })}
+                                />
+                                অসুস্থ
+                              </label>
+                              <label className="form-check-label d-flex align-items-center gap-1 cursor-pointer text-secondary fw-semibold">
+                                <input
+                                  type="radio"
+                                  name={`tstatus_${t.id}`}
+                                  className="form-check-input"
+                                  checked={entry.status === 'leave'}
+                                  onChange={() => setTeacherStatus({
+                                    ...teacherStatus,
+                                    [t.id]: { ...entry, status: 'leave' }
+                                  })}
+                                />
+                                ছুটি
+                              </label>
+                            </div>
                           </td>
                           <td>
                             <input
@@ -451,6 +524,9 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
                               })}
                             />
                           </td>
+                          <td className="font-monospace text-muted">
+                            {t.phone || t.mobile || '—'}
+                          </td>
                         </tr>
                       );
                     })}
@@ -458,9 +534,9 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
                 </table>
               </div>
 
-              <div className="mt-4 text-end">
-                <button type="submit" className="btn btn-primary btn-lg px-4 fw-bold">
-                  <i className="fa-solid fa-save me-2"></i> শিক্ষক হাজিরা সংরক্ষণ করুন
+              <div className="mt-4 text-center">
+                <button type="submit" className="btn btn-primary btn-lg px-5 fw-bold shadow-sm">
+                  <i className="fa-solid fa-save me-2"></i> উপস্থিতি সংরক্ষণ করুন
                 </button>
               </div>
             </form>
@@ -474,37 +550,24 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
           <div className="card shadow-sm mb-4">
             <div className="card-header bg-primary">
               <h5 className="mb-0 text-white">
-                <i className="fa-solid fa-users me-2"></i> শিক্ষক হাজিরা রিপোর্ট
+                <i className="fa-solid fa-users me-2"></i> শিক্ষক হাজিরা প্রতিবেদন
               </h5>
             </div>
             <div className="card-body">
               <div className="row align-items-end g-3">
-                <div className="col-md-4">
-                  <label className="form-label fw-bold">মাস</label>
-                  <select
-                    className="form-select"
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                  >
-                    {MONTH_NAMES.map((m, idx) => (
-                      <option key={m} value={(idx + 1).toString()}>{m}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="col-md-4">
-                  <label className="form-label fw-bold">সাল</label>
-                  <select
-                    className="form-select"
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                  >
-                    <option value="2026">2026</option>
-                    <option value="2025">2025</option>
-                  </select>
+                <div className="col-md-8">
+                  <label htmlFor="teacher_report_date" className="form-label fw-bold">তারিখ নির্বাচন করুন</label>
+                  <input
+                    type="date"
+                    id="teacher_report_date"
+                    className="form-control"
+                    value={selectedDate}
+                    onChange={(e) => setSelectedDate(e.target.value)}
+                  />
                 </div>
                 <div className="col-md-4">
                   <button type="button" className="btn btn-success fw-bold w-100">
-                    <i className="fa-solid fa-search me-1"></i> রিপোর্ট দেখুন
+                    <i className="fa-solid fa-search me-1"></i> প্রতিবেদন দেখান
                   </button>
                 </div>
               </div>
@@ -523,7 +586,7 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
                 <div className="col-md-2"></div>
                 <div className="col-md-8 text-center">
                   <h5 className="fw-semibold" style={{ color: '#2c5f2d' }}>
-                    শিক্ষকগণের মাসিক হাজিরা ও সময়সূচী প্রতিবেদন (অক্টোবর ২০২৬)
+                    শিক্ষক হাজিরা প্রতিবেদন ({selectedDate})
                   </h5>
                 </div>
                 <div className="col-md-2 text-end">
@@ -535,35 +598,39 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
                 <table className="table table-bordered table-striped align-middle mb-0 print-table text-center">
                   <thead className="bg-primary print-thead text-white">
                     <tr>
-                      <th style={{ width: '50px' }}>নং</th>
-                      <th className="text-start">নাম</th>
-                      <th>পদবী</th>
-                      <th>মোট কার্যদিবস</th>
-                      <th>উপস্থিতি</th>
-                      <th>অনুপস্থিতি</th>
-                      <th>দেরীতে আগমন</th>
-                      <th>গড় উপস্থিতির হার</th>
+                      <th style={{ width: '60px' }}>নং</th>
+                      <th className="text-start">শিক্ষকের নাম</th>
+                      <th>উপস্থিত</th>
+                      <th>অনুপস্থিত</th>
+                      <th>অসুস্থ</th>
+                      <th>ছুটি</th>
+                      <th style={{ width: '200px' }}>মন্তব্য</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {teachers.map((t, idx) => (
-                      <tr key={t.id}>
-                        <td>{idx + 1}</td>
-                        <td className="text-start fw-bold">{t.name}</td>
-                        <td>{t.designation || 'সহকারী শিক্ষক'}</td>
-                        <td>২৬ দিন</td>
-                        <td className="text-success fw-bold">২৬ দিন</td>
-                        <td className="text-muted">০ দিন</td>
-                        <td className="text-warning">১ দিন</td>
-                        <td className="fw-bold text-primary font-monospace">১০০%</td>
-                      </tr>
-                    ))}
+                    {teachers.map((t, idx) => {
+                      const entry = teacherStatus[t.id] || { status: 'present', note: '' };
+                      return (
+                        <tr key={t.id}>
+                          <td>{idx + 1}</td>
+                          <td className="text-start fw-bold text-dark">
+                            {t.name}
+                            <span className="text-muted small d-block">{t.designation || 'সহকারী শিক্ষক'}</span>
+                          </td>
+                          <td className="text-success fw-bold font-monospace">{entry.status === 'present' ? '১' : '০'}</td>
+                          <td className="text-danger fw-bold font-monospace">{entry.status === 'absent' ? '১' : '০'}</td>
+                          <td className="text-warning fw-bold font-monospace">{entry.status === 'sick' ? '১' : '০'}</td>
+                          <td className="text-secondary fw-bold font-monospace">{entry.status === 'leave' ? '১' : '০'}</td>
+                          <td className="text-muted">{entry.note || '—'}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
 
               <div className="mt-3 text-end no-print">
-                <button className="btn btn-primary fw-bold" onClick={() => window.print()}>
+                <button className="btn btn-primary fw-bold px-4" onClick={() => window.print()}>
                   <i className="fa-solid fa-print me-1"></i> প্রিন্ট করুন
                 </button>
               </div>
@@ -802,20 +869,38 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
             </div>
             <div className="card-body">
               <div className="row align-items-end g-3">
-                <div className="col-md-6">
+                <div className="col-md-4">
+                  <label htmlFor="result_jamat_select" className="form-label fw-bold">জামাত</label>
+                  <select
+                    id="result_jamat_select"
+                    className="form-select"
+                    value={selectedResultJamat}
+                    onChange={(e) => {
+                      setSelectedResultJamat(e.target.value);
+                      const firstOfJamat = students.find(s => e.target.value === 'all' || s.jamat === e.target.value);
+                      if (firstOfJamat) setIndividualStudentId(firstOfJamat.id);
+                    }}
+                  >
+                    <option value="all">সকল জামাত</option>
+                    {(jamats || []).map(j => (
+                      <option key={j.id || j.name} value={j.name}>{j.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-md-5">
                   <label className="form-label fw-bold">ছাত্র নির্বাচন করুন</label>
                   <select
                     className="form-select"
                     value={individualStudentId}
                     onChange={(e) => setIndividualStudentId(e.target.value)}
                   >
-                    {students.map(s => (
-                      <option key={s.id} value={s.id}>{s.name} (রোল: {s.roll || s.admissionNumber || s.id}, জামাত: {s.jamat})</option>
+                    {filteredResultStudents.map(s => (
+                      <option key={s.id} value={s.id}>{s.name} - রোল: {s.roll || s.admissionNumber || s.id}</option>
                     ))}
                   </select>
                 </div>
-                <div className="col-md-6 text-end">
-                  <button type="button" className="btn btn-success fw-bold px-4">
+                <div className="col-md-3 text-end">
+                  <button type="button" className="btn btn-success fw-bold px-4 w-100">
                     <i className="fa-solid fa-eye me-1"></i> নম্বরপত্র দেখুন
                   </button>
                 </div>

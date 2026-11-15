@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "preview": "next start",
-    "test": "node scripts/verify.js && node scripts/verify_backend_security.js"
+    "test": "node scripts/verify.js && node scripts/verify_backend_security.js && node scripts/test_accounts_module.js && node scripts/test_sms_module.js && node scripts/test_idcard_module.js && node scripts/test_attendance_module.cjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

@@ -3,14 +3,20 @@ import { useApp } from '../../context/AppContext';
 import { MONTH_NAMES } from '../../data/initialData';
 
 export const StudentSalaryEntry = () => {
-  const { students, accounts, receivers, addTuitionPayment, setSelectedReceiptForPrint } = useApp();
+  const { students, jamats, accounts, receivers, addTuitionPayment, setSelectedReceiptForPrint } = useApp();
 
+  const [selectedJamat, setSelectedJamat] = useState('all');
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || '');
   const [selectedYear, setSelectedYear] = useState('2026');
   const [selectedAccount, setSelectedAccount] = useState(accounts[0]?.name || 'নগদ ক্যাশ (Hand Cash)');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('cash');
 
-  const currentStudent = students.find(s => s.id === selectedStudentId) || students[0];
+  const filteredStudents = React.useMemo(() => {
+    if (selectedJamat === 'all') return students;
+    return students.filter(s => s.jamat === selectedJamat);
+  }, [students, selectedJamat]);
+
+  const currentStudent = students.find(s => s.id === selectedStudentId) || filteredStudents[0] || students[0];
 
   // 12 months rows state
   const defaultFee = currentStudent?.coursefee || currentStudent?.monthlyFee || 800;
@@ -81,6 +87,27 @@ export const StudentSalaryEntry = () => {
         <div className="card-body mb-3">
           <form onSubmit={(e) => e.preventDefault()} className="w-100">
             <div className="row g-3">
+              {/* জামাত নির্বাচন */}
+              <div className="col-md-3 col-12">
+                <label htmlFor="jamat_select" className="form-label fw-bold">জামাত</label>
+                <select
+                  id="jamat_select"
+                  className="form-select"
+                  value={selectedJamat}
+                  onChange={(e) => {
+                    setSelectedJamat(e.target.value);
+                    setSelectedStudentId('');
+                  }}
+                >
+                  <option value="all">সকল জামাত</option>
+                  {(jamats || []).map((j) => (
+                    <option key={j.id || j.name} value={j.name}>
+                      {j.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* ভর্তি নং দিয়ে খুঁজুন */}
               <div className="col-md-3 col-12">
                 <label className="form-label fw-bold">ভর্তি নং দিয়ে খুঁজুন</label>
@@ -93,7 +120,7 @@ export const StudentSalaryEntry = () => {
                   required
                 >
                   <option value="">ভর্তি নং নির্বাচন করুন</option>
-                  {students.map((s) => {
+                  {filteredStudents.map((s) => {
                     const adm = s.admissionNumber || s.admission_number || s.roll;
                     return (
                       <option key={s.id} value={s.id}>

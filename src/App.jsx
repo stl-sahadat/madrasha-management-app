@@ -92,6 +92,11 @@ export const App = () => {
   }
 
   const renderContent = () => {
+    if (activeTab && (activeTab === 'account-edit' || activeTab.startsWith('account-edit:'))) {
+      const editId = activeTab.includes(':') ? activeTab.split(':')[1] : null;
+      return <AccountsModule key={`account-edit-${editId || 'default'}`} defaultView="create" initialEditId={editId} />;
+    }
+
     switch (activeTab) {
       // ড্যাশবোর্ড
       case 'dashboard':
@@ -247,19 +252,23 @@ export const App = () => {
 
       // আইডি কার্ড
       case 'idcard-student':
+      case 'admin/id-card':
+      case 'admin/id-card/student':
         return <IdCardGenerator defaultType="student" />;
       case 'idcard-teacher':
+      case 'admin/id-card/teacher':
         return <IdCardGenerator defaultType="teacher" />;
 
-      // এসএমএস
+      // এসএমএস (1:1 matching madrasha.hostzonebd.com)
       case 'sms-student':
-        return <SmsModule key="sms-student" defaultRecipientTarget="all_students" />;
+      case 'sms-client':
+        return <SmsModule key="sms-student" initialType="client" defaultRecipientTarget="all_students" />;
       case 'sms-teacher':
-        return <SmsModule key="sms-teacher" defaultRecipientTarget="all_teachers" />;
+        return <SmsModule key="sms-teacher" initialType="teacher" defaultRecipientTarget="all_teachers" />;
       case 'sms-send':
-        return <SmsModule defaultView="compose" />;
+        return <SmsModule key="sms-send" initialType="client" defaultRecipientTarget="all_students" />;
       case 'sms-logs':
-        return <SmsModule defaultView="logs" />;
+        return <SmsModule key="sms-logs" defaultView="logs" />;
 
       // অ্যাকাউন্ট সাব-মেনু
       case 'account-create':

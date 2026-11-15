@@ -2,10 +2,16 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 
 export const StudentCertificate = () => {
-  const { students } = useApp();
+  const { students, jamats } = useApp();
+  const [selectedJamat, setSelectedJamat] = useState('all');
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || '');
 
-  const currentStudent = students.find(s => s.id === selectedStudentId) || students[0];
+  const filteredStudents = React.useMemo(() => {
+    if (selectedJamat === 'all') return students;
+    return students.filter(s => s.jamat === selectedJamat);
+  }, [students, selectedJamat]);
+
+  const currentStudent = students.find(s => s.id === selectedStudentId) || filteredStudents[0] || students[0];
 
   const [certData, setCertData] = useState({
     regNo: '20261089',
@@ -249,18 +255,36 @@ export const StudentCertificate = () => {
         </div>
         <div className="card-body">
           <div className="row g-3 align-items-end">
-            <div className="col-md-4">
+            <div className="col-md-3">
+              <label htmlFor="jamat_select" className="form-label fw-bold">জামাত:</label>
+              <select
+                id="jamat_select"
+                className="form-select"
+                value={selectedJamat}
+                onChange={(e) => {
+                  setSelectedJamat(e.target.value);
+                  const firstOfJamat = students.find(s => e.target.value === 'all' || s.jamat === e.target.value);
+                  if (firstOfJamat) setSelectedStudentId(firstOfJamat.id);
+                }}
+              >
+                <option value="all">সকল জামাত</option>
+                {(jamats || []).map(j => (
+                  <option key={j.id || j.name} value={j.name}>{j.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="col-md-3">
               <label className="form-label fw-bold">শিক্ষার্থী নির্বাচন করুন:</label>
               <select
                 className="form-select"
                 value={selectedStudentId}
                 onChange={(e) => setSelectedStudentId(e.target.value)}
               >
-                {students.map(s => {
+                {filteredStudents.map(s => {
                   const adm = s.admissionNumber || s.admission_number || s.roll;
                   return (
                     <option key={s.id} value={s.id}>
-                      {adm} - {s.name} ({s.jamat})
+                      {adm} - {s.name}
                     </option>
                   );
                 })}
@@ -318,7 +342,7 @@ export const StudentCertificate = () => {
           {/* Header */}
           <div className="cert-header">
             <img
-              src="/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png"
+              src="/storage/institute/logos/madrasha_360_logo.png"
               alt="Logo"
               className="image-logo"
             />

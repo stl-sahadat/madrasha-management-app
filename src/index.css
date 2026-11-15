@@ -92,8 +92,10 @@
   body {
     background: #ffffff !important;
     color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
-  .no-print, header, aside, footer, .app-sidebar, nav.app-sidebar, .sidebar-backdrop {
+  .no-print, header, aside, footer, .app-sidebar, nav.app-sidebar, .sidebar-backdrop, .btn-group, .pagination-info, .pagination {
     display: none !important;
   }
   .app-content {
@@ -101,6 +103,19 @@
     padding: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
+  }
+  .print-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  .print-table th, .print-table td {
+    border: 1px solid #dee2e6 !important;
+  }
+  .print-thead {
+    background-color: #0f626a !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .print-only {
     display: block !important;
@@ -158,32 +173,221 @@ nav[aria-label="breadcrumb"],
 /* 2. Main Sidebar container */
 .app-wrapper nav.app-sidebar,
 .app-wrapper > nav {
-  width: 18rem !important;
   height: 100vh !important;
   position: fixed !important;
   left: 0 !important;
   top: 0 !important;
   bottom: 0 !important;
   background-color: #ffffff !important;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: none !important;
   border-right: 1px solid #e2e8f0 !important;
   z-index: 1003 !important;
   display: flex !important;
   flex-direction: column !important;
-  transition: width 0.25s ease, transform 0.25s ease !important;
 }
 
-/* Collapsed semi-nav on desktop */
-.app-wrapper nav.app-sidebar.semi-nav,
-.app-wrapper > nav.semi-nav {
-  width: 80px !important;
+/* Seamless Top Bar Height & Bottom Border across Sidebar and Main Header */
+header.header-main,
+.app-wrapper nav.app-sidebar .app-logo,
+.app-wrapper nav .app-logo {
+  height: 65px !important;
+  min-height: 65px !important;
+  max-height: 65px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  background-color: #ffffff !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+}
+
+header.header-main {
+  box-shadow: none !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  z-index: 1001 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+header.header-main .container-fluid {
+  height: 100% !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 0 1.5rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+header.header-main .header-left {
+  display: flex !important;
+  align-items: center !important;
+  flex: 0 0 auto !important;
+}
+
+header.header-main .header-right {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  margin-left: auto !important;
+  flex: 0 0 auto !important;
+}
+
+/* Sidebar Logo Header Box */
+.app-wrapper nav.app-sidebar .app-logo {
+  border-right: none !important;
+  display: flex !important;
+  align-items: center !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+.app-wrapper nav.app-sidebar .app-logo .logo {
+  width: auto !important;
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  overflow: visible !important;
+  text-decoration: none !important;
+}
+
+/* Logo image strict sizing (prevent template 180px override) */
+.app-wrapper nav .app-logo .logo img,
+.app-wrapper nav.app-sidebar .app-logo .logo img,
+.app-wrapper nav.semi-nav .app-logo .logo img {
+  width: 44px !important;
+  height: 44px !important;
+  min-width: 44px !important;
+  min-height: 44px !important;
+  max-width: 44px !important;
+  max-height: 44px !important;
+  object-fit: contain !important;
+  border-radius: 50% !important;
+  float: none !important;
+  display: block !important;
+  margin: 0 !important;
+}
+
+/* Semi-nav toggle chevron button inside app-logo */
+.app-wrapper nav .app-logo .toggle-semi-nav {
+  position: static !important;
+  opacity: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  min-height: 28px !important;
+  border-radius: 50% !important;
+  background-color: rgba(15, 98, 106, 0.08) !important;
+  color: #0f626a !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.app-wrapper nav .app-logo .toggle-semi-nav:hover {
+  background-color: rgba(15, 98, 106, 0.18) !important;
+  color: #0f626a !important;
+}
+
+/* Desktop Expand / Collapse Transitions (>= 1200px) */
+@media screen and (min-width: 1200px) {
+  /* Expanded Sidebar (18rem) */
+  .app-wrapper nav.app-sidebar:not(.semi-nav),
+  .app-wrapper > nav:not(.semi-nav) {
+    width: 18rem !important;
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .app-wrapper nav.app-sidebar:not(.semi-nav) ~ .app-content {
+    padding-left: 18rem !important;
+    transition: padding-left 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .app-wrapper nav.app-sidebar:not(.semi-nav) ~ .app-content header.header-main {
+    padding-left: calc(18rem + 24px) !important;
+    transition: padding-left 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  /* Collapsed / Semi-Nav Sidebar (80px) */
+  .app-wrapper nav.app-sidebar.semi-nav,
+  .app-wrapper > nav.semi-nav {
+    width: 80px !important;
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .app-wrapper nav.app-sidebar.semi-nav ~ .app-content {
+    padding-left: 80px !important;
+    transition: padding-left 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .app-wrapper nav.app-sidebar.semi-nav ~ .app-content header.header-main {
+    padding-left: calc(80px + 24px) !important;
+    transition: padding-left 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  /* Collapsed sidebar header: logo centered in 80px */
+  .app-wrapper nav.semi-nav .app-logo {
+    width: 80px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+  }
+  .app-wrapper nav.semi-nav .app-logo .logo {
+    width: 80px !important;
+    justify-content: center !important;
+    margin: 0 auto !important;
+  }
+
+  /* Semi-nav menu items: clean centered icons, text hidden */
+  .app-wrapper nav.semi-nav .app-nav .main-nav > li:not(.menu-title) > a {
+    font-size: 0 !important;
+    justify-content: center !important;
+    padding: 0.75rem 0.25rem !important;
+    text-align: center !important;
+  }
+  .app-wrapper nav.semi-nav .app-nav .main-nav > li:not(.menu-title) > a i,
+  .app-wrapper nav.semi-nav .app-nav .main-nav > li:not(.menu-title) > a svg {
+    font-size: 1.3rem !important;
+    margin: 0 !important;
+    display: inline-block !important;
+  }
+  .app-wrapper nav.semi-nav .app-nav .main-nav > li:not(.menu-title) > a::after {
+    display: none !important;
+  }
+  .app-wrapper nav.semi-nav .app-nav .main-nav .sidebar-submenu,
+  .app-wrapper nav.semi-nav .app-nav .main-nav ul.collapse {
+    display: none !important;
+  }
+  .app-wrapper nav.semi-nav .sms-balance-container {
+    display: none !important;
+  }
+}
+
+/* Mobile Screens (< 1200px) */
+@media screen and (max-width: 1199px) {
+  .app-wrapper nav.sidebar-mobile-open {
+    width: 18rem !important;
+    z-index: 1005 !important;
+    display: block !important;
+    transform: translateX(0) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+  }
+  .app-wrapper nav.sidebar-mobile-open .app-logo .logo img {
+    width: 44px !important;
+    height: 44px !important;
+  }
+  header.header-main {
+    padding-left: 15px !important;
+  }
+  .app-wrapper .app-content {
+    padding-left: 0 !important;
+  }
 }
 
 /* 3. Sidebar scrollable area - all categories visible and smoothly scrollable */
 .app-wrapper nav .app-nav {
   flex: 1 1 auto !important;
-  height: calc(100vh - 90px) !important;
-  max-height: calc(100vh - 90px) !important;
+  height: calc(100vh - 65px) !important;
+  max-height: calc(100vh - 65px) !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   padding-bottom: 2.5rem !important;

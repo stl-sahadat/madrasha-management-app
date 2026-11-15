@@ -2,12 +2,18 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 
 export const StudentKhurakiList = () => {
-  const { students, khurakiPayments, setSelectedReceiptForPrint } = useApp();
+  const { students, jamats, khurakiPayments, setSelectedReceiptForPrint } = useApp();
 
+  const [selectedJamat, setSelectedJamat] = useState('all');
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || '');
   const [selectedYear, setSelectedYear] = useState('2026');
 
-  const currentStudent = students.find(s => s.id === selectedStudentId) || students[0];
+  const filteredStudents = React.useMemo(() => {
+    if (selectedJamat === 'all') return students;
+    return students.filter(s => s.jamat === selectedJamat);
+  }, [students, selectedJamat]);
+
+  const currentStudent = students.find(s => s.id === selectedStudentId) || filteredStudents[0] || students[0];
 
   // Payments for current student
   const studentPayments = khurakiPayments.filter(
@@ -26,6 +32,27 @@ export const StudentKhurakiList = () => {
 
         <div className="card-body mb-3">
           <div className="row g-3 align-items-end">
+            {/* জামাত নির্বাচন */}
+            <div className="col-12 col-md-4">
+              <label htmlFor="jamat_select" className="form-label fw-bold">জামাত</label>
+              <select
+                id="jamat_select"
+                className="form-select"
+                value={selectedJamat}
+                onChange={(e) => {
+                  setSelectedJamat(e.target.value);
+                  setSelectedStudentId('');
+                }}
+              >
+                <option value="all">সকল জামাত</option>
+                {(jamats || []).map((j) => (
+                  <option key={j.id || j.name} value={j.name}>
+                    {j.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="col-12 col-md-4">
               <label className="form-label fw-bold">ভর্তি নং দিয়ে খুঁজুন</label>
               <select
@@ -36,7 +63,7 @@ export const StudentKhurakiList = () => {
                 onChange={(e) => setSelectedStudentId(e.target.value)}
               >
                 <option value="">ভর্তি নং নির্বাচন করুন</option>
-                {students.map((s) => {
+                {filteredStudents.map((s) => {
                   const adm = s.admissionNumber || s.admission_number || s.roll;
                   return (
                     <option key={s.id} value={s.id}>

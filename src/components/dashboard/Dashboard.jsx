@@ -449,8 +449,8 @@ export const Dashboard = () => {
             {/* Card 4: এস এম এস */}
             <div className="col-lg-4 col-md-6">
               <a
-                href="#sms-send"
-                onClick={(e) => { e.preventDefault(); setActiveTab('sms-send'); }}
+                href="/admin/sms/send-to-client"
+                onClick={(e) => { e.preventDefault(); setActiveTab('sms-student'); }}
                 className="text-decoration-none"
               >
                 <div className="premium-card gradient-card-4">
@@ -480,8 +480,8 @@ export const Dashboard = () => {
             {/* Card 5: একাউন্ট যুক্ত */}
             <div className="col-lg-4 col-md-6">
               <a
-                href="#account-create"
-                onClick={(e) => { e.preventDefault(); setActiveTab('accounts-list'); }}
+                href="/admin/account/create"
+                onClick={(e) => { e.preventDefault(); setActiveTab('account-create'); }}
                 className="text-decoration-none"
               >
                 <div className="premium-card gradient-card-5">
@@ -511,8 +511,8 @@ export const Dashboard = () => {
             {/* Card 6: একাউন্ট বিবরণ */}
             <div className="col-lg-4 col-md-6">
               <a
-                href="#account-report"
-                onClick={(e) => { e.preventDefault(); setActiveTab('accounts-list'); }}
+                href="/admin/account/account/report"
+                onClick={(e) => { e.preventDefault(); setActiveTab('account-report'); }}
                 className="text-decoration-none"
               >
                 <div className="premium-card gradient-card-6">
