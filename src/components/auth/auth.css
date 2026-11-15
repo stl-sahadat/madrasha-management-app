@@ -147,15 +147,17 @@
 .auth-logo-icon-wrapper {
     width: 62px;
     height: 62px;
-    background: linear-gradient(135deg, #0f626a, #2c757c);
+    background: #ffffff;
     border-radius: 12px;
+    border: 1.5px solid #e2e8f0;
+    box-shadow: 0 4px 14px rgba(44, 117, 124, 0.12);
     display: flex;
     align-items: center;
     justify-content: center;
     animation: authPulse 2.5s ease-in-out infinite;
     flex-shrink: 0;
     overflow: hidden;
-    padding: 6px;
+    padding: 4px;
 }
 
 @keyframes authPulse {

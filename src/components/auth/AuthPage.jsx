@@ -187,7 +187,8 @@ export const AuthPage = ({ initialMode = 'login' }) => {
               <div className="auth-logo-icon-wrapper">
                 <img
                   src="/storage/institute/logos/madrasha_360_logo.png"
-                  alt="মাদ্রাসা মনোগ্রাম"
+                  alt="Madrasa 360 Logo"
+                  style={{ width: '52px', height: '52px', objectFit: 'contain' }}
                   onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = '/storage/institute/logos/3kzAKNfcQQrk9Zh5YJC02lWsjNO3QhcDRHKmHDAx.png';
@@ -195,7 +196,7 @@ export const AuthPage = ({ initialMode = 'login' }) => {
                 />
               </div>
               <div className="auth-logo-text">
-                <h1>{profile?.name || 'জব্বর নগর স্বতন্ত্র ইবতেদায়ী মাদ্রাসা'}</h1>
+                <h1>{profile?.name || 'মাদ্রাসা ম্যানেজমেন্ট'}</h1>
                 <p>Madrasa Management Software</p>
               </div>
             </div>
@@ -245,32 +246,24 @@ export const AuthPage = ({ initialMode = 'login' }) => {
           </div>
 
           <div className="auth-card">
-            {/* Top Navigation Tabs */}
-            <div className="auth-tab-pill-container">
-              <button
-                type="button"
-                className={`auth-tab-pill ${mode === 'login' ? 'active' : ''}`}
-                onClick={() => {
-                  setMode('login');
-                  setLoginError('');
-                }}
-              >
-                <LogIn className="w-4 h-4" />
-                <span>সাইন ইন (Login)</span>
-              </button>
-              <button
-                type="button"
-                className={`auth-tab-pill ${mode === 'register' ? 'active' : ''}`}
-                onClick={() => {
-                  setMode('register');
-                  setRegisterError('');
-                  setRegSuccessBanner('');
-                }}
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>সাইন আপ (Register)</span>
-              </button>
-            </div>
+            {/* When in Register Mode: Clean Header with Back to Login */}
+            {mode === 'register' && (
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+                <span className="text-xs font-semibold uppercase tracking-wider text-teal-700">অ্যাকাউন্ট রেজিস্ট্রেশন</span>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-teal-700 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors"
+                  onClick={() => {
+                    setMode('login');
+                    setRegisterError('');
+                    setRegSuccessBanner('');
+                  }}
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>লগইন এ ফিরে যান</span>
+                </button>
+              </div>
+            )}
 
             {/* LOGIN FORM VIEW */}
             {mode === 'login' && (
