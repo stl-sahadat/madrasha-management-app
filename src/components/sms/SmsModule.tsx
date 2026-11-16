@@ -46,7 +46,7 @@ export const SmsModule = ({
 
   // Determine current mode: 'client' (ছাত্র/ছাত্রী) or 'teacher' (শিক্ষক)
   const isTeacherMode = initialType === 'teacher' || defaultRecipientTarget === 'all_teachers';
-  const pageTitle = isTeacherMode ? 'শিক্ষককে WhatsApp মেসেজ পাঠান' : 'ছাত্র ছাত্রীকে WhatsApp মেসেজ পাঠান';
+  const pageTitle = isTeacherMode ? 'শিক্ষকদের WhatsApp-এ মেসেজ পাঠান' : 'ছাত্র-ছাত্রীদের WhatsApp-এ মেসেজ পাঠান';
 
   // Form states
   const [messageBody, setMessageBody] = useState('');
@@ -275,10 +275,9 @@ export const SmsModule = ({
 
       // Confirm dialog
       const confirmResult = await showConfirmDialog(
-        'WhatsApp মেসেজ পাঠাতে চান?',
+        'WhatsApp বার্তা পাঠাতে চান?',
         `প্রাপক: <b>${single.name}</b> (${single.role || ''})<br>` +
-        `WhatsApp নম্বর: <b class="text-success">${single.phone}</b><br>` +
-        `<span class="badge bg-success-subtle text-success border border-success mt-2">সম্পূর্ণ ফ্রি WhatsApp বার্তা (কোনো চার্জ নেই)</span><br><br>` +
+        `WhatsApp নম্বর: <b class="text-success">${single.phone}</b><br><br>` +
         `<div class="p-2 bg-light rounded text-start text-dark small font-monospace">"${messageBody.slice(0, 100)}${messageBody.length > 100 ? '...' : ''}"</div>`,
         'হ্যাঁ, WhatsApp খুলুন',
         'বাতিল'
@@ -305,11 +304,10 @@ export const SmsModule = ({
 
     // Multiple Recipients Case: Batch Dispatcher Hub
     const confirmResult = await showConfirmDialog(
-      'WhatsApp মেসেজ পাঠাতে চান?',
-      `প্রাপক সংখ্যা: <b>${targetRecipientDetails.length} জন</b><br>` +
-      `<span class="badge bg-success-subtle text-success border border-success mt-2">সম্পূর্ণ ফ্রি WhatsApp বার্তা (কোনো খরচ নেই)</span><br><br>` +
-      `<p class="small text-muted mb-0">কনফার্ম করলে প্রেরক হাব ওপেন হবে এবং ১ম প্রাপকের WhatsApp সরাসরি ওপেন হবে।</p>`,
-      'হ্যাঁ, মেসেজ প্রেরণ হাব খুলুন',
+      'WhatsApp বার্তা পাঠাতে চান?',
+      `প্রাপক সংখ্যা: <b>${targetRecipientDetails.length} জন</b><br><br>` +
+      `<p class="small text-muted mb-0">কনফার্ম করলে ১ম প্রাপকের WhatsApp সরাসরি ওপেন হবে এবং বার্তা প্রেরণ হাব চালু হবে।</p>`,
+      'হ্যাঁ, WhatsApp হাব খুলুন',
       'বাতিল'
     );
 
@@ -345,21 +343,11 @@ export const SmsModule = ({
         <div className="row row-sm">
           <div className="card shadow-lg border-0">
             {/* Header */}
-            <div className="card-header bg-gradient border-0 py-3">
-              <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <h5 className="card-title mb-0 fw-bold text-dark">
-                  <i className="fa-brands fa-whatsapp me-2 text-success" style={{ fontSize: '1.4rem' }}></i>
-                  {pageTitle}
-                </h5>
-
-                {/* Free WhatsApp Indicator Badge */}
-                <div className="d-flex align-items-center gap-2">
-                  <span className="badge bg-success-subtle text-success border border-success px-3 py-2 fs-6 shadow-sm">
-                    <i className="fa-brands fa-whatsapp text-success me-1"></i>
-                    সম্পূর্ণ ফ্রি WhatsApp মেসেজিং (কোনো রিচার্জ লাগবে না)
-                  </span>
-                </div>
-              </div>
+            <div className="card-header bg-white border-bottom py-3">
+              <h5 className="card-title mb-0 fw-bold text-dark">
+                <i className="fa-brands fa-whatsapp me-2 text-success" style={{ fontSize: '1.4rem' }}></i>
+                {pageTitle}
+              </h5>
             </div>
 
             {/* Body */}
@@ -370,43 +358,35 @@ export const SmsModule = ({
                     <div className="row g-4">
                       {/* Message Body */}
                       <div className="col-12">
-                        <div className="form-floating">
-                          <textarea
-                            className="form-control shadow-sm"
-                            name="message_body"
-                            id="messageBody"
-                            style={{ height: '180px', resize: 'none' }}
-                            placeholder="এখানে আপনার WhatsApp বার্তা লিখুন..."
-                            value={messageBody}
-                            onChange={handleMessageChange}
-                          ></textarea>
-                          <label htmlFor="messageBody">
-                            <i className="fa-brands fa-whatsapp me-2 text-success"></i>WhatsApp বার্তার বিষয়বস্তু
-                          </label>
-                        </div>
-                        <div className="d-flex justify-content-between align-items-center mt-2 px-2">
-                          <small className="text-muted">
-                            <i className="fas fa-check-circle text-success me-1"></i>সরাসরি অভিভাবক/শিক্ষকের WhatsApp অ্যাপে পৌঁছে যাবে
-                          </small>
-                          <div>
-                            <span className="badge bg-success mt-2 fs-6" id="characterCountBadge">
-                              ক্যারেক্টার:{' '}
-                              <span id="characterCount" className="fw-bold">
-                                {characterCount}
-                              </span>
+                        <label htmlFor="messageBody" className="form-label fw-bold text-dark mb-2">
+                          বার্তার বিষয়বস্তু
+                        </label>
+                        <textarea
+                          className="form-control shadow-sm"
+                          name="message_body"
+                          id="messageBody"
+                          style={{ height: '160px', resize: 'vertical' }}
+                          placeholder="এখানে আপনার বার্তা লিখুন..."
+                          value={messageBody}
+                          onChange={handleMessageChange}
+                        ></textarea>
+                        <div className="d-flex justify-content-end align-items-center mt-2 px-1">
+                          <span className="badge bg-secondary" id="characterCountBadge">
+                            ক্যারেক্টার:{' '}
+                            <span id="characterCount" className="fw-bold">
+                              {characterCount}
                             </span>
-                          </div>
+                          </span>
                         </div>
                       </div>
 
-                      {/* Recipient Selection for Client / Student Mode */}
+                      {/* Recipient Selection for Student Mode */}
                       {!isTeacherMode && (
                         <div className="col-12">
                           <div className="row g-3">
-                            {/* ১. জামাত নির্বাচন ড্রপডাউন */}
-                            <div className="col-md-5 col-12">
-                              <label htmlFor="jamat_select" className="form-label fw-semibold mb-2">
-                                <i className="fas fa-layer-group me-2 text-primary"></i>
+                            {/* ১. জামাত নির্বাচন */}
+                            <div className="col-md-4 col-12">
+                              <label htmlFor="jamat_select" className="form-label fw-bold mb-2">
                                 জামাত নির্বাচন করুন
                               </label>
                               <select
@@ -427,34 +407,21 @@ export const SmsModule = ({
                               </select>
                             </div>
 
-                            {/* ২. ছাত্র নির্বাচন ড্রপডাউন (দ্রুত নাম সার্চ সহ) */}
-                            <div className="col-md-7 col-12">
-                              <label htmlFor="student_id" className="form-label fw-semibold mb-2 d-flex justify-content-between align-items-center">
-                                <span>
-                                  <i className="fas fa-user-graduate me-2 text-primary"></i>
-                                  ছাত্র নির্বাচন করুন
-                                </span>
-                                {quickSearch && (
-                                  <span className="badge bg-light text-primary border small">
-                                    ফিল্টার সক্রিয়
-                                  </span>
-                                )}
+                            {/* ২. ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন */}
+                            <div className="col-md-4 col-12">
+                              <label htmlFor="quick_student_search" className="form-label fw-bold mb-2">
+                                <i className="fas fa-search me-1"></i> ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন
                               </label>
-
-                              {/* Search Input for Quick Student Search */}
-                              <div className="input-group input-group-sm mb-2 shadow-sm">
-                                <span className="input-group-text bg-white border-end-0">
-                                  <i className="fas fa-search text-muted"></i>
-                                </span>
+                              <div className="input-group shadow-sm">
                                 <input
+                                  id="quick_student_search"
                                   type="text"
-                                  className="form-control border-start-0"
+                                  className="form-control"
                                   placeholder="ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন"
                                   value={quickSearch}
                                   onChange={(e) => {
                                     setQuickSearch(e.target.value);
                                     if (e.target.value.trim() && dropdownStudents.length > 0) {
-                                      // If user is searching, preselect the top matching student for easy 1-click send
                                       const topMatch = dropdownStudents[0];
                                       setStudentSelectionMode(`student_${topMatch.id}`);
                                     }
@@ -463,7 +430,7 @@ export const SmsModule = ({
                                 {quickSearch && (
                                   <button
                                     type="button"
-                                    className="btn btn-outline-secondary border-start-0"
+                                    className="btn btn-outline-secondary"
                                     onClick={() => setQuickSearch('')}
                                     title="সার্চ মুছুন"
                                   >
@@ -471,53 +438,47 @@ export const SmsModule = ({
                                   </button>
                                 )}
                               </div>
+                            </div>
 
-                              <div className="row g-2">
-                                <div className="col-9">
-                                  <select
-                                    name="student_id"
-                                    id="student_id"
-                                    className="form-control form-select student_id shadow-sm"
-                                    value={studentSelectionMode}
-                                    onChange={(e) => setStudentSelectionMode(e.target.value)}
-                                  >
-                                    <option value="send_to_all">
-                                      {selectedJamat === 'all' ? 'সবাইকে পাঠান (সকল ছাত্র/ছাত্রী)' : `${selectedJamat} - সবাইকে পাঠান`}
+                            {/* ৩. ছাত্র নির্বাচন ড্রপডাউন */}
+                            <div className="col-md-4 col-12">
+                              <label htmlFor="student_id" className="form-label fw-bold mb-2">
+                                ছাত্র নির্বাচন করুন
+                              </label>
+                              <select
+                                name="student_id"
+                                id="student_id"
+                                className="form-control form-select student_id shadow-sm"
+                                value={studentSelectionMode}
+                                onChange={(e) => setStudentSelectionMode(e.target.value)}
+                              >
+                                <option value="send_to_all">
+                                  {selectedJamat === 'all' ? 'সকল ছাত্র/ছাত্রী' : `${selectedJamat} (সকল ছাত্র)`}
+                                </option>
+                                <optgroup label="একক ছাত্র/ছাত্রী">
+                                  {dropdownStudents.map((s) => (
+                                    <option key={s.id} value={`student_${s.id}`}>
+                                      {s.roll || s.admissionNo ? `[রোল: ${s.roll || s.admissionNo}] ` : ''}{s.name} - {s.guardianPhone || 'মোবাইল নেই'}
                                     </option>
-                                    <optgroup label={quickSearch ? `অনুসন্ধানের ফলাফল (${dropdownStudents.length} জন)` : "একক ছাত্র/ছাত্রী নির্বাচন"}>
-                                      {dropdownStudents.map((s) => (
-                                        <option key={s.id} value={`student_${s.id}`}>
-                                          {s.roll || s.admissionNo ? `[রোল: ${s.roll || s.admissionNo}] ` : ''}{s.name} - 📱 {s.guardianPhone || 'মোবাইল নেই'}
-                                        </option>
-                                      ))}
-                                    </optgroup>
-                                  </select>
-                                </div>
-                                <div className="col-3">
-                                  <button
-                                    id="clientAddModalBtn"
-                                    className="btn btn-success w-100 shadow-sm text-nowrap d-flex align-items-center justify-content-center"
-                                    style={{ whiteSpace: 'nowrap' }}
-                                    type="button"
-                                    onClick={() => setShowRecipientModal(true)}
-                                    title="বিস্তারিত প্রাপক তালিকা ও WhatsApp তালিকা"
-                                  >
-                                    <i className="fas fa-users me-1"></i>তালিকা
-                                  </button>
-                                </div>
-                              </div>
+                                  ))}
+                                </optgroup>
+                              </select>
                             </div>
                           </div>
 
-                          {/* Recipient summary indicator */}
-                          <div className="d-flex justify-content-between align-items-center mt-3 px-1">
-                            <small className="text-muted">
-                              <i className="fa-brands fa-whatsapp text-success me-1"></i>
+                          {/* Recipient summary & Modal button */}
+                          <div className="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                            <span className="small text-muted fw-semibold">
                               প্রাপক সংখ্যা: <b className="text-dark">{targetRecipientDetails.length} জন</b>
-                            </small>
-                            <small className="text-success fw-bold">
-                              <i className="fas fa-gift me-1"></i>খরচ: ৳ ০.০০ (সম্পূর্ণ ফ্রি)
-                            </small>
+                            </span>
+                            <button
+                              id="clientAddModalBtn"
+                              type="button"
+                              className="btn btn-outline-success btn-sm px-3 rounded-pill fw-semibold shadow-sm"
+                              onClick={() => setShowRecipientModal(true)}
+                            >
+                              <i className="fas fa-list-check me-1"></i> তালিকা থেকে নির্বাচন করুন
+                            </button>
                           </div>
                         </div>
                       )}
@@ -525,50 +486,45 @@ export const SmsModule = ({
                       {/* Recipient Selection for Teacher Mode */}
                       {isTeacherMode && (
                         <div className="col-12">
-                          <label htmlFor="teacher_id" className="form-label fw-semibold mb-2 d-flex justify-content-between align-items-center">
-                            <span>
-                              <i className="fas fa-chalkboard-user me-2 text-primary"></i>
-                              শিক্ষক নির্বাচন করুন
-                            </span>
-                            {quickSearch && (
-                              <span className="badge bg-light text-primary border small">
-                                ফিল্টার সক্রিয়
-                              </span>
-                            )}
-                          </label>
+                          <div className="row g-3">
+                            {/* ১. শিক্ষকের নাম দিয়ে খুঁজুন */}
+                            <div className="col-md-6 col-12">
+                              <label htmlFor="quick_teacher_search" className="form-label fw-bold mb-2">
+                                <i className="fas fa-search me-1"></i> শিক্ষকের নাম দিয়ে খুঁজুন
+                              </label>
+                              <div className="input-group shadow-sm">
+                                <input
+                                  id="quick_teacher_search"
+                                  type="text"
+                                  className="form-control"
+                                  placeholder="শিক্ষকের নাম দিয়ে খুঁজুন"
+                                  value={quickSearch}
+                                  onChange={(e) => {
+                                    setQuickSearch(e.target.value);
+                                    if (e.target.value.trim() && dropdownTeachers.length > 0) {
+                                      const topMatch = dropdownTeachers[0];
+                                      setTeacherSelectionMode(`teacher_${topMatch.id}`);
+                                    }
+                                  }}
+                                />
+                                {quickSearch && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-secondary"
+                                    onClick={() => setQuickSearch('')}
+                                    title="সার্চ মুছুন"
+                                  >
+                                    <i className="fas fa-times"></i>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
 
-                          {/* Search Input for Quick Teacher Search */}
-                          <div className="input-group input-group-sm mb-2 shadow-sm">
-                            <span className="input-group-text bg-white border-end-0">
-                              <i className="fas fa-search text-muted"></i>
-                            </span>
-                            <input
-                              type="text"
-                              className="form-control border-start-0"
-                              placeholder="🔍 শিক্ষকের নাম বা মোবাইল লিখে খুঁজুন (নাম সবার উপরে আসবে)..."
-                              value={quickSearch}
-                              onChange={(e) => {
-                                setQuickSearch(e.target.value);
-                                if (e.target.value.trim() && dropdownTeachers.length > 0) {
-                                  const topMatch = dropdownTeachers[0];
-                                  setTeacherSelectionMode(`teacher_${topMatch.id}`);
-                                }
-                              }}
-                            />
-                            {quickSearch && (
-                              <button
-                                type="button"
-                                className="btn btn-outline-secondary border-start-0"
-                                onClick={() => setQuickSearch('')}
-                                title="সার্চ মুছুন"
-                              >
-                                <i className="fas fa-times"></i>
-                              </button>
-                            )}
-                          </div>
-
-                          <div className="row g-2">
-                            <div className="col-9">
+                            {/* ২. শিক্ষক ড্রপডাউন */}
+                            <div className="col-md-6 col-12">
+                              <label htmlFor="teacher_id" className="form-label fw-bold mb-2">
+                                শিক্ষক নির্বাচন করুন
+                              </label>
                               <select
                                 name="teacher_id"
                                 id="teacher_id"
@@ -577,37 +533,30 @@ export const SmsModule = ({
                                 onChange={(e) => setTeacherSelectionMode(e.target.value)}
                               >
                                 <option value="send_to_all">সকল শিক্ষক ({teachers.length} জন)</option>
-                                <optgroup label={quickSearch ? `অনুসন্ধানের ফলাফল (${dropdownTeachers.length} জন)` : "একক শিক্ষক নির্বাচন"}>
+                                <optgroup label="একক শিক্ষক">
                                   {dropdownTeachers.map((t) => (
                                     <option key={t.id} value={`teacher_${t.id}`}>
-                                      {t.name} ({t.designation}) - 📱 {t.mobile || 'মোবাইল নেই'}
+                                      {t.name} ({t.designation}) - {t.mobile || 'মোবাইল নেই'}
                                     </option>
                                   ))}
                                 </optgroup>
                               </select>
                             </div>
-                            <div className="col-3">
-                              <button
-                                id="supplierAddModalBtn"
-                                className="btn btn-success w-100 shadow-sm"
-                                type="button"
-                                onClick={() => setShowRecipientModal(true)}
-                                title="শিক্ষকদের তালিকা দেখুন ও ফিল্টার করুন"
-                              >
-                                <i className="fas fa-users me-1"></i>তালিকা
-                              </button>
-                            </div>
                           </div>
 
-                          {/* Live summary indicator */}
-                          <div className="d-flex justify-content-between align-items-center mt-3 px-1">
-                            <small className="text-muted">
-                              <i className="fa-brands fa-whatsapp text-success me-1"></i>
+                          {/* Recipient summary & Modal button */}
+                          <div className="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                            <span className="small text-muted fw-semibold">
                               প্রাপক শিক্ষক: <b className="text-dark">{targetRecipientDetails.length} জন</b>
-                            </small>
-                            <small className="text-success fw-bold">
-                              <i className="fas fa-gift me-1"></i>খরচ: ৳ ০.০০ (সম্পূর্ণ ফ্রি)
-                            </small>
+                            </span>
+                            <button
+                              id="supplierAddModalBtn"
+                              type="button"
+                              className="btn btn-outline-success btn-sm px-3 rounded-pill fw-semibold shadow-sm"
+                              onClick={() => setShowRecipientModal(true)}
+                            >
+                              <i className="fas fa-list-check me-1"></i> তালিকা থেকে নির্বাচন করুন
+                            </button>
                           </div>
                         </div>
                       )}
@@ -618,11 +567,11 @@ export const SmsModule = ({
                           <button
                             type="submit"
                             id="submitButton"
-                            className="btn btn-success btn-lg rounded-pill shadow-sm fw-bold py-3"
+                            className="btn btn-success btn-lg rounded-3 shadow-sm fw-bold py-3"
                             disabled={isSubmitDisabled}
                           >
                             <i className="fa-brands fa-whatsapp me-2" style={{ fontSize: '1.25rem' }}></i>
-                            {isSubmitting ? 'প্রসেসিং হচ্ছে...' : 'WhatsApp এ বার্তা পাঠান'}
+                            {isSubmitting ? 'প্রসেসিং হচ্ছে...' : 'WhatsApp-এ বার্তা পাঠান'}
                           </button>
                         </div>
                       </div>
@@ -908,7 +857,7 @@ export const SmsModule = ({
                 <div className="alert alert-success d-flex align-items-center py-2 px-3 mb-3 small">
                   <i className="fa-brands fa-whatsapp fs-4 me-2"></i>
                   <div>
-                    <b>১ম প্রাপকের চ্যাট স্বয়ংক্রিয়ভাবে ওপেন করা হয়েছে!</b> নিচের তালিকা থেকে প্রতি জনের পাশে <b>"WhatsApp ওপেন"</b> বাটনে ক্লিক করে খুব সহজে দ্রুত মেসেজ সেন্ড করুন। কোনো রিচার্জ বা টাকা কাটার ভয় নেই!
+                    <b>১ম প্রাপকের চ্যাট ওপেন করা হয়েছে!</b> নিচের তালিকা থেকে প্রতি জনের পাশে <b>"WhatsApp ওপেন"</b> বাটনে ক্লিক করে মেসেজ পাঠান।
                   </div>
                 </div>
 
@@ -1005,7 +954,7 @@ export const SmsModule = ({
                           </span>
                         </td>
                         <td>{log.message}</td>
-                        <td className="font-monospace text-success fw-bold">ফ্রি (৳ ০.০০)</td>
+                        <td className="font-monospace text-success fw-bold">WhatsApp</td>
                         <td>
                           <span className="badge bg-success">
                             <i className="fa-brands fa-whatsapp me-1"></i>সফল (WhatsApp)
