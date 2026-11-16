@@ -34,14 +34,23 @@ export const StudentSalaryDepositReport = () => {
 
   const initial = getInitialParams();
   const [selectedJamat, setSelectedJamat] = useState('all');
+  const [searchName, setSearchName] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState(initial.studentId);
   const [selectedYear, setSelectedYear] = useState(initial.year);
   const [appliedFilter, setAppliedFilter] = useState(initial);
 
   const filteredStudents = React.useMemo(() => {
-    if (selectedJamat === 'all') return students;
-    return students.filter(s => s.jamat === selectedJamat);
-  }, [students, selectedJamat]);
+    let list = selectedJamat === 'all' ? students : students.filter(s => s.jamat === selectedJamat);
+    const q = searchName.trim().toLowerCase();
+    if (!q) return list;
+    return [...list].sort((a, b) => {
+      const aMatch = (a.name || '').toLowerCase().includes(q) || String(a.roll || '').includes(q);
+      const bMatch = (b.name || '').toLowerCase().includes(q) || String(b.roll || '').includes(q);
+      if (aMatch && !bMatch) return -1;
+      if (!aMatch && bMatch) return 1;
+      return 0;
+    });
+  }, [students, selectedJamat, searchName]);
 
   useEffect(() => {
     const handlePopState = () => {
@@ -130,7 +139,7 @@ export const StudentSalaryDepositReport = () => {
         <div className="card-body mb-3">
           <form onSubmit={handleSubmit} id="depositForm" className="w-100">
             <div className="row g-3 align-items-end">
-              <div className="col-12 col-md-4">
+              <div className="col-12 col-md-3">
                 <label htmlFor="jamat_select" className="form-label fw-bold">জামাত</label>
                 <select
                   id="jamat_select"
@@ -150,7 +159,29 @@ export const StudentSalaryDepositReport = () => {
                 </select>
               </div>
 
-              <div className="col-12 col-md-4">
+              <div className="col-12 col-md-3">
+                <label className="form-label fw-bold text-primary">
+                  <i className="fas fa-search me-1"></i> ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন
+                </label>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন"
+                  value={searchName}
+                  onChange={(e) => {
+                    setSearchName(e.target.value);
+                    const q = e.target.value.trim().toLowerCase();
+                    if (q) {
+                      const match = filteredStudents.find(st =>
+                        (st.name || '').toLowerCase().includes(q) || String(st.roll || '').includes(q)
+                      );
+                      if (match) setSelectedStudentId(match.id);
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="col-12 col-md-3">
                 <label className="form-label fw-bold">ভর্তি নং দিয়ে খুঁজুন</label>
                 <select
                   name="student_id"

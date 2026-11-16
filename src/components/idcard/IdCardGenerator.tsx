@@ -739,12 +739,12 @@ export const IdCardGenerator = ({ defaultType = 'student' }) => {
 
                 {/* সরাসরি নাম বা রোল দিয়ে সার্চ */}
                 <div className="col-md-3">
-                  <label htmlFor="student_search" className="form-label fw-bold">নাম বা রোল দিয়ে খুঁজুন</label>
+                  <label htmlFor="student_search" className="form-label fw-bold"><i className="fas fa-search me-1"></i> ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন</label>
                   <input
                     id="student_search"
                     type="text"
                     className="form-control"
-                    placeholder="নাম বা রোল লিখুন..."
+                    placeholder="ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন"
                     value={studentSearchText}
                     onChange={(e) => setStudentSearchText(e.target.value)}
                   />

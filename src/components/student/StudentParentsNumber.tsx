@@ -62,14 +62,14 @@ export const StudentParentsNumber = () => {
 
             <div className="col-md-4 col-12">
               <label htmlFor="student_search" className="form-label fw-bold text-primary">
-                <i className="fas fa-search me-1"></i> শিক্ষার্থী, পিতা বা মোবাইল দিয়ে খুঁজুন
+                <i className="fas fa-search me-1"></i> ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন
               </label>
               <div className="input-group">
                 <input
                   type="text"
                   id="student_search"
                   className="form-control"
-                  placeholder="নাম বা মোবাইল নম্বর লিখুন..."
+                  placeholder="ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন"
                   value={searchName}
                   onChange={(e) => setSearchName(e.target.value)}
                 />

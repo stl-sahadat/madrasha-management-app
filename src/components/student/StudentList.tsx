@@ -78,13 +78,13 @@ export const StudentList = () => {
           <div className="row mb-3 g-3">
             <div className="col-md-3 col-12">
               <label htmlFor="search_name" className="form-label fw-semibold text-primary">
-                <i className="fas fa-search me-1"></i> ছাত্র/ছাত্রীর নাম দিয়ে খুঁজুন
+                <i className="fas fa-search me-1"></i> ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন
               </label>
               <input
                 type="text"
                 id="search_name"
                 className="form-control"
-                placeholder="ছাত্র/ছাত্রীর নাম লিখুন..."
+                placeholder="ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন"
                 value={searchName}
                 onChange={(e) => setSearchName(e.target.value)}
               />

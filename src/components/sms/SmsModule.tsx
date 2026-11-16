@@ -449,7 +449,7 @@ export const SmsModule = ({
                                 <input
                                   type="text"
                                   className="form-control border-start-0"
-                                  placeholder="🔍 নাম, রোল বা মোবাইল লিখে খুঁজুন (নাম সবার উপরে আসবে)..."
+                                  placeholder="ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন"
                                   value={quickSearch}
                                   onChange={(e) => {
                                     setQuickSearch(e.target.value);
@@ -682,7 +682,7 @@ export const SmsModule = ({
                     <input
                       type="text"
                       className="form-control form-control-sm"
-                      placeholder={isTeacherMode ? 'শিক্ষকের নাম, পদবি বা মোবাইল নম্বর লিখুন...' : 'নাম, রোল বা মোবাইল নম্বর লিখুন...'}
+                      placeholder={isTeacherMode ? 'শিক্ষকের নাম, পদবি বা মোবাইল নম্বর লিখুন...' : 'ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন'}
                       value={isTeacherMode ? teacherSearchText : studentSearchText}
                       onChange={(e) => isTeacherMode ? setTeacherSearchText(e.target.value) : setStudentSearchText(e.target.value)}
                     />

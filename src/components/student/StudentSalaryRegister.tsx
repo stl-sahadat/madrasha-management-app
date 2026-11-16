@@ -54,13 +54,13 @@ export const StudentSalaryRegister = () => {
             </div>
             <div className="col-md-5 col-12">
               <label className="form-label fw-bold text-primary">
-                <i className="fas fa-search me-1"></i> ছাত্রের নাম বা রোল দিয়ে খুঁজুন:
+                <i className="fas fa-search me-1"></i> ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন
               </label>
               <div className="input-group">
                 <input
                   type="text"
                   className="form-control"
-                  placeholder="নাম বা রোল লিখুন..."
+                  placeholder="ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন"
                   value={searchName}
                   onChange={(e) => setSearchName(e.target.value)}
                 />

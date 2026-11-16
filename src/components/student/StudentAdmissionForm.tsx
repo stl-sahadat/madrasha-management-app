@@ -549,13 +549,13 @@ export const StudentAdmissionForm = () => {
 
             <div className="col-12 col-md-3">
               <label htmlFor="student_search_input" className="form-label fw-bold text-primary mb-1">
-                <i className="fas fa-search me-1"></i> নাম বা রোল দিয়ে খুঁজুন:
+                <i className="fas fa-search me-1"></i> ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন
               </label>
               <input
                 type="text"
                 id="student_search_input"
                 className="form-control border-2"
-                placeholder="নাম বা রোল লিখুন..."
+                placeholder="ছাত্র-ছাত্রীর নাম দিয়ে খুঁজুন"
                 value={searchName}
                 onChange={(e) => {
                   setSearchName(e.target.value);
