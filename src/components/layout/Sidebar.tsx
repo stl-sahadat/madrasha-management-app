@@ -572,7 +572,7 @@ export const Sidebar = () => {
             </ul>
           </li>
 
-          {/* এসএমএস */}
+          {/* WhatsApp / বার্তা */}
           <li className={sidebarOpen && openSection === 'sms' ? 'active' : ''}>
             <a
               aria-expanded={sidebarOpen && openSection === 'sms'}
@@ -581,15 +581,15 @@ export const Sidebar = () => {
               className="d-flex align-items-center fw-bold text-decoration-none"
               onClick={(e) => toggleSection('sms', e)}
             >
-              <i className="fa-solid fa-envelope me-2"></i>
-              এসএমএস
+              <i className="fa-brands fa-whatsapp me-2 text-success" style={{ fontSize: '1.15rem' }}></i>
+              হোয়াটসঅ্যাপ বার্তা
             </a>
             <ul className={`sidebar-submenu collapse list-unstyled ${sidebarOpen && openSection === 'sms' ? 'show' : ''}`} id="sms" style={!sidebarOpen ? { display: 'none' } : undefined}>
               <li className={activeTab === 'sms-student' || activeTab === 'sms-client' || activeTab === 'sms-send' ? 'active' : ''}>
-                <a href="/admin/sms/send-to-client" onClick={(e) => handleNavClick('sms-student', e)}>ছাত্র/ছাত্রী</a>
+                <a href="/admin/sms/send-to-client" onClick={(e) => handleNavClick('sms-student', e)}>ছাত্র/ছাত্রীকে WhatsApp বার্তা</a>
               </li>
               <li className={activeTab === 'sms-teacher' ? 'active' : ''}>
-                <a href="/admin/sms/send-to-teacher" onClick={(e) => handleNavClick('sms-teacher', e)}>শিক্ষক</a>
+                <a href="/admin/sms/send-to-teacher" onClick={(e) => handleNavClick('sms-teacher', e)}>শিক্ষককে WhatsApp বার্তা</a>
               </li>
             </ul>
           </li>

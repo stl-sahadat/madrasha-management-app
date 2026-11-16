@@ -1,14 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import { MONTH_NAMES } from '../../data/initialData';
 
 export const StudentSalaryRegister = () => {
   const { students, jamats } = useApp();
   const [selectedJamat, setSelectedJamat] = useState('');
+  const [searchName, setSearchName] = useState('');
 
-  const filteredStudents = selectedJamat
-    ? students.filter(s => s.jamat === selectedJamat)
-    : students;
+  const filteredStudents = useMemo(() => {
+    let list = selectedJamat ? students.filter(s => s.jamat === selectedJamat) : students;
+    if (searchName.trim()) {
+      const q = searchName.trim().toLowerCase();
+      list = list.filter(s =>
+        (s.name || '').toLowerCase().includes(q) ||
+        (s.nameEn || '').toLowerCase().includes(q) ||
+        String(s.roll || '').includes(q) ||
+        String(s.admissionNumber || s.admission_number || '').includes(q)
+      );
+      list.sort((a, b) => {
+        const aMatches = (a.name || '').toLowerCase().includes(q);
+        const bMatches = (b.name || '').toLowerCase().includes(q);
+        if (aMatches && !bMatches) return -1;
+        if (!aMatches && bMatches) return 1;
+        return 0;
+      });
+    }
+    return list;
+  }, [students, selectedJamat, searchName]);
 
   return (
     <div className="container-fluid p-0">
@@ -20,8 +38,8 @@ export const StudentSalaryRegister = () => {
           </h5>
         </div>
         <div className="card-body py-3">
-          <div className="row align-items-center">
-            <div className="col-md-4">
+          <div className="row g-3 align-items-center">
+            <div className="col-md-4 col-12">
               <label className="form-label fw-bold">জামাত নির্বাচন করুন:</label>
               <select
                 className="form-select"
@@ -34,7 +52,30 @@ export const StudentSalaryRegister = () => {
                 ))}
               </select>
             </div>
-            <div className="col-md-8 text-end">
+            <div className="col-md-5 col-12">
+              <label className="form-label fw-bold text-primary">
+                <i className="fas fa-search me-1"></i> ছাত্রের নাম বা রোল দিয়ে খুঁজুন:
+              </label>
+              <div className="input-group">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="নাম বা রোল লিখুন..."
+                  value={searchName}
+                  onChange={(e) => setSearchName(e.target.value)}
+                />
+                {searchName && (
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setSearchName('')}
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="col-md-3 col-12 text-md-end text-start">
               <p className="mb-0 fw-semibold text-muted">
                 মোট শিক্ষার্থী: {filteredStudents.length} জন
               </p>

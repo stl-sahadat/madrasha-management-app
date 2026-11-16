@@ -6,12 +6,22 @@ export const StudentKhurakiList = () => {
 
   const [selectedJamat, setSelectedJamat] = useState('all');
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || '');
+  const [searchName, setSearchName] = useState('');
   const [selectedYear, setSelectedYear] = useState('2026');
 
   const filteredStudents = React.useMemo(() => {
-    if (selectedJamat === 'all') return students;
-    return students.filter(s => s.jamat === selectedJamat);
-  }, [students, selectedJamat]);
+    let pool = selectedJamat === 'all' ? [...students] : students.filter(s => s.jamat === selectedJamat);
+    if (!searchName.trim()) return pool;
+
+    const q = searchName.trim().toLowerCase();
+    return pool.sort((a, b) => {
+      const aMatches = (a.name || '').toLowerCase().includes(q) || String(a.roll || a.admissionNumber || '').includes(q);
+      const bMatches = (b.name || '').toLowerCase().includes(q) || String(b.roll || b.admissionNumber || '').includes(q);
+      if (aMatches && !bMatches) return -1;
+      if (!aMatches && bMatches) return 1;
+      return 0;
+    });
+  }, [students, selectedJamat, searchName]);
 
   const currentStudent = students.find(s => s.id === selectedStudentId) || filteredStudents[0] || students[0];
 
@@ -33,7 +43,7 @@ export const StudentKhurakiList = () => {
         <div className="card-body mb-3">
           <div className="row g-3 align-items-end">
             {/* জামাত নির্বাচন */}
-            <div className="col-12 col-md-4">
+            <div className="col-12 col-md-3">
               <label htmlFor="jamat_select" className="form-label fw-bold">জামাত</label>
               <select
                 id="jamat_select"
@@ -53,8 +63,33 @@ export const StudentKhurakiList = () => {
               </select>
             </div>
 
+            {/* লাইভ সার্চ ইনপুট */}
+            <div className="col-12 col-md-3">
+              <label className="form-label fw-bold text-primary">
+                <i className="fas fa-search me-1"></i> নাম বা রোল দিয়ে খুঁজুন
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="নাম বা রোল লিখুন..."
+                value={searchName}
+                onChange={(e) => {
+                  setSearchName(e.target.value);
+                  const q = e.target.value.trim().toLowerCase();
+                  if (q) {
+                    const pool = selectedJamat === 'all' ? students : students.filter(s => s.jamat === selectedJamat);
+                    const match = pool.find(s =>
+                      (s.name || '').toLowerCase().includes(q) ||
+                      String(s.roll || s.admissionNumber || '').includes(q)
+                    );
+                    if (match) setSelectedStudentId(match.id);
+                  }
+                }}
+              />
+            </div>
+
             <div className="col-12 col-md-4">
-              <label className="form-label fw-bold">ভর্তি নং দিয়ে খুঁজুন</label>
+              <label className="form-label fw-bold">শিক্ষার্থী নির্বাচন (নাম সবার উপরে)</label>
               <select
                 name="student_id"
                 id="name_select"
@@ -62,12 +97,12 @@ export const StudentKhurakiList = () => {
                 value={selectedStudentId}
                 onChange={(e) => setSelectedStudentId(e.target.value)}
               >
-                <option value="">ভর্তি নং নির্বাচন করুন</option>
+                <option value="">শিক্ষার্থী নির্বাচন করুন</option>
                 {filteredStudents.map((s) => {
                   const adm = s.admissionNumber || s.admission_number || s.roll;
                   return (
                     <option key={s.id} value={s.id}>
-                      {adm} - {s.name}
+                      {s.name} (রোল/ভর্তি: {adm}) - {s.jamat}
                     </option>
                   );
                 })}

@@ -1,13 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 
 export const StudentParentsNumber = () => {
   const { students, jamats, setActiveTab } = useApp();
   const [selectedJamat, setSelectedJamat] = useState('');
+  const [searchName, setSearchName] = useState('');
 
-  const filteredStudents = selectedJamat
-    ? students.filter(s => s.jamat === selectedJamat)
-    : students;
+  const filteredStudents = useMemo(() => {
+    let list = selectedJamat ? students.filter(s => s.jamat === selectedJamat) : students;
+    if (searchName.trim()) {
+      const q = searchName.trim().toLowerCase();
+      list = list.filter(s =>
+        (s.name || '').toLowerCase().includes(q) ||
+        (s.fatherName || '').toLowerCase().includes(q) ||
+        String(s.parentsPhone || s.guardianPhone || '').includes(q) ||
+        String(s.roll || '').includes(q) ||
+        String(s.admissionNumber || s.admission_number || '').includes(q)
+      );
+      list.sort((a, b) => {
+        const aMatches = (a.name || '').toLowerCase().includes(q);
+        const bMatches = (b.name || '').toLowerCase().includes(q);
+        if (aMatches && !bMatches) return -1;
+        if (!aMatches && bMatches) return 1;
+        return 0;
+      });
+    }
+    return list;
+  }, [students, selectedJamat, searchName]);
 
   return (
     <div className="container-fluid p-0">
@@ -15,13 +34,13 @@ export const StudentParentsNumber = () => {
       <div className="card shadow-sm mb-4 no-print">
         <div className="card-header bg-primary">
           <h5 className="mb-0 text-white">
-            <i className="fa-solid fa-users me-2"></i> জামাত অনুযায়ী অভিভাবকের মোবাইল নাম্বারর
+            <i className="fa-solid fa-users me-2"></i> জামাত অনুযায়ী অভিভাবকের মোবাইল নাম্বার
           </h5>
         </div>
 
         <div className="card-body mb-3">
-          <div className="row align-items-end">
-            <div className="col-md-6">
+          <div className="row g-3 align-items-end">
+            <div className="col-md-4 col-12">
               <label htmlFor="jamat_select" className="form-label fw-bold">
                 জামাত লিস্ট
               </label>
@@ -41,14 +60,39 @@ export const StudentParentsNumber = () => {
               </select>
             </div>
 
-            <div className="col-md-6 text-md-end text-start mt-3 mt-md-0">
+            <div className="col-md-4 col-12">
+              <label htmlFor="student_search" className="form-label fw-bold text-primary">
+                <i className="fas fa-search me-1"></i> শিক্ষার্থী, পিতা বা মোবাইল দিয়ে খুঁজুন
+              </label>
+              <div className="input-group">
+                <input
+                  type="text"
+                  id="student_search"
+                  className="form-control"
+                  placeholder="নাম বা মোবাইল নম্বর লিখুন..."
+                  value={searchName}
+                  onChange={(e) => setSearchName(e.target.value)}
+                />
+                {searchName && (
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setSearchName('')}
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="col-md-4 col-12 text-md-end text-start">
               <button
                 onClick={() => setActiveTab('student-create')}
                 className="btn btn-danger text-white fw-bold"
               >
                 <i className="fa-solid fa-plus me-1"></i> নতুন ছাত্র/ছাত্রী যুক্ত করুন
               </button>
-              <p id="totalParents" style={{ fontSize: '17px' }} className="mt-3 fw-bold px-3">
+              <p id="totalParents" style={{ fontSize: '16px' }} className="mt-2 mb-0 fw-bold text-muted">
                 অভিভাবক: {filteredStudents.length} জন
               </p>
             </div>

@@ -163,7 +163,7 @@ export const DailyReport = () => {
             <div className="col-md-6">
               <div className="table-responsive">
                 <table className="table table-bordered">
-                  <thead className="table bg-primary">
+                  <thead className="bg-primary text-white">
                     <tr>
                       <th className="text-white">আয়ের খাত</th>
                       <th className="text-end text-white">টাকা</th>
@@ -199,7 +199,7 @@ export const DailyReport = () => {
             <div className="col-md-6">
               <div className="table-responsive">
                 <table className="table table-bordered">
-                  <thead className="table bg-primary">
+                  <thead className="bg-primary text-white">
                     <tr>
                       <th className="text-white">ব্যয়ের খাত</th>
                       <th className="text-end text-white">টাকা</th>

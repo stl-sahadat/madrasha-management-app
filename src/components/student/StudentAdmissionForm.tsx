@@ -5,11 +5,21 @@ export const StudentAdmissionForm = () => {
   const { students, jamats, profile } = useApp();
   const [selectedJamat, setSelectedJamat] = useState('all');
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || '');
+  const [searchName, setSearchName] = useState('');
 
   const filteredStudents = useMemo(() => {
-    if (selectedJamat === 'all') return students;
-    return students.filter(s => s.jamat === selectedJamat);
-  }, [students, selectedJamat]);
+    let pool = selectedJamat === 'all' ? [...students] : students.filter(s => s.jamat === selectedJamat);
+    if (!searchName.trim()) return pool;
+
+    const q = searchName.trim().toLowerCase();
+    return pool.sort((a, b) => {
+      const aMatches = (a.name || '').toLowerCase().includes(q) || String(a.roll || a.admissionNumber || '').includes(q);
+      const bMatches = (b.name || '').toLowerCase().includes(q) || String(b.roll || b.admissionNumber || '').includes(q);
+      if (aMatches && !bMatches) return -1;
+      if (!aMatches && bMatches) return 1;
+      return 0;
+    });
+  }, [students, selectedJamat, searchName]);
 
   const isBlank = selectedStudentId === 'blank';
   const currentStudent = isBlank ? null : (students.find(s => s.id === selectedStudentId) || filteredStudents[0] || students[0]);
@@ -537,9 +547,34 @@ export const StudentAdmissionForm = () => {
               </select>
             </div>
 
-            <div className="col-12 col-md-5">
+            <div className="col-12 col-md-3">
+              <label htmlFor="student_search_input" className="form-label fw-bold text-primary mb-1">
+                <i className="fas fa-search me-1"></i> নাম বা রোল দিয়ে খুঁজুন:
+              </label>
+              <input
+                type="text"
+                id="student_search_input"
+                className="form-control border-2"
+                placeholder="নাম বা রোল লিখুন..."
+                value={searchName}
+                onChange={(e) => {
+                  setSearchName(e.target.value);
+                  const q = e.target.value.trim().toLowerCase();
+                  if (q) {
+                    const pool = selectedJamat === 'all' ? students : students.filter(s => s.jamat === selectedJamat);
+                    const match = pool.find(s =>
+                      (s.name || '').toLowerCase().includes(q) ||
+                      String(s.roll || s.admissionNumber || '').includes(q)
+                    );
+                    if (match) setSelectedStudentId(match.id);
+                  }
+                }}
+              />
+            </div>
+
+            <div className="col-12 col-md-3">
               <label htmlFor="student_select" className="form-label fw-bold text-dark mb-1">
-                শিক্ষার্থী নির্বাচন (রোল ও নাম দিয়ে খুঁজুন):
+                শিক্ষার্থী নির্বাচন (নাম সবার উপরে):
               </label>
               <select
                 id="student_select"
@@ -556,7 +591,7 @@ export const StudentAdmissionForm = () => {
               </select>
             </div>
 
-            <div className="col-12 col-md-4 d-flex gap-2">
+            <div className="col-12 col-md-3 d-flex gap-2">
               <button
                 type="button"
                 onClick={() => window.print()}

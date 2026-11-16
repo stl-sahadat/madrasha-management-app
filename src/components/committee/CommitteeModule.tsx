@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 
 export const CommitteeModule = () => {
   const { committee } = useApp();
   const [showModal, setShowModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Committee list state
   const [memberList, setMemberList] = useState(() => {
@@ -15,6 +16,17 @@ export const CommitteeModule = () => {
       { id: '5', name: 'মাওলানা সামসুল আলম', mobile: '01819000444', role: 'সদস্য', designation: 'সদস্য', address: 'পেকুয়া, কক্সবাজার' }
     ];
   });
+
+  const filteredMembers = useMemo(() => {
+    if (!searchQuery.trim()) return memberList;
+    const q = searchQuery.trim().toLowerCase();
+    return memberList.filter(m =>
+      (m.name || '').toLowerCase().includes(q) ||
+      (m.designation || m.role || '').toLowerCase().includes(q) ||
+      (m.mobile || m.phone || '').includes(q) ||
+      (m.address || '').toLowerCase().includes(q)
+    );
+  }, [memberList, searchQuery]);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -56,15 +68,44 @@ export const CommitteeModule = () => {
 
   return (
     <div className="container-fluid p-0">
-      {/* Right: Add Committee member button */}
-      <div className="text-md-end text-start mb-3 mx-2">
-        <button
-          type="button"
-          className="btn btn-danger text-white fw-bold"
-          onClick={() => setShowModal(true)}
-        >
-          <i className="fa-solid fa-plus me-1"></i> কমিটির সদস্য যুক্ত করুন
-        </button>
+      {/* Top Search & Actions Bar */}
+      <div className="card shadow-sm border-0 mb-3 no-print">
+        <div className="card-body py-2">
+          <div className="row g-2 align-items-center">
+            <div className="col-md-6 col-12">
+              <div className="input-group">
+                <span className="input-group-text bg-white">
+                  <i className="fas fa-search text-muted"></i>
+                </span>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="🔍 কমিটির সদস্যের নাম, পদবি বা মোবাইল নম্বর দিয়ে খুঁজুন..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setSearchQuery('')}
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="col-md-6 col-12 text-md-end text-start">
+              <button
+                type="button"
+                className="btn btn-danger text-white fw-bold"
+                onClick={() => setShowModal(true)}
+              >
+                <i className="fa-solid fa-plus me-1"></i> কমিটির সদস্য যুক্ত করুন
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Main Print Content Card */}
@@ -100,27 +141,35 @@ export const CommitteeModule = () => {
               </tr>
             </thead>
             <tbody>
-              {memberList.map((m, idx) => (
-                <tr key={m.id}>
-                  <td className="text-center">{idx + 1}</td>
-                  <td className="text-start fw-bold">{m.name}</td>
-                  <td className="font-monospace fw-bold">{m.mobile || m.phone}</td>
-                  <td>
-                    <span className="badge bg-success">{m.designation || m.role}</span>
-                  </td>
-                  <td className="text-start">{m.address}</td>
-                  <td className="text-center no-print">
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(m.id)}
-                      className="btn btn-sm btn-danger delete-btn"
-                      title="ডিলিট"
-                    >
-                      <i className="fa-solid fa-trash"></i>
-                    </button>
+              {filteredMembers.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="text-center py-4 text-muted">
+                    কোনো কমিটির সদস্য পাওয়া যায়নি
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredMembers.map((m, idx) => (
+                  <tr key={m.id}>
+                    <td className="text-center">{idx + 1}</td>
+                    <td className="text-start fw-bold">{m.name}</td>
+                    <td className="font-monospace fw-bold">{m.mobile || m.phone}</td>
+                    <td>
+                      <span className="badge bg-success">{m.designation || m.role}</span>
+                    </td>
+                    <td className="text-start">{m.address}</td>
+                    <td className="text-center no-print">
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(m.id)}
+                        className="btn btn-sm btn-danger delete-btn"
+                        title="ডিলিট"
+                      >
+                        <i className="fa-solid fa-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
 

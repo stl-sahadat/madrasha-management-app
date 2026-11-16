@@ -7,14 +7,24 @@ export const StudentFeeMatrix = () => {
 
   const [selectedJamat, setSelectedJamat] = useState('all');
   const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || '');
+  const [searchName, setSearchName] = useState('');
   const [selectedAccount, setSelectedAccount] = useState(accounts[0]?.name || 'নগদ ক্যাশ (Hand Cash)');
   const [payingMonth, setPayingMonth] = useState(null);
   const [payFeeType, setPayFeeType] = useState('both'); // tuition, khuraki, both
 
   const filteredStudents = React.useMemo(() => {
-    if (selectedJamat === 'all') return students;
-    return students.filter(s => s.jamat === selectedJamat);
-  }, [students, selectedJamat]);
+    let pool = selectedJamat === 'all' ? [...students] : students.filter(s => s.jamat === selectedJamat);
+    if (!searchName.trim()) return pool;
+
+    const q = searchName.trim().toLowerCase();
+    return pool.sort((a, b) => {
+      const aMatches = (a.name || '').toLowerCase().includes(q) || String(a.roll || a.admissionNumber || '').includes(q);
+      const bMatches = (b.name || '').toLowerCase().includes(q) || String(b.roll || b.admissionNumber || '').includes(q);
+      if (aMatches && !bMatches) return -1;
+      if (!aMatches && bMatches) return 1;
+      return 0;
+    });
+  }, [students, selectedJamat, searchName]);
 
   const currentStudent = students.find(s => s.id === selectedStudentId) || filteredStudents[0] || students[0];
 
@@ -66,7 +76,7 @@ export const StudentFeeMatrix = () => {
 
         <div className="card-body">
           <div className="row g-3 align-items-end">
-            <div className="col-md-3">
+            <div className="col-md-3 col-12">
               <label htmlFor="jamat_select" className="form-label fw-bold">জামাত:</label>
               <select
                 id="jamat_select"
@@ -84,8 +94,33 @@ export const StudentFeeMatrix = () => {
                 ))}
               </select>
             </div>
-            <div className="col-md-5">
-              <label className="form-label fw-bold">শিক্ষার্থী নির্বাচন করুন:</label>
+
+            <div className="col-md-3 col-12">
+              <label className="form-label fw-bold text-primary">
+                <i className="fas fa-search me-1"></i> নাম বা রোল দিয়ে খুঁজুন:
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="নাম বা রোল লিখুন..."
+                value={searchName}
+                onChange={(e) => {
+                  setSearchName(e.target.value);
+                  const q = e.target.value.trim().toLowerCase();
+                  if (q) {
+                    const pool = selectedJamat === 'all' ? students : students.filter(s => s.jamat === selectedJamat);
+                    const match = pool.find(s =>
+                      (s.name || '').toLowerCase().includes(q) ||
+                      String(s.roll || s.admissionNumber || '').includes(q)
+                    );
+                    if (match) setSelectedStudentId(match.id);
+                  }
+                }}
+              />
+            </div>
+
+            <div className="col-md-3 col-12">
+              <label className="form-label fw-bold">শিক্ষার্থী নির্বাচন (নাম সবার উপরে):</label>
               <select
                 value={selectedStudentId}
                 onChange={(e) => setSelectedStudentId(e.target.value)}
@@ -95,13 +130,13 @@ export const StudentFeeMatrix = () => {
                   const adm = s.admissionNumber || s.admission_number || s.roll;
                   return (
                     <option key={s.id} value={s.id}>
-                      {adm} - {s.name}
+                      {s.name} (রোল: {adm})
                     </option>
                   );
                 })}
               </select>
             </div>
-            <div className="col-md-4">
+            <div className="col-md-3 col-12">
               <label className="form-label fw-bold">জমার এ্যাকাউন্ট:</label>
               <select
                 value={selectedAccount}

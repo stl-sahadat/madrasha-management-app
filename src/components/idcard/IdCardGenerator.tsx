@@ -83,6 +83,7 @@ export const IdCardGenerator = ({ defaultType = 'student' }) => {
   const [cardType, setCardType] = useState(initialType);
   const [selectedJamat, setSelectedJamat] = useState('all');
   const [studentSearchText, setStudentSearchText] = useState('');
+  const [teacherSearchText, setTeacherSearchText] = useState('');
 
   // Combined students ensuring student 206 is included
   const allStudents = useMemo(() => {
@@ -213,6 +214,18 @@ export const IdCardGenerator = ({ defaultType = 'student' }) => {
       return true;
     });
   }, [allStudents, selectedJamat, studentSearchText]);
+
+  // Filtered teachers by text search
+  const filteredTeachers = useMemo(() => {
+    if (!teacherSearchText.trim()) return allTeachers;
+    const q = teacherSearchText.trim().toLowerCase();
+    return allTeachers.filter(t => {
+      const matchName = t.name && t.name.toLowerCase().includes(q);
+      const matchId = t.employeeId && String(t.employeeId).toLowerCase().includes(q);
+      const matchDesig = t.designation && t.designation.toLowerCase().includes(q);
+      return matchName || matchId || matchDesig;
+    });
+  }, [allTeachers, teacherSearchText]);
 
   // Handle Jamat change
   const handleJamatChange = (e) => {
@@ -779,9 +792,32 @@ export const IdCardGenerator = ({ defaultType = 'student' }) => {
           </div>
           <div className="card-body mb-3">
             <form onSubmit={handleTeacherSubmit}>
-              <div className="row align-items-end">
-                <div className="col-md-8">
-                  <label htmlFor="teacher_select" className="form-label fw-bold">শিক্ষক আইডি বা নাম লিখুন</label>
+              <div className="row g-3 align-items-end">
+                <div className="col-md-5 col-12">
+                  <label htmlFor="teacher_search_text" className="form-label fw-bold text-primary">
+                    <i className="fas fa-search me-1"></i> শিক্ষকের নাম বা পদবি দিয়ে খুঁজুন
+                  </label>
+                  <input
+                    id="teacher_search_text"
+                    type="text"
+                    className="form-control"
+                    placeholder="নাম বা আইডি লিখুন..."
+                    value={teacherSearchText}
+                    onChange={(e) => {
+                      setTeacherSearchText(e.target.value);
+                      const q = e.target.value.trim().toLowerCase();
+                      if (q) {
+                        const m = allTeachers.find(t => (t.name && t.name.toLowerCase().includes(q)) || String(t.employeeId || '').includes(q));
+                        if (m) {
+                          setSelectedTeacherId(String(m.id));
+                          setActiveTeacher(m);
+                        }
+                      }
+                    }}
+                  />
+                </div>
+                <div className="col-md-5 col-12">
+                  <label htmlFor="teacher_select" className="form-label fw-bold">শিক্ষক নির্বাচন (নাম সবার উপরে)</label>
                   <select
                     name="teacher_id"
                     id="teacher_select"
@@ -790,17 +826,17 @@ export const IdCardGenerator = ({ defaultType = 'student' }) => {
                     onChange={handleTeacherSelect}
                     required
                   >
-                    <option value="">শিক্ষক আইডি বা নাম লিখুন</option>
-                    {allTeachers.map((t) => (
+                    <option value="">শিক্ষক নির্বাচন করুন</option>
+                    {filteredTeachers.map((t) => (
                       <option key={t.id} value={t.id}>
-                        {t.employeeId ? `${t.employeeId} - ${t.name}` : `- ${t.name}`}
+                        {t.name} ({t.designation || 'শিক্ষক'}{t.employeeId ? ` - আইডি: ${t.employeeId}` : ''})
                       </option>
                     ))}
                   </select>
                 </div>
-                <div className="col-md-4">
-                  <button type="submit" className="btn btn-primary">
-                    <i className="fas fa-eye me-2"></i>আইডি কার্ড দেখুন
+                <div className="col-md-2 col-12">
+                  <button type="submit" className="btn btn-primary w-100">
+                    <i className="fas fa-eye me-2"></i>দেখুন
                   </button>
                 </div>
               </div>

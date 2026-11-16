@@ -461,16 +461,16 @@ export const AccountsModule = ({ defaultView = 'list', initialEditId = null }) =
               </div>
               <div className="card-body p-0">
                 <div className="table-responsive">
-                  <table className="table table-hover table-bordered mb-0">
-                    <thead className="table bg-primary">
-                      <tr className="text-white">
+                  <table className="table table-hover table-bordered align-middle mb-0">
+                    <thead className="bg-primary text-white">
+                      <tr>
                         <th>নং</th>
                         <th>এ্যাকাউন্ট নাম</th>
                         <th>এ্যাকাউন্ট নাম্বার</th>
                         <th>বিবরণ</th>
                         <th>যোগাযোগ ব্যক্তি</th>
                         <th>মোবাইল</th>
-                        <th className="text-center">মুছুন</th>
+                        <th className="text-center" style={{ width: '190px', minWidth: '190px' }}>মুছুন / সম্পাদনা</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -494,22 +494,25 @@ export const AccountsModule = ({ defaultView = 'list', initialEditId = null }) =
                             <td>{acc.description || ''}</td>
                             <td>{acc.contact_person || acc.contactPerson || ''}</td>
                             <td>{acc.contact_person_phone || acc.mobile || ''}</td>
-                            <td className="text-center">
-                              <button
-                                type="button"
-                                onClick={() => handleStartEdit(acc)}
-                                className="btn btn-sm btn-warning me-1"
-                              >
-                                <i className="fa-solid fa-pen-to-square me-1"></i> সম্পাদনা
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteAccountClick(acc)}
-                                className="btn btn-sm btn-danger delete-btn"
-                                title="মুছে ফেলুন"
-                              >
-                                <i className="fa-solid fa-trash me-1"></i> মুছে ফেলুন
-                              </button>
+                            <td className="text-center" style={{ whiteSpace: 'nowrap', width: '190px', minWidth: '190px' }}>
+                              <div className="d-inline-flex align-items-center gap-2 justify-content-center">
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartEdit(acc)}
+                                  className="btn btn-sm btn-outline-primary px-2.5 py-1 fw-semibold d-inline-flex align-items-center shadow-none"
+                                  title="এ্যাকাউন্ট সম্পাদনা করুন"
+                                >
+                                  <i className="fa-solid fa-pen-to-square me-1"></i> সম্পাদনা
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteAccountClick(acc)}
+                                  className="btn btn-sm btn-outline-danger px-2.5 py-1 fw-semibold d-inline-flex align-items-center shadow-none delete-btn"
+                                  title="এ্যাকাউন্ট মুছে ফেলুন"
+                                >
+                                  <i className="fa-solid fa-trash me-1"></i> মুছে ফেলুন
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -885,12 +888,12 @@ export const AccountsModule = ({ defaultView = 'list', initialEditId = null }) =
                             ৳{formatMoney(t.amount)}
                           </td>
                           <td>{t.note || ''}</td>
-                          <td className="text-center">
+                          <td className="text-center" style={{ whiteSpace: 'nowrap', width: '130px', minWidth: '130px' }}>
                             <button
                               type="button"
                               onClick={() => handleDeleteTransferClick(t.id)}
-                              className="btn btn-sm btn-danger delete-btn"
-                              title="মুছে ফেলুন"
+                              className="btn btn-sm btn-outline-danger px-2.5 py-1 fw-semibold d-inline-flex align-items-center shadow-none delete-btn"
+                              title="ট্রান্সফার মুছে ফেলুন"
                             >
                               <i className="fa-solid fa-trash me-1"></i> মুছে ফেলুন
                             </button>

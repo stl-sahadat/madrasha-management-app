@@ -18,6 +18,7 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
   const [examSubject, setExamSubject] = useState('কুরআন হিফজ ও তাজবীদ');
   const [selectedResultJamat, setSelectedResultJamat] = useState('all');
   const [individualStudentId, setIndividualStudentId] = useState(students?.[0]?.id || '');
+  const [studentSearchQuery, setStudentSearchQuery] = useState('');
 
   const filteredResultStudents = React.useMemo(() => {
     if (selectedResultJamat === 'all') return students;
@@ -41,6 +42,23 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
     });
     return map;
   });
+
+  // Filtered Students with Search Support
+  const currentJamatStudents = React.useMemo(() => {
+    let list = students.filter(s => s.jamat === selectedJamat);
+    if (!studentSearchQuery.trim()) return list;
+    const q = studentSearchQuery.trim().toLowerCase();
+    return list.filter(s =>
+      (s.name || '').toLowerCase().includes(q) ||
+      String(s.roll || s.admissionNumber || '').includes(q)
+    ).sort((a, b) => {
+      const aMatches = (a.name || '').toLowerCase().includes(q);
+      const bMatches = (b.name || '').toLowerCase().includes(q);
+      if (aMatches && !bMatches) return -1;
+      if (!aMatches && bMatches) return 1;
+      return 0;
+    });
+  }, [students, selectedJamat, studentSearchQuery]);
 
   const handleMarkAllStudentsPresent = () => {
     const updated = { ...studentStatus };
@@ -68,9 +86,6 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
     });
     return map;
   });
-
-  // Filtered Students
-  const currentJamatStudents = students.filter(s => s.jamat === selectedJamat);
   const targetStudent = students.find(s => s.id === individualStudentId) || students[0];
 
   const handleSaveStudentAttendance = (e) => {
@@ -109,9 +124,9 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
 
           <div className="card-body">
             <form onSubmit={handleSaveStudentAttendance}>
-              <div className="row align-items-end mb-4">
+              <div className="row g-3 align-items-end mb-4">
                 {/* Jamat List */}
-                <div className="col-md-4 mb-3 mb-md-0">
+                <div className="col-md-3 col-12">
                   <label htmlFor="jamat_select" className="form-label fw-bold">জামাত লিস্ট</label>
                   <select
                     id="jamat_select"
@@ -127,7 +142,7 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
                 </div>
 
                 {/* Date */}
-                <div className="col-md-4 mb-3 mb-md-0">
+                <div className="col-md-3 col-12">
                   <label htmlFor="attendance_date" className="form-label fw-bold">তারিখ নির্বাচন করুন</label>
                   <input
                     type="date"
@@ -139,15 +154,27 @@ export const AttendanceModule = ({ defaultMode = 'attendance-student' }) => {
                   />
                 </div>
 
+                {/* Live Student Search */}
+                <div className="col-md-3 col-12">
+                  <label htmlFor="attendance_search" className="form-label fw-bold text-primary">
+                    <i className="fas fa-search me-1"></i> নাম বা রোল দিয়ে খুঁজুন
+                  </label>
+                  <input
+                    type="text"
+                    id="attendance_search"
+                    className="form-control"
+                    placeholder="নাম বা রোল লিখুন..."
+                    value={studentSearchQuery}
+                    onChange={(e) => setStudentSearchQuery(e.target.value)}
+                  />
+                </div>
+
                 {/* Submit Filter & Quick Action */}
-                <div className="col-md-4 d-flex gap-2">
-                  <button type="button" className="btn btn-success fw-bold flex-grow-1">
-                    <i className="fa-solid fa-eye me-1"></i> ছাত্র/ছাত্রী দেখান
-                  </button>
+                <div className="col-md-3 col-12 d-flex gap-2">
                   <button
                     type="button"
                     onClick={handleMarkAllStudentsPresent}
-                    className="btn btn-outline-primary fw-bold"
+                    className="btn btn-outline-primary fw-bold flex-grow-1"
                     title="এক ক্লিকে সকল শিক্ষার্থীকে উপস্থিত করুন"
                   >
                     <i className="fa-solid fa-check-double me-1"></i> সবাইকে উপস্থিত

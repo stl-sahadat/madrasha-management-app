@@ -1,15 +1,34 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
-  showSwal,
   showSuccessAlert,
-  showErrorAlert,
   showWarningAlert,
   showConfirmDialog
 } from '../../utils/swal';
 
-import { countBengaliCharacters, calculateRemainingCharacters, SMS_COST_PER_MESSAGE } from '../../utils/smsUtils';
+import { countBengaliCharacters } from '../../utils/smsUtils';
 export { countBengaliCharacters };
+
+// Helper to format clean WhatsApp numbers (Bangladesh +880 format)
+export const formatWhatsAppNumber = (phone) => {
+  if (!phone) return '';
+  let clean = String(phone).replace(/[^0-9]/g, '');
+  if (clean.startsWith('0')) {
+    clean = '88' + clean;
+  } else if (clean.length === 11 && clean.startsWith('1')) {
+    clean = '880' + clean;
+  } else if (clean.length === 10 && !clean.startsWith('88')) {
+    clean = '880' + clean;
+  }
+  return clean;
+};
+
+// Helper to generate direct WhatsApp web / app link
+export const getWhatsAppLink = (phone, text) => {
+  const clean = formatWhatsAppNumber(phone);
+  if (!clean) return '';
+  return `https://api.whatsapp.com/send?phone=${clean}&text=${encodeURIComponent(text || '')}`;
+};
 
 export const SmsModule = ({
   defaultView = 'compose',
@@ -17,25 +36,26 @@ export const SmsModule = ({
   initialType = 'client'
 }) => {
   const {
-    profile,
     students,
     teachers,
     jamats,
     sendSms,
     smsLogs,
-    rechargeSmsBalance,
     showToast
   } = useApp();
 
   // Determine current mode: 'client' (ছাত্র/ছাত্রী) or 'teacher' (শিক্ষক)
   const isTeacherMode = initialType === 'teacher' || defaultRecipientTarget === 'all_teachers';
-  const pageTitle = isTeacherMode ? 'শিক্ষককে SMS দিন' : 'ছাত্র ছাত্রীকে SMS দিন';
+  const pageTitle = isTeacherMode ? 'শিক্ষককে WhatsApp মেসেজ পাঠান' : 'ছাত্র ছাত্রীকে WhatsApp মেসেজ পাঠান';
 
   // Form states
   const [messageBody, setMessageBody] = useState('');
   const [characterCount, setCharacterCount] = useState(0);
-  const [remainingCharacters, setRemainingCharacters] = useState(160);
+  const [remainingCharacters, setRemainingCharacters] = useState(500); // WhatsApp has generous length limit
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Quick search filter for dropdown selection
+  const [quickSearch, setQuickSearch] = useState('');
 
   // Client recipient states
   const [studentSelectionMode, setStudentSelectionMode] = useState('send_to_all');
@@ -50,9 +70,8 @@ export const SmsModule = ({
 
   // Modals
   const [showRecipientModal, setShowRecipientModal] = useState(false);
-  const [showRechargeModal, setShowRechargeModal] = useState(false);
-  const [showGatewayModal, setShowGatewayModal] = useState(false);
-  const [rechargeAmount, setRechargeAmount] = useState('100');
+  const [showBatchModal, setShowBatchModal] = useState(false);
+  const [batchRecipients, setBatchRecipients] = useState([]);
 
   // Sync initial student selection to all students
   useEffect(() => {
@@ -68,22 +87,15 @@ export const SmsModule = ({
     }
   }, [teachers]);
 
-  // Message change handler matching live site formula & behavior
+  // Message change handler
   const handleMessageChange = (e) => {
     const text = e.target.value;
     setMessageBody(text);
     const count = countBengaliCharacters(text);
     setCharacterCount(count);
-    const remaining = 160 - count;
+    const remaining = 500 - count;
     setRemainingCharacters(remaining);
   };
-
-  // Character count badge class matching live site
-  const badgeClass = useMemo(() => {
-    if (remainingCharacters <= 0) return 'bg-danger';
-    if (remainingCharacters <= 20) return 'bg-warning text-dark';
-    return 'bg-primary';
-  }, [remainingCharacters]);
 
   // Filtered students for Client mode
   const filteredStudents = useMemo(() => {
@@ -109,43 +121,82 @@ export const SmsModule = ({
     });
   }, [teachers, teacherSearchText]);
 
-  // Filtered dropdown students by selected Jamat (Rule: default 'all' shows all, selecting jamat filters to that jamat)
+  // Filtered and Search-Sorted Dropdown students
   const dropdownStudents = useMemo(() => {
-    if (selectedJamat === 'all') return students;
-    return students.filter(s => s.jamat === selectedJamat);
-  }, [students, selectedJamat]);
+    let pool = selectedJamat === 'all' ? [...students] : students.filter(s => s.jamat === selectedJamat);
+    if (!quickSearch.trim()) return pool;
 
-  // Calculated target recipient numbers
-  const recipientNumbers = useMemo(() => {
+    const query = quickSearch.trim().toLowerCase();
+    // Sort matching students to the very top
+    return pool.sort((a, b) => {
+      const aName = (a.name || '').toLowerCase();
+      const bName = (b.name || '').toLowerCase();
+      const aRoll = String(a.roll || a.admissionNo || '');
+      const bRoll = String(b.roll || b.admissionNo || '');
+      const aPhone = String(a.guardianPhone || '');
+      const bPhone = String(b.guardianPhone || '');
+
+      const aMatches = aName.includes(query) || aRoll.includes(query) || aPhone.includes(query);
+      const bMatches = bName.includes(query) || bRoll.includes(query) || bPhone.includes(query);
+
+      if (aMatches && !bMatches) return -1;
+      if (!aMatches && bMatches) return 1;
+      return 0;
+    });
+  }, [students, selectedJamat, quickSearch]);
+
+  // Filtered and Search-Sorted Dropdown teachers
+  const dropdownTeachers = useMemo(() => {
+    if (!quickSearch.trim()) return teachers;
+    const query = quickSearch.trim().toLowerCase();
+    return [...teachers].sort((a, b) => {
+      const aName = (a.name || '').toLowerCase();
+      const bName = (b.name || '').toLowerCase();
+      const aDesig = (a.designation || '').toLowerCase();
+      const bDesig = (b.designation || '').toLowerCase();
+      const aPhone = String(a.mobile || '');
+      const bPhone = String(b.mobile || '');
+
+      const aMatches = aName.includes(query) || aDesig.includes(query) || aPhone.includes(query);
+      const bMatches = bName.includes(query) || bDesig.includes(query) || bPhone.includes(query);
+
+      if (aMatches && !bMatches) return -1;
+      if (!aMatches && bMatches) return 1;
+      return 0;
+    });
+  }, [teachers, quickSearch]);
+
+  // Calculated target recipients with details for WhatsApp
+  const targetRecipientDetails = useMemo(() => {
     if (isTeacherMode) {
       if (teacherSelectionMode === 'send_to_all') {
-        return teachers.map(t => t.mobile).filter(Boolean);
+        return teachers.map(t => ({ id: t.id, name: t.name, role: t.designation, phone: t.mobile })).filter(r => Boolean(r.phone));
       } else if (teacherSelectionMode.startsWith('teacher_')) {
         const tId = teacherSelectionMode.replace('teacher_', '');
         const target = teachers.find(t => String(t.id) === String(tId));
-        return target && target.mobile ? [target.mobile] : [];
+        return target && target.mobile ? [{ id: target.id, name: target.name, role: target.designation, phone: target.mobile }] : [];
       } else {
-        // Custom multi-selection
         return teachers
           .filter(t => selectedTeacherIds.includes(String(t.id)))
-          .map(t => t.mobile)
-          .filter(Boolean);
+          .map(t => ({ id: t.id, name: t.name, role: t.designation, phone: t.mobile }))
+          .filter(r => Boolean(r.phone));
       }
     } else {
-      // Client (student) mode
       if (studentSelectionMode === 'send_to_all') {
         const pool = selectedJamat === 'all' ? students : students.filter(s => s.jamat === selectedJamat);
-        return pool.map(s => s.guardianPhone).filter(Boolean);
+        return pool.map(s => ({ id: s.id, name: s.name, role: s.jamat, phone: s.guardianPhone || s.phone })).filter(r => Boolean(r.phone));
       } else if (studentSelectionMode.startsWith('student_')) {
         const sId = studentSelectionMode.replace('student_', '');
         const target = students.find(s => String(s.id) === String(sId));
-        return target && target.guardianPhone ? [target.guardianPhone] : [];
+        return target && (target.guardianPhone || target.phone)
+          ? [{ id: target.id, name: target.name, role: target.jamat, phone: target.guardianPhone || target.phone }]
+          : [];
       } else {
         return students
           .filter(s => selectedJamat === 'all' || s.jamat === selectedJamat)
           .filter(s => selectedStudentIds.includes(String(s.id)))
-          .map(s => s.guardianPhone)
-          .filter(Boolean);
+          .map(s => ({ id: s.id, name: s.name, role: s.jamat, phone: s.guardianPhone || s.phone }))
+          .filter(r => Boolean(r.phone));
       }
     }
   }, [
@@ -159,10 +210,9 @@ export const SmsModule = ({
     selectedJamat
   ]);
 
-  const costPerSms = 0.40;
-  const estimatedCost = +(recipientNumbers.length * costPerSms).toFixed(2);
-  const currentBalance = Number(profile?.smsBalance || 0);
-  const isBalanceInsufficient = currentBalance < estimatedCost;
+  const recipientNumbers = useMemo(() => {
+    return targetRecipientDetails.map(r => r.phone).filter(Boolean);
+  }, [targetRecipientDetails]);
 
   // Select all / Deselect all handlers for students
   const handleToggleSelectAllStudents = (e) => {
@@ -194,45 +244,72 @@ export const SmsModule = ({
     return filteredTeachers.every(t => selectedTeacherIds.includes(String(t.id)));
   }, [filteredTeachers, selectedTeacherIds]);
 
-  // Form submission with SweetAlert2 notifications
+  // Direct single WhatsApp sender
+  const openDirectWhatsApp = (phone, text = messageBody) => {
+    const link = getWhatsAppLink(phone, text);
+    if (!link) {
+      showWarningAlert('সতর্কতা', 'সঠিক মোবাইল নম্বর পাওয়া যায়নি!');
+      return;
+    }
+    window.open(link, '_blank');
+  };
+
+  // Form submission with Direct WhatsApp messaging
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
     if (!messageBody.trim()) {
-      await showWarningAlert('সতর্কতা', 'বার্তার বিষয়বস্তু লিখুন!');
+      await showWarningAlert('সতর্কতা', 'WhatsApp বার্তার বিষয়বস্তু লিখুন!');
       return;
     }
 
-    if (remainingCharacters <= -1) {
-      await showWarningAlert('দৈর্ঘ্য অতিরিক্ত', 'বার্তার দৈর্ঘ্য ১৬০ অক্ষরের বেশি হতে পারবে না!');
+    if (targetRecipientDetails.length === 0) {
+      await showWarningAlert('প্রাপক পাওয়া যায়নি', 'অন্তত একজন প্রাপক নির্বাচন করুন যাদের মোবাইল নম্বর আছে!');
       return;
     }
 
-    if (recipientNumbers.length === 0) {
-      await showWarningAlert('প্রাপক পাওয়া যায়নি', 'অন্তত একজন প্রাপক নির্বাচন করুন!');
-      return;
-    }
+    // Single Recipient Case: Direct Launch
+    if (targetRecipientDetails.length === 1) {
+      const single = targetRecipientDetails[0];
+      const link = getWhatsAppLink(single.phone, messageBody);
 
-    // Balance check
-    if (isBalanceInsufficient) {
-      await showErrorAlert(
-        'অপর্যাপ্ত এসএমএস ব্যালেন্স!',
-        null,
-        `আপনার বর্তমান ব্যালেন্স: <b>৳ ${currentBalance.toFixed(2)}</b><br>` +
-        `প্রয়োজনীয় ব্যালেন্স: <b>৳ ${estimatedCost.toFixed(2)}</b> (${recipientNumbers.length} টি এসএমএস × ৳ ০.৪০)<br>` +
-        `<span class="text-danger fw-bold mt-2 d-block">অনুগ্রহ করে এসএমএস ব্যালেন্স রিচার্জ করুন।</span>`
+      // Confirm dialog
+      const confirmResult = await showConfirmDialog(
+        'WhatsApp মেসেজ পাঠাতে চান?',
+        `প্রাপক: <b>${single.name}</b> (${single.role || ''})<br>` +
+        `WhatsApp নম্বর: <b class="text-success">${single.phone}</b><br>` +
+        `<span class="badge bg-success-subtle text-success border border-success mt-2">সম্পূর্ণ ফ্রি WhatsApp বার্তা (কোনো চার্জ নেই)</span><br><br>` +
+        `<div class="p-2 bg-light rounded text-start text-dark small font-monospace">"${messageBody.slice(0, 100)}${messageBody.length > 100 ? '...' : ''}"</div>`,
+        'হ্যাঁ, WhatsApp খুলুন',
+        'বাতিল'
       );
-      setShowRechargeModal(true);
+
+      if (!confirmResult.isConfirmed) return;
+
+      setIsSubmitting(true);
+      try {
+        window.open(link, '_blank');
+        sendSms([single.phone], messageBody);
+        await showSuccessAlert(
+          'WhatsApp চ্যাট খোলা হয়েছে!',
+          `${single.name}-এর (${single.phone}) নম্বরে WhatsApp বার্তা পাঠানোর জন্য চ্যাট উইন্ডো সফলভাবে ওপেন করা হয়েছে।`
+        );
+        setMessageBody('');
+        setCharacterCount(0);
+        setRemainingCharacters(500);
+      } finally {
+        setIsSubmitting(false);
+      }
       return;
     }
 
-    // Confirmation dialog before sending
+    // Multiple Recipients Case: Batch Dispatcher Hub
     const confirmResult = await showConfirmDialog(
-      'এসএমএস পাঠাতে চান?',
-      `প্রাপক সংখ্যা: <b>${recipientNumbers.length} জন</b><br>` +
-      `মোট ব্যয়: <b>৳ ${estimatedCost.toFixed(2)}</b><br><br>` +
-      `<div class="p-2 bg-light rounded text-start text-dark small font-monospace">"${messageBody.slice(0, 100)}${messageBody.length > 100 ? '...' : ''}"</div>`,
-      'হ্যাঁ, এসএমএস পাঠান',
+      'WhatsApp মেসেজ পাঠাতে চান?',
+      `প্রাপক সংখ্যা: <b>${targetRecipientDetails.length} জন</b><br>` +
+      `<span class="badge bg-success-subtle text-success border border-success mt-2">সম্পূর্ণ ফ্রি WhatsApp বার্তা (কোনো খরচ নেই)</span><br><br>` +
+      `<p class="small text-muted mb-0">কনফার্ম করলে প্রেরক হাব ওপেন হবে এবং ১ম প্রাপকের WhatsApp সরাসরি ওপেন হবে।</p>`,
+      'হ্যাঁ, মেসেজ প্রেরণ হাব খুলুন',
       'বাতিল'
     );
 
@@ -240,38 +317,26 @@ export const SmsModule = ({
 
     setIsSubmitting(true);
     try {
-      const success = sendSms(recipientNumbers, messageBody);
-      if (success) {
-        await showSuccessAlert(
-          'সফলভাবে পাঠানো হয়েছে!',
-          `${recipientNumbers.length} টি নম্বরে এসএমএস সফলভাবে পাঠানো সম্পন্ন হয়েছে।`
-        );
-        setMessageBody('');
-        setCharacterCount(0);
-        setRemainingCharacters(160);
-      } else {
-        await showErrorAlert('ব্যর্থ হয়েছে!', 'এসএমএস প্রেরণ করা সম্ভব হয়নি। ব্যালেন্স চেক করুন।');
+      sendSms(recipientNumbers, messageBody);
+      setBatchRecipients([...targetRecipientDetails]);
+      setShowBatchModal(true);
+
+      // Auto open the first recipient's WhatsApp in a new tab
+      if (targetRecipientDetails[0]?.phone) {
+        window.open(getWhatsAppLink(targetRecipientDetails[0].phone, messageBody), '_blank');
+      }
+
+      if (showToast) {
+        showToast(`WhatsApp মেসেজ হাব চালু হয়েছে! মোট ${targetRecipientDetails.length} জন প্রাপক।`, 'success');
       }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Recharge submit
-  const handleRechargeSubmit = (e) => {
-    e.preventDefault();
-    const amt = parseFloat(rechargeAmount);
-    if (!amt || amt <= 0) return;
-    rechargeSmsBalance(amt);
-    setShowRechargeModal(false);
-    showSuccessAlert('রিচার্জ সফল!', `৳ ${amt.toFixed(2)} এসএমএস ব্যালেন্স সফলভাবে যুক্ত হয়েছে।`);
-  };
-
-  // Submit button disabled state matching live site behavior
   const isSubmitDisabled =
-    remainingCharacters <= -1 ||
     !messageBody.trim() ||
-    recipientNumbers.length === 0 ||
+    targetRecipientDetails.length === 0 ||
     isSubmitting;
 
   return (
@@ -279,47 +344,31 @@ export const SmsModule = ({
       <div className="main-content-body">
         <div className="row row-sm">
           <div className="card shadow-lg border-0">
-            {/* 1:1 Live site Header */}
+            {/* Header */}
             <div className="card-header bg-gradient border-0 py-3">
               <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 className="card-title mb-0 fw-bold text-dark">
-                  <i className="fas fa-sms me-2 text-primary"></i>
+                  <i className="fa-brands fa-whatsapp me-2 text-success" style={{ fontSize: '1.4rem' }}></i>
                   {pageTitle}
                 </h5>
 
-                {/* Live Balance & Gateway Quick Actions */}
+                {/* Free WhatsApp Indicator Badge */}
                 <div className="d-flex align-items-center gap-2">
-                  <span className="badge bg-light text-dark border px-3 py-2 fs-6">
-                    <i className="fas fa-wallet text-success me-1"></i>
-                    ব্যালেন্স: <b className="text-primary font-monospace">৳ {currentBalance.toFixed(2)}</b>
+                  <span className="badge bg-success-subtle text-success border border-success px-3 py-2 fs-6 shadow-sm">
+                    <i className="fa-brands fa-whatsapp text-success me-1"></i>
+                    সম্পূর্ণ ফ্রি WhatsApp মেসেজিং (কোনো রিচার্জ লাগবে না)
                   </span>
-                  <button
-                    type="button"
-                    onClick={() => setShowRechargeModal(true)}
-                    className="btn btn-sm btn-outline-success rounded-pill"
-                    title="এসএমএস ব্যালেন্স রিচার্জ করুন"
-                  >
-                    <i className="fas fa-plus-circle me-1"></i>রিচার্জ
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowGatewayModal(true)}
-                    className="btn btn-sm btn-outline-secondary rounded-pill"
-                    title="এসএমএস গেটওয়ে সেটিংস"
-                  >
-                    <i className="fas fa-cog"></i>
-                  </button>
                 </div>
               </div>
             </div>
 
-            {/* 1:1 Live site Body */}
+            {/* Body */}
             <div className="card-body p-4 p-md-5">
               <div className="row justify-content-center">
                 <div className="col-lg-8 col-xl-7">
                   <form onSubmit={handleFormSubmit}>
                     <div className="row g-4">
-                      {/* Message Body (Exact live site markup) */}
+                      {/* Message Body */}
                       <div className="col-12">
                         <div className="form-floating">
                           <textarea
@@ -327,23 +376,23 @@ export const SmsModule = ({
                             name="message_body"
                             id="messageBody"
                             style={{ height: '180px', resize: 'none' }}
-                            placeholder="এখানে আপনার বার্তা লিখুন..."
+                            placeholder="এখানে আপনার WhatsApp বার্তা লিখুন..."
                             value={messageBody}
                             onChange={handleMessageChange}
                           ></textarea>
                           <label htmlFor="messageBody">
-                            <i className="fas fa-comment-dots me-2"></i>বার্তার বিষয়বস্তু
+                            <i className="fa-brands fa-whatsapp me-2 text-success"></i>WhatsApp বার্তার বিষয়বস্তু
                           </label>
                         </div>
                         <div className="d-flex justify-content-between align-items-center mt-2 px-2">
                           <small className="text-muted">
-                            <i className="fas fa-info-circle me-1"></i>সর্বোচ্চ ১৬০ অক্ষর
+                            <i className="fas fa-check-circle text-success me-1"></i>সরাসরি অভিভাবক/শিক্ষকের WhatsApp অ্যাপে পৌঁছে যাবে
                           </small>
                           <div>
-                            <span className={`badge ${badgeClass} mt-2 fs-6`} id="characterCountBadge">
-                              অবশিষ্ট অক্ষর:{' '}
+                            <span className="badge bg-success mt-2 fs-6" id="characterCountBadge">
+                              ক্যারেক্টার:{' '}
                               <span id="characterCount" className="fw-bold">
-                                {remainingCharacters}
+                                {characterCount}
                               </span>
                             </span>
                           </div>
@@ -354,7 +403,7 @@ export const SmsModule = ({
                       {!isTeacherMode && (
                         <div className="col-12">
                           <div className="row g-3">
-                            {/* ১. জামাত নির্বাচন ড্রপডাউন (ডিফল্ট: "সকল জামাত") */}
+                            {/* ১. জামাত নির্বাচন ড্রপডাউন */}
                             <div className="col-md-5 col-12">
                               <label htmlFor="jamat_select" className="form-label fw-semibold mb-2">
                                 <i className="fas fa-layer-group me-2 text-primary"></i>
@@ -378,12 +427,51 @@ export const SmsModule = ({
                               </select>
                             </div>
 
-                            {/* ২. ছাত্র নির্বাচন ড্রপডাউন (জামাত অনুসারে স্বয়ংক্রিয়ভাবে ফিল্টার) */}
+                            {/* ২. ছাত্র নির্বাচন ড্রপডাউন (দ্রুত নাম সার্চ সহ) */}
                             <div className="col-md-7 col-12">
-                              <label htmlFor="student_id" className="form-label fw-semibold mb-2">
-                                <i className="fas fa-user-graduate me-2 text-primary"></i>
-                                ছাত্র নির্বাচন করুন
+                              <label htmlFor="student_id" className="form-label fw-semibold mb-2 d-flex justify-content-between align-items-center">
+                                <span>
+                                  <i className="fas fa-user-graduate me-2 text-primary"></i>
+                                  ছাত্র নির্বাচন করুন
+                                </span>
+                                {quickSearch && (
+                                  <span className="badge bg-light text-primary border small">
+                                    ফিল্টার সক্রিয়
+                                  </span>
+                                )}
                               </label>
+
+                              {/* Search Input for Quick Student Search */}
+                              <div className="input-group input-group-sm mb-2 shadow-sm">
+                                <span className="input-group-text bg-white border-end-0">
+                                  <i className="fas fa-search text-muted"></i>
+                                </span>
+                                <input
+                                  type="text"
+                                  className="form-control border-start-0"
+                                  placeholder="🔍 নাম, রোল বা মোবাইল লিখে খুঁজুন (নাম সবার উপরে আসবে)..."
+                                  value={quickSearch}
+                                  onChange={(e) => {
+                                    setQuickSearch(e.target.value);
+                                    if (e.target.value.trim() && dropdownStudents.length > 0) {
+                                      // If user is searching, preselect the top matching student for easy 1-click send
+                                      const topMatch = dropdownStudents[0];
+                                      setStudentSelectionMode(`student_${topMatch.id}`);
+                                    }
+                                  }}
+                                />
+                                {quickSearch && (
+                                  <button
+                                    type="button"
+                                    className="btn btn-outline-secondary border-start-0"
+                                    onClick={() => setQuickSearch('')}
+                                    title="সার্চ মুছুন"
+                                  >
+                                    <i className="fas fa-times"></i>
+                                  </button>
+                                )}
+                              </div>
+
                               <div className="row g-2">
                                 <div className="col-9">
                                   <select
@@ -394,12 +482,12 @@ export const SmsModule = ({
                                     onChange={(e) => setStudentSelectionMode(e.target.value)}
                                   >
                                     <option value="send_to_all">
-                                      {selectedJamat === 'all' ? 'সবাইকে পাঠান' : `${selectedJamat} - সবাইকে পাঠান`}
+                                      {selectedJamat === 'all' ? 'সবাইকে পাঠান (সকল ছাত্র/ছাত্রী)' : `${selectedJamat} - সবাইকে পাঠান`}
                                     </option>
-                                    <optgroup label="একক ছাত্র/ছাত্রী নির্বাচন">
+                                    <optgroup label={quickSearch ? `অনুসন্ধানের ফলাফল (${dropdownStudents.length} জন)` : "একক ছাত্র/ছাত্রী নির্বাচন"}>
                                       {dropdownStudents.map((s) => (
                                         <option key={s.id} value={`student_${s.id}`}>
-                                          {s.roll || s.admissionNo ? `${s.roll || s.admissionNo} - ` : ''}{s.name}{selectedJamat === 'all' && s.jamat ? ` - ${s.jamat}` : ''}
+                                          {s.roll || s.admissionNo ? `[রোল: ${s.roll || s.admissionNo}] ` : ''}{s.name} - 📱 {s.guardianPhone || 'মোবাইল নেই'}
                                         </option>
                                       ))}
                                     </optgroup>
@@ -408,30 +496,27 @@ export const SmsModule = ({
                                 <div className="col-3">
                                   <button
                                     id="clientAddModalBtn"
-                                    className="btn btn-success w-100 shadow-sm"
+                                    className="btn btn-success w-100 shadow-sm text-nowrap d-flex align-items-center justify-content-center"
+                                    style={{ whiteSpace: 'nowrap' }}
                                     type="button"
                                     onClick={() => setShowRecipientModal(true)}
-                                    title="বিস্তারিত প্রাপক তালিকা"
+                                    title="বিস্তারিত প্রাপক তালিকা ও WhatsApp তালিকা"
                                   >
-                                    <i className="fas fa-plus"></i>
+                                    <i className="fas fa-users me-1"></i>তালিকা
                                   </button>
                                 </div>
                               </div>
-                              <span
-                                className="text-danger fw-bold small ms-2 d-block mt-1"
-                                id="student_id_Error"
-                              ></span>
                             </div>
                           </div>
 
-                          {/* Live recipient summary indicator */}
-                          <div className="d-flex justify-content-between align-items-center mt-2 px-1">
+                          {/* Recipient summary indicator */}
+                          <div className="d-flex justify-content-between align-items-center mt-3 px-1">
                             <small className="text-muted">
-                              <i className="fas fa-check-double text-success me-1"></i>
-                              প্রাপক সংখ্যা: <b className="text-dark">{recipientNumbers.length} জন</b>
+                              <i className="fa-brands fa-whatsapp text-success me-1"></i>
+                              প্রাপক সংখ্যা: <b className="text-dark">{targetRecipientDetails.length} জন</b>
                             </small>
-                            <small className="text-muted">
-                              আনুমানিক ব্যয়: <b className="text-primary font-monospace">৳ {estimatedCost.toFixed(2)}</b>
+                            <small className="text-success fw-bold">
+                              <i className="fas fa-gift me-1"></i>খরচ: ৳ ০.০০ (সম্পূর্ণ ফ্রি)
                             </small>
                           </div>
                         </div>
@@ -440,10 +525,48 @@ export const SmsModule = ({
                       {/* Recipient Selection for Teacher Mode */}
                       {isTeacherMode && (
                         <div className="col-12">
-                          <label htmlFor="teacher_id" className="form-label fw-semibold mb-2">
-                            <i className="fas fa-chalkboard-user me-2 text-primary"></i>
-                            শিক্ষক নির্বাচন করুন
+                          <label htmlFor="teacher_id" className="form-label fw-semibold mb-2 d-flex justify-content-between align-items-center">
+                            <span>
+                              <i className="fas fa-chalkboard-user me-2 text-primary"></i>
+                              শিক্ষক নির্বাচন করুন
+                            </span>
+                            {quickSearch && (
+                              <span className="badge bg-light text-primary border small">
+                                ফিল্টার সক্রিয়
+                              </span>
+                            )}
                           </label>
+
+                          {/* Search Input for Quick Teacher Search */}
+                          <div className="input-group input-group-sm mb-2 shadow-sm">
+                            <span className="input-group-text bg-white border-end-0">
+                              <i className="fas fa-search text-muted"></i>
+                            </span>
+                            <input
+                              type="text"
+                              className="form-control border-start-0"
+                              placeholder="🔍 শিক্ষকের নাম বা মোবাইল লিখে খুঁজুন (নাম সবার উপরে আসবে)..."
+                              value={quickSearch}
+                              onChange={(e) => {
+                                setQuickSearch(e.target.value);
+                                if (e.target.value.trim() && dropdownTeachers.length > 0) {
+                                  const topMatch = dropdownTeachers[0];
+                                  setTeacherSelectionMode(`teacher_${topMatch.id}`);
+                                }
+                              }}
+                            />
+                            {quickSearch && (
+                              <button
+                                type="button"
+                                className="btn btn-outline-secondary border-start-0"
+                                onClick={() => setQuickSearch('')}
+                                title="সার্চ মুছুন"
+                              >
+                                <i className="fas fa-times"></i>
+                              </button>
+                            )}
+                          </div>
+
                           <div className="row g-2">
                             <div className="col-9">
                               <select
@@ -453,11 +576,11 @@ export const SmsModule = ({
                                 value={teacherSelectionMode}
                                 onChange={(e) => setTeacherSelectionMode(e.target.value)}
                               >
-                                <option value="send_to_all">সকল শিক্ষক</option>
-                                <optgroup label="একক শিক্ষক নির্বাচন">
-                                  {teachers.map((t) => (
+                                <option value="send_to_all">সকল শিক্ষক ({teachers.length} জন)</option>
+                                <optgroup label={quickSearch ? `অনুসন্ধানের ফলাফল (${dropdownTeachers.length} জন)` : "একক শিক্ষক নির্বাচন"}>
+                                  {dropdownTeachers.map((t) => (
                                     <option key={t.id} value={`teacher_${t.id}`}>
-                                      {t.name} - {t.designation}
+                                      {t.name} ({t.designation}) - 📱 {t.mobile || 'মোবাইল নেই'}
                                     </option>
                                   ))}
                                 </optgroup>
@@ -471,54 +594,35 @@ export const SmsModule = ({
                                 onClick={() => setShowRecipientModal(true)}
                                 title="শিক্ষকদের তালিকা দেখুন ও ফিল্টার করুন"
                               >
-                                <i className="fas fa-plus"></i>
+                                <i className="fas fa-users me-1"></i>তালিকা
                               </button>
                             </div>
                           </div>
 
                           {/* Live summary indicator */}
-                          <div className="d-flex justify-content-between align-items-center mt-2 px-1">
+                          <div className="d-flex justify-content-between align-items-center mt-3 px-1">
                             <small className="text-muted">
-                              <i className="fas fa-check-double text-success me-1"></i>
-                              প্রাপক শিক্ষক: <b className="text-dark">{recipientNumbers.length} জন</b>
+                              <i className="fa-brands fa-whatsapp text-success me-1"></i>
+                              প্রাপক শিক্ষক: <b className="text-dark">{targetRecipientDetails.length} জন</b>
                             </small>
-                            <small className="text-muted">
-                              আনুমানিক ব্যয়: <b className="text-primary font-monospace">৳ {estimatedCost.toFixed(2)}</b>
+                            <small className="text-success fw-bold">
+                              <i className="fas fa-gift me-1"></i>খরচ: ৳ ০.০০ (সম্পূর্ণ ফ্রি)
                             </small>
                           </div>
                         </div>
                       )}
 
-                      {/* Low balance warning notice */}
-                      {isBalanceInsufficient && (
-                        <div className="col-12">
-                          <div className="alert alert-warning py-2 px-3 d-flex justify-content-between align-items-center mb-0 rounded-3 shadow-sm">
-                            <small>
-                              <i className="fas fa-triangle-exclamation text-warning me-1"></i>
-                              <b>ব্যালেন্স অপর্যাপ্ত:</b> বর্তমান ব্যালেন্স ৳ {currentBalance.toFixed(2)}, প্রয়োজন ৳ {estimatedCost.toFixed(2)}
-                            </small>
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-dark rounded-pill py-0 px-2"
-                              onClick={() => setShowRechargeModal(true)}
-                            >
-                              রিচার্জ
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Submit Button (Exact 1:1 live markup) */}
+                      {/* Submit Button */}
                       <div className="col-12 mt-4">
                         <div className="d-grid">
                           <button
                             type="submit"
                             id="submitButton"
-                            className="btn btn-success btn-lg rounded-pill shadow-sm"
+                            className="btn btn-success btn-lg rounded-pill shadow-sm fw-bold py-3"
                             disabled={isSubmitDisabled}
                           >
-                            <i className="fas fa-paper-plane me-2"></i>
-                            {isSubmitting ? 'পাঠানো হচ্ছে...' : 'এসএমএস পাঠান'}
+                            <i className="fa-brands fa-whatsapp me-2" style={{ fontSize: '1.25rem' }}></i>
+                            {isSubmitting ? 'প্রসেসিং হচ্ছে...' : 'WhatsApp এ বার্তা পাঠান'}
                           </button>
                         </div>
                       </div>
@@ -543,8 +647,8 @@ export const SmsModule = ({
             <div className="modal-content border-0 shadow-lg rounded-4">
               <div className="modal-header bg-gradient text-dark border-bottom py-3">
                 <h5 className="modal-title fw-bold">
-                  <i className="fas fa-users text-primary me-2"></i>
-                  {isTeacherMode ? 'শিক্ষক প্রাপক তালিকা নির্বাচন' : 'ছাত্র/ছাত্রী প্রাপক তালিকা ও জামাত ফিল্টার'}
+                  <i className="fa-brands fa-whatsapp text-success me-2"></i>
+                  {isTeacherMode ? 'শিক্ষক প্রাপক তালিকা ও সরাসরি WhatsApp' : 'ছাত্র/ছাত্রী প্রাপক তালিকা ও সরাসরি WhatsApp'}
                 </h5>
                 <button
                   type="button"
@@ -603,19 +707,21 @@ export const SmsModule = ({
                           <th>ভর্তি/রোল</th>
                           <th>ছাত্র/ছাত্রীর নাম</th>
                           <th>জামাত</th>
-                          <th>অভিভাবকের মোবাইল নম্বর</th>
+                          <th>WhatsApp নম্বর</th>
+                          <th className="text-center">সরাসরি বার্তা</th>
                         </tr>
                       </thead>
                       <tbody>
                         {filteredStudents.length === 0 ? (
                           <tr>
-                            <td colSpan="5" className="text-center py-4 text-muted">
+                            <td colSpan="6" className="text-center py-4 text-muted">
                               কোনো ছাত্র/ছাত্রী পাওয়া যায়নি
                             </td>
                           </tr>
                         ) : (
                           filteredStudents.map(s => {
                             const isChecked = selectedStudentIds.includes(String(s.id));
+                            const phone = s.guardianPhone || s.phone;
                             return (
                               <tr
                                 key={s.id}
@@ -643,10 +749,24 @@ export const SmsModule = ({
                                 <td className="fw-semibold text-dark">{s.name}</td>
                                 <td><span className="badge bg-light text-dark border">{s.jamat}</span></td>
                                 <td className="font-monospace text-primary">
-                                  {s.guardianPhone ? (
-                                    <span><i className="fas fa-phone-alt me-1 small"></i>{s.guardianPhone}</span>
+                                  {phone ? (
+                                    <span><i className="fa-brands fa-whatsapp text-success me-1"></i>{phone}</span>
                                   ) : (
                                     <span className="text-danger small">মোবাইল নেই</span>
+                                  )}
+                                </td>
+                                <td className="text-center" onClick={(e) => e.stopPropagation()}>
+                                  {phone ? (
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-outline-success px-2 py-0.5 rounded-pill"
+                                      onClick={() => openDirectWhatsApp(phone)}
+                                      title="সরাসরি WhatsApp চ্যাট খুলুন"
+                                    >
+                                      <i className="fa-brands fa-whatsapp me-1"></i>চ্যাট
+                                    </button>
+                                  ) : (
+                                    <span className="text-muted small">-</span>
                                   )}
                                 </td>
                               </tr>
@@ -675,13 +795,14 @@ export const SmsModule = ({
                           </th>
                           <th>শিক্ষকের নাম</th>
                           <th>পদবি</th>
-                          <th>মোবাইল নম্বর</th>
+                          <th>WhatsApp নম্বর</th>
+                          <th className="text-center">সরাসরি বার্তা</th>
                         </tr>
                       </thead>
                       <tbody>
                         {filteredTeachers.length === 0 ? (
                           <tr>
-                            <td colSpan="4" className="text-center py-4 text-muted">
+                            <td colSpan="5" className="text-center py-4 text-muted">
                               কোনো শিক্ষক পাওয়া যায়নি
                             </td>
                           </tr>
@@ -715,9 +836,23 @@ export const SmsModule = ({
                                 <td><span className="badge bg-light text-dark border">{t.designation}</span></td>
                                 <td className="font-monospace text-primary">
                                   {t.mobile ? (
-                                    <span><i className="fas fa-phone-alt me-1 small"></i>{t.mobile}</span>
+                                    <span><i className="fa-brands fa-whatsapp text-success me-1"></i>{t.mobile}</span>
                                   ) : (
                                     <span className="text-danger small">মোবাইল নেই</span>
+                                  )}
+                                </td>
+                                <td className="text-center" onClick={(e) => e.stopPropagation()}>
+                                  {t.mobile ? (
+                                    <button
+                                      type="button"
+                                      className="btn btn-sm btn-outline-success px-2 py-0.5 rounded-pill"
+                                      onClick={() => openDirectWhatsApp(t.mobile)}
+                                      title="সরাসরি WhatsApp চ্যাট খুলুন"
+                                    >
+                                      <i className="fa-brands fa-whatsapp me-1"></i>চ্যাট
+                                    </button>
+                                  ) : (
+                                    <span className="text-muted small">-</span>
                                   )}
                                 </td>
                               </tr>
@@ -732,11 +867,11 @@ export const SmsModule = ({
 
               <div className="modal-footer bg-light py-2 px-3 d-flex justify-content-between align-items-center">
                 <div className="small text-muted">
-                  মোট নির্বাচিত: <b className="text-dark">{isTeacherMode ? selectedTeacherIds.length : selectedStudentIds.length} জন</b> (বৈধ নম্বর: <b className="text-success">{recipientNumbers.length} টি</b>)
+                  মোট নির্বাচিত: <b className="text-dark">{isTeacherMode ? selectedTeacherIds.length : selectedStudentIds.length} জন</b> (বৈধ WhatsApp নম্বর: <b className="text-success">{recipientNumbers.length} টি</b>)
                 </div>
                 <button
                   type="button"
-                  className="btn btn-primary btn-sm px-4 rounded-pill"
+                  className="btn btn-success btn-sm px-4 rounded-pill fw-bold"
                   onClick={() => setShowRecipientModal(false)}
                 >
                   <i className="fas fa-check me-1"></i>ঠিক আছে
@@ -747,142 +882,84 @@ export const SmsModule = ({
         </div>
       )}
 
-      {/* Balance Recharge Modal */}
-      {showRechargeModal && (
+      {/* WhatsApp Batch Dispatcher Hub Modal (when multiple recipients are messaged) */}
+      {showBatchModal && (
         <div
           className="modal fade show d-block"
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1055 }}
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1060 }}
           role="dialog"
           aria-modal="true"
         >
-          <div className="modal-dialog modal-dialog-centered">
+          <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div className="modal-content border-0 shadow-lg rounded-4">
-              <div className="modal-header bg-gradient text-dark border-bottom py-3">
+              <div className="modal-header bg-success text-white py-3">
                 <h5 className="modal-title fw-bold">
-                  <i className="fas fa-wallet text-success me-2"></i>
-                  এসএমএস ব্যালেন্স রিচার্জ
+                  <i className="fa-brands fa-whatsapp me-2"></i>
+                  WhatsApp বার্তা প্রেরণ হাব ({batchRecipients.length} জন প্রাপক)
                 </h5>
                 <button
                   type="button"
-                  className="btn-close"
-                  onClick={() => setShowRechargeModal(false)}
+                  className="btn-close btn-close-white"
+                  onClick={() => setShowBatchModal(false)}
                 ></button>
               </div>
-              <form onSubmit={handleRechargeSubmit}>
-                <div className="modal-body p-4">
-                  <div className="mb-3 text-center p-3 bg-light rounded-3 border">
-                    <span className="text-muted small d-block mb-1">বর্তমান ব্যালেন্স</span>
-                    <h3 className="fw-bold text-success mb-0 font-monospace">৳ {currentBalance.toFixed(2)}</h3>
-                  </div>
 
-                  <div className="mb-3">
-                    <label className="form-label fw-bold small">রিচার্জের পরিমাণ (টাকা):</label>
-                    <input
-                      type="number"
-                      className="form-control form-control-lg font-monospace text-center fw-bold"
-                      value={rechargeAmount}
-                      onChange={(e) => setRechargeAmount(e.target.value)}
-                      min="10"
-                      step="10"
-                      required
-                    />
-                  </div>
-
-                  <div className="d-flex gap-2 justify-content-center mb-3">
-                    {['50', '100', '200', '500'].map(val => (
-                      <button
-                        key={val}
-                        type="button"
-                        className={`btn btn-sm ${rechargeAmount === val ? 'btn-success' : 'btn-outline-secondary'}`}
-                        onClick={() => setRechargeAmount(val)}
-                      >
-                        ৳ {val}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="p-3 bg-light rounded-3 border small text-muted">
-                    <i className="fas fa-info-circle text-primary me-1"></i>
-                    প্রতি এসএমএস রেট: <b>৳ ০.৪০</b>। রিচার্জকৃত টাকা সাথে সাথে এসএমএস ব্যালেন্সে যোগ হবে।
+              <div className="modal-body p-3">
+                <div className="alert alert-success d-flex align-items-center py-2 px-3 mb-3 small">
+                  <i className="fa-brands fa-whatsapp fs-4 me-2"></i>
+                  <div>
+                    <b>১ম প্রাপকের চ্যাট স্বয়ংক্রিয়ভাবে ওপেন করা হয়েছে!</b> নিচের তালিকা থেকে প্রতি জনের পাশে <b>"WhatsApp ওপেন"</b> বাটনে ক্লিক করে খুব সহজে দ্রুত মেসেজ সেন্ড করুন। কোনো রিচার্জ বা টাকা কাটার ভয় নেই!
                   </div>
                 </div>
 
-                <div className="modal-footer bg-light py-2 px-3">
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-sm rounded-pill"
-                    onClick={() => setShowRechargeModal(false)}
-                  >
-                    বাতিল
-                  </button>
-                  <button type="submit" className="btn btn-success btn-sm px-4 rounded-pill">
-                    <i className="fas fa-check-circle me-1"></i>রিচার্জ সম্পন্ন করুন
-                  </button>
+                <div className="table-responsive border rounded-3" style={{ maxHeight: '350px' }}>
+                  <table className="table table-hover table-striped align-middle mb-0">
+                    <thead className="table-light sticky-top">
+                      <tr>
+                        <th style={{ width: '50px' }}>#</th>
+                        <th>নাম</th>
+                        <th>বিভাগ / পদবি</th>
+                        <th>WhatsApp নম্বর</th>
+                        <th className="text-center" style={{ width: '160px' }}>অ্যাকশন</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {batchRecipients.map((r, idx) => (
+                        <tr key={r.id || idx}>
+                          <td className="font-monospace text-muted">{idx + 1}</td>
+                          <td className="fw-bold text-dark">{r.name}</td>
+                          <td><span className="badge bg-light text-dark border">{r.role || '-'}</span></td>
+                          <td className="font-monospace text-success fw-semibold">
+                            <i className="fa-brands fa-whatsapp me-1"></i>{r.phone}
+                          </td>
+                          <td className="text-center">
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-success px-3 py-1 rounded-pill shadow-sm fw-bold"
+                              onClick={() => openDirectWhatsApp(r.phone)}
+                            >
+                              <i className="fa-brands fa-whatsapp me-1"></i> WhatsApp ওপেন
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+              </div>
 
-      {/* Gateway Settings Info Modal */}
-      {showGatewayModal && (
-        <div
-          className="modal fade show d-block"
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1055 }}
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg rounded-4">
-              <div className="modal-header bg-gradient text-dark border-bottom py-3">
-                <h5 className="modal-title fw-bold">
-                  <i className="fas fa-cog text-primary me-2"></i>
-                  এসএমএস গেটওয়ে সেটিংস
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setShowGatewayModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body p-4">
-                <table className="table table-bordered table-sm mb-0">
-                  <tbody>
-                    <tr>
-                      <th className="bg-light" style={{ width: '40%' }}>গেটওয়ে সার্ভিস</th>
-                      <td><span className="badge bg-success">HostZoneBD SMS Gateway (সক্রিয়)</span></td>
-                    </tr>
-                    <tr>
-                      <th className="bg-light">মাস্কিং স্ট্যাটাস</th>
-                      <td>Non-Masking (MADRASHA)</td>
-                    </tr>
-                    <tr>
-                      <th className="bg-light">বর্তমান ব্যালেন্স</th>
-                      <td className="fw-bold text-success font-monospace">৳ {currentBalance.toFixed(2)}</td>
-                    </tr>
-                    <tr>
-                      <th className="bg-light">প্রতি SMS চার্জ</th>
-                      <td className="font-monospace">৳ ০.৪০ / SMS</td>
-                    </tr>
-                    <tr>
-                      <th className="bg-light">SMS ক্যারেক্টার লিমিট</th>
-                      <td>ইংরেজি: ১৬০ অক্ষর, বাংলা: ৭০ অক্ষর</td>
-                    </tr>
-                    <tr>
-                      <th className="bg-light">API এন্ডপয়েন্ট</th>
-                      <td className="font-monospace small">/admin/settings/check-sms-balance</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
               <div className="modal-footer bg-light py-2 px-3">
                 <button
                   type="button"
-                  className="btn btn-primary btn-sm px-4 rounded-pill"
-                  onClick={() => setShowGatewayModal(false)}
+                  className="btn btn-secondary btn-sm px-4 rounded-pill"
+                  onClick={() => {
+                    setShowBatchModal(false);
+                    setMessageBody('');
+                    setCharacterCount(0);
+                    setRemainingCharacters(500);
+                  }}
                 >
-                  বন্ধ করুন
+                  সম্পন্ন হয়েছে
                 </button>
               </div>
             </div>
@@ -890,13 +967,13 @@ export const SmsModule = ({
         </div>
       )}
 
-      {/* SMS Logs (when defaultView === 'logs') */}
+      {/* Message History / Logs (when defaultView === 'logs') */}
       {defaultView === 'logs' && (
         <div className="card shadow-lg border-0 mt-4">
           <div className="card-header bg-gradient border-0 py-3">
             <h5 className="card-title mb-0 fw-bold text-dark">
-              <i className="fas fa-history me-2 text-primary"></i>
-              এসএমএস প্রেরণের ইতিহাস
+              <i className="fa-brands fa-whatsapp me-2 text-success"></i>
+              WhatsApp বার্তা প্রেরণের ইতিহাস
             </h5>
           </div>
           <div className="card-body p-0">
@@ -907,7 +984,7 @@ export const SmsModule = ({
                     <th>তারিখ ও সময়</th>
                     <th>প্রাপক সংখ্যা</th>
                     <th>বার্তার বিবরণ</th>
-                    <th>ব্যয় (৳)</th>
+                    <th>খরচ</th>
                     <th>স্ট্যাটাস</th>
                   </tr>
                 </thead>
@@ -915,7 +992,7 @@ export const SmsModule = ({
                   {smsLogs.length === 0 ? (
                     <tr>
                       <td colSpan="5" className="text-center py-4 text-muted">
-                        কোনো এসএমএস প্রেরণের রেকর্ড পাওয়া যায়নি
+                        কোনো WhatsApp প্রেরণের রেকর্ড পাওয়া যায়নি
                       </td>
                     </tr>
                   ) : (
@@ -928,10 +1005,10 @@ export const SmsModule = ({
                           </span>
                         </td>
                         <td>{log.message}</td>
-                        <td className="font-monospace text-success">৳ {log.cost || '0.40'}</td>
+                        <td className="font-monospace text-success fw-bold">ফ্রি (৳ ০.০০)</td>
                         <td>
-                          <span className={`badge ${log.status === 'সফল' ? 'bg-success' : 'bg-danger'}`}>
-                            {log.status || 'সফল'}
+                          <span className="badge bg-success">
+                            <i className="fa-brands fa-whatsapp me-1"></i>সফল (WhatsApp)
                           </span>
                         </td>
                       </tr>

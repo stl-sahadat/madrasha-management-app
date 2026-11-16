@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
+import { getWhatsAppLink } from '../sms/SmsModule';
 
 export const StudentList = () => {
   const { students, jamats, deleteStudent, updateStudent, setActiveTab } = useApp();
 
+  const [searchName, setSearchName] = useState('');
   const [searchAdmission, setSearchAdmission] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
   const [searchJamat, setSearchJamat] = useState('');
@@ -11,18 +13,38 @@ export const StudentList = () => {
   const [smsModalStudent, setSmsModalStudent] = useState(null);
   const [smsText, setSmsText] = useState('');
 
-  // Filter students
-  const filteredStudents = students.filter(s => {
-    const admissionNo = (s.admissionNumber || s.admission_number || s.roll || '').toString();
-    const phone = (s.parentsPhone || s.parents_phone || s.guardianPhone || '').toString();
-    const jamat = s.jamat || '';
+  // Filter and sort students so matching names come to the very top
+  const filteredStudents = useMemo(() => {
+    const list = students.filter(s => {
+      const name = (s.name || '').toLowerCase();
+      const nameEn = (s.nameEn || '').toLowerCase();
+      const admissionNo = (s.admissionNumber || s.admission_number || s.roll || '').toString();
+      const phone = (s.parentsPhone || s.parents_phone || s.guardianPhone || '').toString();
+      const jamat = s.jamat || '';
 
-    const matchAdmission = !searchAdmission || admissionNo.includes(searchAdmission);
-    const matchPhone = !searchPhone || phone.includes(searchPhone);
-    const matchJamat = !searchJamat || jamat === searchJamat;
+      const matchName = !searchName.trim() ||
+        name.includes(searchName.trim().toLowerCase()) ||
+        nameEn.includes(searchName.trim().toLowerCase());
+      const matchAdmission = !searchAdmission || admissionNo.includes(searchAdmission);
+      const matchPhone = !searchPhone || phone.includes(searchPhone);
+      const matchJamat = !searchJamat || jamat === searchJamat;
 
-    return matchAdmission && matchPhone && matchJamat;
-  });
+      return matchName && matchAdmission && matchPhone && matchJamat;
+    });
+
+    if (searchName.trim()) {
+      const q = searchName.trim().toLowerCase();
+      return [...list].sort((a, b) => {
+        const aMatches = (a.name || '').toLowerCase().includes(q);
+        const bMatches = (b.name || '').toLowerCase().includes(q);
+        if (aMatches && !bMatches) return -1;
+        if (!aMatches && bMatches) return 1;
+        return 0;
+      });
+    }
+
+    return list;
+  }, [students, searchName, searchAdmission, searchPhone, searchJamat]);
 
   const handleDelete = (id) => {
     if (window.confirm('আপনি কি নিশ্চিতভাবে এই ছাত্র/ছাত্রীকে মুছে ফেলতে চান?')) {
@@ -54,7 +76,20 @@ export const StudentList = () => {
         <div className="card-body">
           {/* Custom Search Boxes */}
           <div className="row mb-3 g-3">
-            <div className="col-md-4">
+            <div className="col-md-3 col-12">
+              <label htmlFor="search_name" className="form-label fw-semibold text-primary">
+                <i className="fas fa-search me-1"></i> ছাত্র/ছাত্রীর নাম দিয়ে খুঁজুন
+              </label>
+              <input
+                type="text"
+                id="search_name"
+                className="form-control"
+                placeholder="ছাত্র/ছাত্রীর নাম লিখুন..."
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+              />
+            </div>
+            <div className="col-md-3 col-12">
               <label htmlFor="search_admission" className="form-label fw-semibold">
                 ভর্তি নম্বর দিয়ে খুঁজুন
               </label>
@@ -67,7 +102,7 @@ export const StudentList = () => {
                 onChange={(e) => setSearchAdmission(e.target.value)}
               />
             </div>
-            <div className="col-md-4">
+            <div className="col-md-3 col-12">
               <label htmlFor="search_phone" className="form-label fw-semibold">
                 অভিভাবকের মোবাইল ১ দিয়ে খুঁজুন
               </label>
@@ -80,7 +115,7 @@ export const StudentList = () => {
                 onChange={(e) => setSearchPhone(e.target.value)}
               />
             </div>
-            <div className="col-md-4">
+            <div className="col-md-3 col-12">
               <label htmlFor="search_jamat" className="form-label fw-semibold">
                 জামাত দিয়ে ফিল্টার করুন
               </label>
@@ -413,7 +448,7 @@ export const StudentList = () => {
         </div>
       )}
 
-      {/* SMS Modal */}
+      {/* WhatsApp Modal */}
       {smsModalStudent && (
         <div
           className="modal fade show d-block"
@@ -421,11 +456,11 @@ export const StudentList = () => {
           style={{ backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1050 }}
           role="dialog"
         >
-          <div className="modal-dialog">
-            <div className="modal-content">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg rounded-4">
               <div className="modal-header bg-success text-white">
-                <h5 className="modal-title">
-                  <i className="fa-solid fa-message me-2"></i>অভিভাবককে এসএমএস পাঠান
+                <h5 className="modal-title fw-bold">
+                  <i className="fa-brands fa-whatsapp me-2"></i>অভিভাবককে WhatsApp বার্তা পাঠান
                 </h5>
                 <button
                   type="button"
@@ -433,12 +468,12 @@ export const StudentList = () => {
                   onClick={() => setSmsModalStudent(null)}
                 ></button>
               </div>
-              <div className="modal-body">
+              <div className="modal-body p-4">
                 <p className="mb-2">
                   <strong>শিক্ষার্থী:</strong> {smsModalStudent.name} ({smsModalStudent.jamat})
                 </p>
                 <p className="mb-3">
-                  <strong>মোবাইল নম্বর:</strong> {smsModalStudent.parentsPhone || smsModalStudent.guardianPhone}
+                  <strong>WhatsApp নম্বর:</strong> <span className="font-monospace text-success fw-bold">{smsModalStudent.parentsPhone || smsModalStudent.guardianPhone || smsModalStudent.phone || 'নম্বর পাওয়া যায়নি'}</span>
                 </p>
                 <div className="mb-3">
                   <label className="form-label fw-bold">মেসেজ কন্টেন্ট:</label>
@@ -449,24 +484,32 @@ export const StudentList = () => {
                     onChange={(e) => setSmsText(e.target.value)}
                   ></textarea>
                 </div>
+                <div className="p-2 bg-success-subtle text-success border border-success rounded small">
+                  <i className="fa-brands fa-whatsapp me-1"></i> এটি সরাসরি অভিভাবকের WhatsApp অ্যাপ ওপেন করবে। কোনো রিচার্জ বা ব্যালেন্স কাটার খরচ নেই।
+                </div>
               </div>
               <div className="modal-footer">
                 <button
                   type="button"
-                  className="btn btn-secondary"
+                  className="btn btn-secondary rounded-pill"
                   onClick={() => setSmsModalStudent(null)}
                 >
                   বাতিল
                 </button>
                 <button
                   type="button"
-                  className="btn btn-success"
+                  className="btn btn-success rounded-pill fw-bold px-4"
                   onClick={() => {
-                    alert(`এসএমএস পাঠানো হয়েছে: ${smsModalStudent.parentsPhone || smsModalStudent.guardianPhone}`);
+                    const phone = smsModalStudent.parentsPhone || smsModalStudent.guardianPhone || smsModalStudent.phone;
+                    if (phone) {
+                      window.open(getWhatsAppLink(phone, smsText), '_blank');
+                    } else {
+                      alert('অভিভাবকের সঠিক মোবাইল নম্বর পাওয়া যায়নি!');
+                    }
                     setSmsModalStudent(null);
                   }}
                 >
-                  <i className="fa-solid fa-paper-plane me-1"></i> পাঠান
+                  <i className="fa-brands fa-whatsapp me-1"></i> WhatsApp এ পাঠান
                 </button>
               </div>
             </div>

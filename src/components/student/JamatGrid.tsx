@@ -1,14 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 
 export const JamatGrid = () => {
   const { students, jamats, deleteStudent, setActiveTab } = useApp();
   const [selectedJamat, setSelectedJamat] = useState('');
+  const [searchName, setSearchName] = useState('');
   const [viewStudent, setViewStudent] = useState(null);
 
-  const filteredStudents = selectedJamat
-    ? students.filter(s => s.jamat === selectedJamat)
-    : students;
+  const filteredStudents = useMemo(() => {
+    let list = selectedJamat ? students.filter(s => s.jamat === selectedJamat) : students;
+    if (searchName.trim()) {
+      const q = searchName.trim().toLowerCase();
+      list = list.filter(s =>
+        (s.name || '').toLowerCase().includes(q) ||
+        (s.nameEn || '').toLowerCase().includes(q) ||
+        String(s.roll || '').includes(q) ||
+        String(s.admissionNumber || s.admission_number || '').includes(q)
+      );
+      list.sort((a, b) => {
+        const aMatches = (a.name || '').toLowerCase().includes(q);
+        const bMatches = (b.name || '').toLowerCase().includes(q);
+        if (aMatches && !bMatches) return -1;
+        if (!aMatches && bMatches) return 1;
+        return 0;
+      });
+    }
+    return list;
+  }, [students, selectedJamat, searchName]);
 
   const handleDelete = (id) => {
     if (window.confirm('আপনি কি নিশ্চিতভাবে এই ছাত্র/ছাত্রীকে মুছে ফেলতে চান?')) {
@@ -58,9 +76,9 @@ export const JamatGrid = () => {
         </div>
 
         <div className="card-body mb-3">
-          <div className="row align-items-end">
-            {/* Left: Select */}
-            <div className="col-md-6">
+          <div className="row g-3 align-items-end">
+            {/* Jamat Select */}
+            <div className="col-md-4 col-12">
               <label htmlFor="jamat_select" className="form-label fw-bold">
                 জামাত লিস্ট
               </label>
@@ -80,8 +98,34 @@ export const JamatGrid = () => {
               </select>
             </div>
 
+            {/* Live Name / Roll Search Input */}
+            <div className="col-md-4 col-12">
+              <label htmlFor="student_search" className="form-label fw-bold text-primary">
+                <i className="fas fa-search me-1"></i> ছাত্র/ছাত্রীর নাম বা রোল দিয়ে খুঁজুন
+              </label>
+              <div className="input-group">
+                <input
+                  type="text"
+                  id="student_search"
+                  className="form-control"
+                  placeholder="নাম বা রোল লিখুন..."
+                  value={searchName}
+                  onChange={(e) => setSearchName(e.target.value)}
+                />
+                {searchName && (
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => setSearchName('')}
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Right: Add Student button */}
-            <div className="col-md-6 text-md-end text-start mt-3 mt-md-0">
+            <div className="col-md-4 col-12 text-md-end text-start">
               <button
                 onClick={() => setActiveTab('student-create')}
                 className="btn btn-danger text-white fw-bold"
