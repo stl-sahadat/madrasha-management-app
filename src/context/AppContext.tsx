@@ -263,46 +263,19 @@ export const AppProvider = ({ children, initialSlug, initialSearchParams }) => {
     }
   });
 
-  const [currentUser, setCurrentUser] = useState(() => {
+  // Initial user & auth state: ALWAYS false on startup/link-click so Login Page appears first per requirements
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
+  // Clear any residual persisted auth on initial mount so clicking/opening the link always shows the Login Page first
+  useEffect(() => {
     try {
-      const sessionAuth = sessionStorage.getItem('madrasha_is_authenticated');
-      const localAuth = localStorage.getItem('madrasha_is_authenticated');
-      if (sessionAuth === 'true') {
-        const savedSession = sessionStorage.getItem('madrasha_current_user');
-        if (savedSession) {
-          const { password, passwordHash, ...u } = JSON.parse(savedSession);
-          return u;
-        }
-      }
-      if (localAuth === 'true') {
-        const savedLocal = localStorage.getItem('madrasha_current_user');
-        if (savedLocal) {
-          const { password, passwordHash, ...u } = JSON.parse(savedLocal);
-          return u;
-        }
-      }
-      return null;
-    } catch {
-      return null;
-    }
-  });
-
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    try {
-      const sessionAuth = sessionStorage.getItem('madrasha_is_authenticated');
-      if (sessionAuth === 'true') return true;
-      if (sessionAuth === 'false') return false;
-
-      const localAuth = localStorage.getItem('madrasha_is_authenticated');
-      if (localAuth === 'true') return true;
-      if (localAuth === 'false') return false;
-
-      // Default to false on first visit so the authentic Login Interface appears first per requirements
-      return false;
-    } catch {
-      return false;
-    }
-  });
+      localStorage.removeItem('madrasha_is_authenticated');
+      localStorage.removeItem('madrasha_current_user');
+      sessionStorage.removeItem('madrasha_is_authenticated');
+      sessionStorage.removeItem('madrasha_current_user');
+    } catch {}
+  }, []);
 
   // UI state with full browser address bar URL synchronization
   const [activeTab, setActiveTabState] = useState(() => {
